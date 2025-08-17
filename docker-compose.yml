@@ -14,7 +14,7 @@ services:
       - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=health,info
       - MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS=always
     networks:
-      - nexhub-network
+      - next-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8888/actuator/health"]
@@ -34,6 +34,8 @@ services:
       - SERVER_PORT=8080
       - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
       - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080,http://localhost:5731
+      - CORS_ALLOWED_METHODS=GET,POST,PUT,DELETE,OPTIONS
+      - CORS_ALLOWED_HEADERS=Content-Type,Authorization,X-Requested-With,Accept,Origin,Access-Control-Request-Method,Access-Control-Request-Headers
       - CORS_ALLOW_CREDENTIALS=true
       - AUTH_SERVICE_URI=lb://auth-service
       - USER_SERVICE_URI=lb://user-service
@@ -46,7 +48,7 @@ services:
       config-server:
         condition: service_healthy
     networks:
-      - nexhub-network
+      - next-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
@@ -56,5 +58,5 @@ services:
       start_period: 60s
 
 networks:
-  nexhub-network:
+  next-network:
     driver: bridge
