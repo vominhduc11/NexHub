@@ -46,3 +46,23 @@ spring:
             - Path=/api/product/**
           filters:
             - StripPrefix=1
+
+        - id: language-service
+          uri: ${LANGUAGE_SERVICE_URI}
+          predicates:
+            - Path=/api/language/**
+          filters:
+            - StripPrefix=1
+
+      globals:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:8080,http://localhost:5731}
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: ${CORS_ALLOW_CREDENTIALS:true}
