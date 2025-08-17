@@ -15,10 +15,10 @@ RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
 # Copy the jar file from build stage
-COPY --from=build /app/target/api-gateway-*.jar app.jar
+COPY --from=build /app/target/discovery-service-*.jar app.jar
 
 # Expose port
-EXPOSE 8080
+EXPOSE 8761
 
 # Run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]
