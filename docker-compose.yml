@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   config-server:
-    image: nexhub/config-server:latest
+    build: ./config-server
     container_name: nexhub-config-server
     ports:
       - "8888:8888"
@@ -24,7 +24,7 @@ services:
       start_period: 40s
 
   api-gateway:
-    image: nexhub/api-gateway:latest
+    build: ./api-gateway
     container_name: nexhub-api-gateway
     ports:
       - "8080:8080"

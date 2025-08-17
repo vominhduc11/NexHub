@@ -61,3 +61,27 @@ spring:
             allowedMethods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS}
             allowedHeaders: ${CORS_ALLOWED_HEADERS:Content-Type,Authorization,X-Requested-With,Accept,Origin,Access-Control-Request-Method,Access-Control-Request-Headers}
             allowCredentials: ${CORS_ALLOW_CREDENTIALS:true}
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    config-url: /v3/api-docs/swagger-config
+    urls:
+      - url: /v3/api-docs/auth-service
+        name: Auth Service
+      - url: /v3/api-docs/user-service
+        name: User Service
+      - url: /v3/api-docs/notification-service
+        name: Notification Service
+      - url: /v3/api-docs/blog-service
+        name: Blog Service
+      - url: /v3/api-docs/warranty-service
+        name: Warranty Service
+      - url: /v3/api-docs/product-service
+        name: Product Service
+      - url: /v3/api-docs/language-service
+        name: Language Service
