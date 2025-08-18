@@ -1,6 +1,20 @@
 server:
   port: ${SERVER_PORT}
 
+spring:
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/nexhub_blog}
+    username: ${DATABASE_USERNAME:nexhub}
+    password: ${DATABASE_PASSWORD:nexhub123}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: ${DDL_AUTO:update}
+    show-sql: ${SHOW_SQL:false}
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
 eureka:
   instance:
     hostname: ${EUREKA_INSTANCE_HOSTNAME}

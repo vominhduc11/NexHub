@@ -140,6 +140,7 @@ services:
       - POSTGRES_PASSWORD=nexhub123
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./database/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
     networks:
       - next-network
     restart: unless-stopped
