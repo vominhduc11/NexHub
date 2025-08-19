@@ -1,29 +1,35 @@
 package com.devwonder.api_gateway.config;
 
+import java.util.Collections;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.http.HttpMethod;
-
-import java.util.Collections;
-import java.util.List;
+import org.springframework.security.oauth2.server.resource.authentication.ReactiveJwtAuthenticationConverterAdapter;
+import org.springframework.security.web.server.SecurityWebFilterChain;
 
 @Configuration
-@EnableWebSecurity
+@EnableWebFluxSecurity
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         return http
-            .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
-                .requestMatchers("/actuator/**").permitAll()
-                .requestMatchers("/api/auth/**").permitAll()
+            .csrf(ServerHttpSecurity.CsrfSpec::disable)
+            .cors(ServerHttpSecurity.CorsSpec::disable)
+            .authorizeExchange(exchanges -> exchanges
+                // Swagger UI
+                .pathMatchers(                        
+                        "/swagger-ui.html",
+                        "/swagger-ui/**",
+                        "/v3/api-docs/**",
+                        "/api-docs/**"
+                    ).permitAll()
+                .pathMatchers("/api/auth/**").permitAll()
+                .anyExchange().authenticated()
             )
             .oauth2ResourceServer(oauth2 -> oauth2
                 .jwt(jwt -> jwt
@@ -35,19 +41,20 @@ public class SecurityConfig {
     }
 
     @Bean
-    public JwtAuthenticationConverter jwtAuthenticationConverter() {
+    public ReactiveJwtAuthenticationConverterAdapter jwtAuthenticationConverter() {
         JwtAuthenticationConverter jwtConverter = new JwtAuthenticationConverter();
         jwtConverter.setJwtGrantedAuthoritiesConverter(jwt -> {
             Object rolesObj = jwt.getClaim("roles");
-            if (rolesObj instanceof List) {
+            if (rolesObj instanceof java.util.List) {
                 @SuppressWarnings("unchecked")
-                List<String> rolesList = (List<String>) rolesObj;
+                java.util.List<String> rolesList = (java.util.List<String>) rolesObj;
                 return rolesList.stream()
                     .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
                     .collect(java.util.stream.Collectors.toList());
             }
+            // Default role if no roles found
             return Collections.singletonList(new SimpleGrantedAuthority("ROLE_CUSTOMER"));
         });
-        return jwtConverter;
+        return new ReactiveJwtAuthenticationConverterAdapter(jwtConverter);
     }
 }

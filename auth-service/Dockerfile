@@ -16,6 +16,10 @@ COPY src ./src
 # Build the application
 RUN mvn clean package -DskipTests
 
+# Add build timestamp to force rebuild
+ARG BUILD_TIME
+ENV BUILD_TIME=${BUILD_TIME:-unknown}
+
 # Production stage
 FROM eclipse-temurin:17-jre
 

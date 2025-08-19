@@ -82,19 +82,18 @@ springdoc:
   swagger-ui:
     enabled: true
     path: /swagger-ui.html
-    config-url: /v3/api-docs/swagger-config
     urls:
-      - url: /v3/api-docs/auth-service
+      - url: /api/auth/v3/api-docs
         name: Auth Service
-      - url: /v3/api-docs/user-service
+      - url: /api/user/v3/api-docs
         name: User Service
-      - url: /v3/api-docs/notification-service
+      - url: /api/notification/v3/api-docs
         name: Notification Service
-      - url: /v3/api-docs/blog-service
+      - url: /api/blog/v3/api-docs
         name: Blog Service
-      - url: /v3/api-docs/warranty-service
+      - url: /api/warranty/v3/api-docs
         name: Warranty Service
-      - url: /v3/api-docs/product-service
+      - url: /api/product/v3/api-docs
         name: Product Service
-      - url: /v3/api-docs/language-service
+      - url: /api/language/v3/api-docs
         name: Language Service
