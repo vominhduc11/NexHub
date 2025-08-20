@@ -18,12 +18,53 @@ spring:
   cloud:
     gateway:
       routes:
+        - id: auth-service-swagger-ui
+          uri: ${AUTH_SERVICE_URI}
+          predicates:
+            - Path=/api/auth/swagger-ui.html
+          filters:
+            - SetPath=/swagger-ui.html
+            - AddRequestHeader=X-Gateway-Request, true
+            
+        - id: auth-service-swagger-resources
+          uri: ${AUTH_SERVICE_URI}
+          predicates:
+            - Path=/api/auth/swagger-ui/**
+          filters:
+            - StripPrefix=2
+            - AddRequestHeader=X-Gateway-Request, true
+            
+        - id: auth-service-webjars
+          uri: ${AUTH_SERVICE_URI}
+          predicates:
+            - Path=/api/auth/webjars/**
+          filters:
+            - StripPrefix=2
+            - AddRequestHeader=X-Gateway-Request, true
+            
+        - id: auth-service-api-docs
+          uri: ${AUTH_SERVICE_URI}
+          predicates:
+            - Path=/api/auth/v3/api-docs/**
+          filters:
+            - StripPrefix=2
+            - AddRequestHeader=X-Gateway-Request, true
+            
+        - id: auth-service-direct
+          uri: ${AUTH_SERVICE_URI}
+          predicates:
+            - Path=/auth/**
+          filters:
+            - StripPrefix=1
+            - AddRequestHeader=X-Gateway-Request, true
+            
         - id: auth-service
           uri: ${AUTH_SERVICE_URI}
           predicates:
             - Path=/api/auth/**
           filters:
             - StripPrefix=1
+            - AddRequestHeader=X-Gateway-Request, true
 
         - id: user-service
           uri: ${USER_SERVICE_URI}
@@ -76,24 +117,7 @@ spring:
             allowCredentials: ${CORS_ALLOW_CREDENTIALS:true}
 
 springdoc:
-  api-docs:
-    enabled: true
-    path: /v3/api-docs
   swagger-ui:
     enabled: true
     path: /swagger-ui.html
-    urls:
-      - url: /api/auth/v3/api-docs
-        name: Auth Service
-      - url: /api/user/v3/api-docs
-        name: User Service
-      - url: /api/notification/v3/api-docs
-        name: Notification Service
-      - url: /api/blog/v3/api-docs
-        name: Blog Service
-      - url: /api/warranty/v3/api-docs
-        name: Warranty Service
-      - url: /api/product/v3/api-docs
-        name: Product Service
-      - url: /api/language/v3/api-docs
-        name: Language Service
+    url: /api/auth/v3/api-docs

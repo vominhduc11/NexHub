@@ -18,26 +18,28 @@ public class SecurityConfig {
     @Bean
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         return http
-            .csrf(ServerHttpSecurity.CsrfSpec::disable)
-            .cors(ServerHttpSecurity.CorsSpec::disable)
-            .authorizeExchange(exchanges -> exchanges
-                // Swagger UI
-                .pathMatchers(                        
-                        "/swagger-ui.html",
-                        "/swagger-ui/**",
-                        "/v3/api-docs/**",
-                        "/api-docs/**"
-                    ).permitAll()
-                .pathMatchers("/api/auth/**").permitAll()
-                .anyExchange().authenticated()
-            )
-            .oauth2ResourceServer(oauth2 -> oauth2
-                .jwt(jwt -> jwt
-                    .jwkSetUri("http://auth-service:8081/auth/.well-known/jwks.json")
-                    .jwtAuthenticationConverter(jwtAuthenticationConverter())
-                )
-            )
-            .build();
+                .csrf(ServerHttpSecurity.CsrfSpec::disable)
+                .cors(ServerHttpSecurity.CorsSpec::disable)
+                .authorizeExchange(exchanges -> exchanges
+                        // Swagger UI
+                        .pathMatchers(
+                            "/swagger-ui.html",
+                            "/swagger-ui/**",
+                            "/webjars/**",
+                            "/v3/api-docs/**",
+                            "/api/*/v3/api-docs",
+                            "/auth/swagger-ui.html",
+                            "/auth/swagger-ui/**",
+                            "/auth/webjars/**",
+                            "/auth/v3/api-docs"
+                        ).permitAll()
+                        .pathMatchers("/api/auth/**").permitAll()
+                        .anyExchange().authenticated())
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(jwt -> jwt
+                                .jwkSetUri("http://auth-service:8081/auth/.well-known/jwks.json")
+                                .jwtAuthenticationConverter(jwtAuthenticationConverter())))
+                .build();
     }
 
     @Bean
@@ -49,8 +51,8 @@ public class SecurityConfig {
                 @SuppressWarnings("unchecked")
                 java.util.List<String> rolesList = (java.util.List<String>) rolesObj;
                 return rolesList.stream()
-                    .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
-                    .collect(java.util.stream.Collectors.toList());
+                        .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+                        .collect(java.util.stream.Collectors.toList());
             }
             // Default role if no roles found
             return Collections.singletonList(new SimpleGrantedAuthority("ROLE_CUSTOMER"));
