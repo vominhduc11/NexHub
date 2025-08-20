@@ -134,6 +134,45 @@ services:
       retries: 3
       start_period: 60s
 
+  user-service:
+    build: ./user-service
+    container_name: nexhub-user-service
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_APPLICATION_NAME=user-service
+      - SERVER_PORT=8082
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
+      - EUREKA_CLIENT_FETCH_REGISTRY=true
+      - EUREKA_INSTANCE_HOSTNAME=user-service
+      - EUREKA_INSTANCE_PREFER_IP=false
+      - LOGGING_LEVEL_ROOT=INFO
+      - LOGGING_LEVEL_COM_DEVWONDER_USER_SERVICE=DEBUG
+      - DATABASE_URL=jdbc:postgresql://postgres:5432/nexhub_user
+      - DATABASE_USERNAME=nexhub
+      - DATABASE_PASSWORD=nexhub123
+      - DDL_AUTO=update
+      - SHOW_SQL=false
+    depends_on:
+      config-server:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - next-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
   postgres:
     image: postgres:15-alpine
     container_name: nexhub-postgres
@@ -158,7 +197,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: dishub_redis
+    container_name: nexhub_redis
     ports:
       - "6379:6379"
     volumes:
@@ -170,7 +209,7 @@ services:
 
   zookeeper1:
     image: confluentinc/cp-zookeeper:7.4.0
-    container_name: dishub_zookeeper1
+    container_name: nexhub_zookeeper1
     environment:
       ZOOKEEPER_SERVER_ID: 1
       ZOOKEEPER_CLIENT_PORT: 2181
@@ -189,7 +228,7 @@ services:
 
   zookeeper2:
     image: confluentinc/cp-zookeeper:7.4.0
-    container_name: dishub_zookeeper2
+    container_name: nexhub_zookeeper2
     environment:
       ZOOKEEPER_SERVER_ID: 2
       ZOOKEEPER_CLIENT_PORT: 2182
@@ -208,7 +247,7 @@ services:
 
   zookeeper3:
     image: confluentinc/cp-zookeeper:7.4.0
-    container_name: dishub_zookeeper3
+    container_name: nexhub_zookeeper3
     environment:
       ZOOKEEPER_SERVER_ID: 3
       ZOOKEEPER_CLIENT_PORT: 2183
@@ -228,7 +267,7 @@ services:
   # Kafka Cluster (3 brokers)
   kafka1:
     image: confluentinc/cp-kafka:7.4.0
-    container_name: dishub_kafka1
+    container_name: nexhub_kafka1
     depends_on:
       - zookeeper1
       - zookeeper2
@@ -256,7 +295,7 @@ services:
 
   kafka2:
     image: confluentinc/cp-kafka:7.4.0
-    container_name: dishub_kafka2
+    container_name: nexhub_kafka2
     depends_on:
       - zookeeper1
       - zookeeper2
@@ -284,7 +323,7 @@ services:
 
   kafka3:
     image: confluentinc/cp-kafka:7.4.0
-    container_name: dishub_kafka3
+    container_name: nexhub_kafka3
     depends_on:
       - zookeeper1
       - zookeeper2
@@ -313,6 +352,7 @@ services:
 networks:
   next-network:
     driver: bridge
+    name: next-network
 
 volumes:
   postgres_data:

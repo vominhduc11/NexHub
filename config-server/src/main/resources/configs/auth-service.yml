@@ -15,6 +15,18 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
+# SpringDoc OpenAPI Configuration
+springdoc:
+  api-docs:
+    enabled: ${SWAGGER_ENABLED:true}
+  swagger-ui:
+    enabled: ${SWAGGER_UI_ENABLED:true}
+    path: /swagger-ui.html
+    try-it-out-enabled: true
+    persist-authorization: true
+    display-request-duration: true
+  packages-to-scan: com.devwonder.auth_service.controller
+
 eureka:
   instance:
     hostname: ${EUREKA_INSTANCE_HOSTNAME}

@@ -1,4 +1,4 @@
-package com.devwonder.auth_service.config;
+package com.devwonder.user_service.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,8 +33,20 @@ public class SecurityConfig {
                     "request.getHeader('X-Gateway-Request') == 'true'"   // ONLY Gateway header
                 ))
                 
-                // All auth endpoints - ONLY accessible via API Gateway
-                .requestMatchers("/auth/**").access(new WebExpressionAuthorizationManager(
+                // All user endpoints - ONLY accessible via API Gateway
+                .requestMatchers("/users/**").access(new WebExpressionAuthorizationManager(
+                    "request.getHeader('X-Gateway-Request') == 'true'"   // ONLY Gateway header
+                ))
+                
+                .requestMatchers("/admins/**").access(new WebExpressionAuthorizationManager(
+                    "request.getHeader('X-Gateway-Request') == 'true'"   // ONLY Gateway header
+                ))
+                
+                .requestMatchers("/customers/**").access(new WebExpressionAuthorizationManager(
+                    "request.getHeader('X-Gateway-Request') == 'true'"   // ONLY Gateway header
+                ))
+                
+                .requestMatchers("/resellers/**").access(new WebExpressionAuthorizationManager(
                     "request.getHeader('X-Gateway-Request') == 'true'"   // ONLY Gateway header
                 ))
                 

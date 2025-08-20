@@ -1,4 +1,4 @@
-package com.devwonder.auth_service.config;
+package com.devwonder.user_service.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,18 +20,18 @@ public class OpenApiConfig {
     private static final String GATEWAY_HEADER_NAME = "Gateway Request";
 
     @Bean
-    public OpenAPI authServiceOpenAPI() {
+    public OpenAPI userServiceOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Auth Service API")
-                        .description("Authentication and authorization service")
+                        .title("User Service API")
+                        .description("User management service for customers, resellers and admins")
                         .version("1.0.0")
                         .contact(new Contact()
                                 .name("DevWonder Team")
                                 .email("support@devwonder.com")))
                 .servers(List.of(
                         new Server().url("http://localhost:8080/api").description("Via API Gateway"),
-                        new Server().url("http://localhost:8081").description("Direct access (dev only)")
+                        new Server().url("http://localhost:8082").description("Direct access (dev only)")
                 ))
                 .components(new Components()
                         .addSecuritySchemes(JWT_SECURITY_NAME, new SecurityScheme()
