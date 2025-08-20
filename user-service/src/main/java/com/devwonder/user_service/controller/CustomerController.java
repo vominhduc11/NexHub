@@ -55,14 +55,30 @@ public class CustomerController {
     }
 
     @GetMapping("/name/{name}")
-    public ResponseEntity<Customer> getCustomerByName(@PathVariable String name) {
+    @Operation(summary = "Get customer by name", description = "Retrieve a specific customer by name")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Customer found"),
+        @ApiResponse(responseCode = "404", description = "Customer not found"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden")
+    })
+    public ResponseEntity<Customer> getCustomerByName(
+            @Parameter(description = "Name of the customer to retrieve") @PathVariable String name) {
         Optional<Customer> customer = customerService.getCustomerByName(name);
         return customer.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<Customer> createCustomer(@RequestBody Customer customer) {
+    @Operation(summary = "Create new customer", description = "Create a new customer")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Customer created successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid input"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden")
+    })
+    public ResponseEntity<Customer> createCustomer(
+            @Parameter(description = "Customer data to create") @RequestBody Customer customer) {
         try {
             Customer createdCustomer = customerService.createCustomer(customer);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdCustomer);
@@ -72,7 +88,16 @@ public class CustomerController {
     }
 
     @PutMapping("/{accountId}")
-    public ResponseEntity<Customer> updateCustomer(@PathVariable Long accountId, @RequestBody Customer customerDetails) {
+    @Operation(summary = "Update customer", description = "Update an existing customer")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Customer updated successfully"),
+        @ApiResponse(responseCode = "404", description = "Customer not found"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden")
+    })
+    public ResponseEntity<Customer> updateCustomer(
+            @Parameter(description = "Account ID of the customer to update") @PathVariable Long accountId,
+            @Parameter(description = "Updated customer data") @RequestBody Customer customerDetails) {
         try {
             Customer updatedCustomer = customerService.updateCustomer(accountId, customerDetails);
             return ResponseEntity.ok(updatedCustomer);
@@ -82,7 +107,15 @@ public class CustomerController {
     }
 
     @DeleteMapping("/{accountId}")
-    public ResponseEntity<Void> deleteCustomer(@PathVariable Long accountId) {
+    @Operation(summary = "Delete customer", description = "Delete a customer by account ID")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Customer deleted successfully"),
+        @ApiResponse(responseCode = "404", description = "Customer not found"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden")
+    })
+    public ResponseEntity<Void> deleteCustomer(
+            @Parameter(description = "Account ID of the customer to delete") @PathVariable Long accountId) {
         try {
             customerService.deleteCustomer(accountId);
             return ResponseEntity.noContent().build();
@@ -92,7 +125,14 @@ public class CustomerController {
     }
 
     @GetMapping("/{accountId}/exists")
-    public ResponseEntity<Boolean> checkCustomerExists(@PathVariable Long accountId) {
+    @Operation(summary = "Check if customer exists", description = "Check if a customer exists by account ID")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Check completed"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden")
+    })
+    public ResponseEntity<Boolean> checkCustomerExists(
+            @Parameter(description = "Account ID to check") @PathVariable Long accountId) {
         boolean exists = customerService.existsByAccountId(accountId);
         return ResponseEntity.ok(exists);
     }

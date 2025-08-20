@@ -28,6 +28,12 @@ public class ResellerController {
     private final ResellerService resellerService;
 
     @GetMapping
+    @Operation(summary = "Get all resellers", description = "Retrieve a list of all resellers")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Successfully retrieved resellers"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden")
+    })
     public ResponseEntity<List<Reseller>> getAllResellers() {
         List<Reseller> resellers = resellerService.getAllResellers();
         return ResponseEntity.ok(resellers);
@@ -55,7 +61,15 @@ public class ResellerController {
     }
 
     @PostMapping
-    public ResponseEntity<Reseller> createReseller(@RequestBody Reseller reseller) {
+    @Operation(summary = "Create new reseller", description = "Create a new reseller")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Reseller created successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid input"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden")
+    })
+    public ResponseEntity<Reseller> createReseller(
+            @Parameter(description = "Reseller data to create") @RequestBody Reseller reseller) {
         try {
             Reseller createdReseller = resellerService.createReseller(reseller);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdReseller);
