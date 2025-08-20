@@ -191,15 +191,15 @@ spring:
 
 springdoc:
   swagger-ui:
-    enabled: true
+    enabled: ${SWAGGER_UI_ENABLED:true}
     path: /swagger-ui.html
     config-url: /v3/api-docs/swagger-config
     urls:
       - url: /api/auth/v3/api-docs
-        name: Auth Service
-        display-name: "Authentication Service"
+        name: auth-service
+        display-name: "🔐 Authentication Service"
       - url: /api/user/v3/api-docs
-        name: User Service  
-        display-name: "User Management Service"
+        name: user-service
+        display-name: "👤 User Management Service"
   api-docs:
-    enabled: true
+    enabled: ${SWAGGER_API_DOCS_ENABLED:true}

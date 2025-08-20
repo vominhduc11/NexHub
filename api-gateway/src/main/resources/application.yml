@@ -3,17 +3,3 @@ spring:
     name: ${SPRING_APPLICATION_NAME:api-gateway}
   config:
     import: "optional:configserver:${SPRING_CLOUD_CONFIG_URI:http://config-server:8888}"
-
-springdoc:
-  swagger-ui:
-    enabled: true
-    path: /swagger-ui.html
-    urls:
-      - url: /api/auth/v3/api-docs
-        name: auth-service
-        display-name: "🔐 Authentication Service"
-      - url: /api/user/v3/api-docs
-        name: user-service
-        display-name: "👤 User Management Service"
-  api-docs:
-    enabled: true
