@@ -191,6 +191,114 @@ spring:
             - StripPrefix=2
             - AddRequestHeader=X-Gateway-Request, true
             
+        - id: blog-service-swagger-ui
+          uri: ${BLOG_SERVICE_URI}
+          order: 100
+          predicates:
+            - Path=/api/blog/swagger-ui.html
+          filters:
+            - SetPath=/swagger-ui.html
+            - AddRequestHeader=X-Gateway-Request, true
+            
+        - id: blog-service-swagger-resources
+          uri: ${BLOG_SERVICE_URI}
+          order: 100
+          predicates:
+            - Path=/api/blog/swagger-ui/**
+          filters:
+            - StripPrefix=2
+            - AddRequestHeader=X-Gateway-Request, true
+            
+        - id: blog-service-webjars
+          uri: ${BLOG_SERVICE_URI}
+          order: 100
+          predicates:
+            - Path=/api/blog/webjars/**
+          filters:
+            - StripPrefix=2
+            - AddRequestHeader=X-Gateway-Request, true
+            
+        - id: blog-service-api-docs
+          uri: ${BLOG_SERVICE_URI}
+          order: 100
+          predicates:
+            - Path=/api/blog/v3/api-docs/**
+          filters:
+            - StripPrefix=2
+            - AddRequestHeader=X-Gateway-Request, true
+            
+        - id: product-service-swagger-ui
+          uri: ${PRODUCT_SERVICE_URI}
+          order: 100
+          predicates:
+            - Path=/api/product/swagger-ui.html
+          filters:
+            - SetPath=/swagger-ui.html
+            - AddRequestHeader=X-Gateway-Request, true
+            
+        - id: product-service-swagger-resources
+          uri: ${PRODUCT_SERVICE_URI}
+          order: 100
+          predicates:
+            - Path=/api/product/swagger-ui/**
+          filters:
+            - StripPrefix=2
+            - AddRequestHeader=X-Gateway-Request, true
+            
+        - id: product-service-webjars
+          uri: ${PRODUCT_SERVICE_URI}
+          order: 100
+          predicates:
+            - Path=/api/product/webjars/**
+          filters:
+            - StripPrefix=2
+            - AddRequestHeader=X-Gateway-Request, true
+            
+        - id: product-service-api-docs
+          uri: ${PRODUCT_SERVICE_URI}
+          order: 100
+          predicates:
+            - Path=/api/product/v3/api-docs/**
+          filters:
+            - StripPrefix=2
+            - AddRequestHeader=X-Gateway-Request, true
+            
+        - id: language-service-swagger-ui
+          uri: ${LANGUAGE_SERVICE_URI}
+          order: 100
+          predicates:
+            - Path=/api/language/swagger-ui.html
+          filters:
+            - SetPath=/swagger-ui.html
+            - AddRequestHeader=X-Gateway-Request, true
+            
+        - id: language-service-swagger-resources
+          uri: ${LANGUAGE_SERVICE_URI}
+          order: 100
+          predicates:
+            - Path=/api/language/swagger-ui/**
+          filters:
+            - StripPrefix=2
+            - AddRequestHeader=X-Gateway-Request, true
+            
+        - id: language-service-webjars
+          uri: ${LANGUAGE_SERVICE_URI}
+          order: 100
+          predicates:
+            - Path=/api/language/webjars/**
+          filters:
+            - StripPrefix=2
+            - AddRequestHeader=X-Gateway-Request, true
+            
+        - id: language-service-api-docs
+          uri: ${LANGUAGE_SERVICE_URI}
+          order: 100
+          predicates:
+            - Path=/api/language/v3/api-docs/**
+          filters:
+            - StripPrefix=2
+            - AddRequestHeader=X-Gateway-Request, true
+            
         - id: auth-service-direct
           uri: ${AUTH_SERVICE_URI}
           predicates:
@@ -283,6 +391,15 @@ springdoc:
       - url: /api/user/v3/api-docs
         name: user-service
         display-name: "👤 User Management Service"
+      - url: /api/blog/v3/api-docs
+        name: blog-service
+        display-name: "📝 Blog Service"
+      - url: /api/product/v3/api-docs
+        name: product-service
+        display-name: "🛍️ Product Service"
+      - url: /api/language/v3/api-docs
+        name: language-service
+        display-name: "🌐 Language Service"
       - url: /api/notification/v3/api-docs
         name: notification-service
         display-name: "📬 Notification Service"
