@@ -119,6 +119,42 @@ spring:
             - StripPrefix=2
             - AddRequestHeader=X-Gateway-Request, true
             
+        - id: notification-service-swagger-ui
+          uri: ${NOTIFICATION_SERVICE_URI}
+          order: 100
+          predicates:
+            - Path=/api/notification/swagger-ui.html
+          filters:
+            - SetPath=/swagger-ui.html
+            - AddRequestHeader=X-Gateway-Request, true
+            
+        - id: notification-service-swagger-resources
+          uri: ${NOTIFICATION_SERVICE_URI}
+          order: 100
+          predicates:
+            - Path=/api/notification/swagger-ui/**
+          filters:
+            - StripPrefix=2
+            - AddRequestHeader=X-Gateway-Request, true
+            
+        - id: notification-service-webjars
+          uri: ${NOTIFICATION_SERVICE_URI}
+          order: 100
+          predicates:
+            - Path=/api/notification/webjars/**
+          filters:
+            - StripPrefix=2
+            - AddRequestHeader=X-Gateway-Request, true
+            
+        - id: notification-service-api-docs
+          uri: ${NOTIFICATION_SERVICE_URI}
+          order: 100
+          predicates:
+            - Path=/api/notification/v3/api-docs/**
+          filters:
+            - StripPrefix=2
+            - AddRequestHeader=X-Gateway-Request, true
+            
         - id: auth-service-direct
           uri: ${AUTH_SERVICE_URI}
           predicates:
@@ -211,5 +247,8 @@ springdoc:
       - url: /api/user/v3/api-docs
         name: user-service
         display-name: "👤 User Management Service"
+      - url: /api/notification/v3/api-docs
+        name: notification-service
+        display-name: "📬 Notification Service"
   api-docs:
     enabled: ${SWAGGER_API_DOCS_ENABLED:true}

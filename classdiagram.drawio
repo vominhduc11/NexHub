@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="23iRSUPoRavnBvh4doch" name="Page-1">
-        <mxGraphModel dx="1341" dy="1813" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+        <mxGraphModel dx="1412" dy="2011" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -37,7 +37,7 @@
                 <mxCell id="706" value="8888" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" parent="2" vertex="1">
                     <mxGeometry y="290" width="50" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="3" value="api-gateway" style="swimlane;whiteSpace=wrap;html=1;startSize=23;" parent="1" vertex="1">
+                <mxCell id="3" value="api-gateway" style="swimlane;whiteSpace=wrap;html=1;startSize=23;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1">
                     <mxGeometry x="80" y="240" width="200" height="250" as="geometry"/>
                 </mxCell>
                 <mxCell id="699" value="auth-service" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" parent="3" vertex="1">
@@ -94,7 +94,7 @@
                 <mxCell id="707" value="8761" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" parent="4" vertex="1">
                     <mxGeometry y="290" width="50" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="33" value="auth-service" style="swimlane;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                <mxCell id="33" value="auth-service" style="swimlane;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1">
                     <mxGeometry x="640" y="-292" width="420" height="360" as="geometry"/>
                 </mxCell>
                 <mxCell id="34" value="roles" style="shape=table;startSize=30;container=1;collapsible=1;childLayout=tableLayout;fixedRows=1;rowLines=0;fontStyle=1;align=center;resizeLast=1;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="33" vertex="1">
@@ -212,7 +212,7 @@
                         <mxPoint x="240" y="95" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="61" value="user-service" style="swimlane;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                <mxCell id="61" value="user-service" style="swimlane;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1">
                     <mxGeometry x="650" y="280" width="480" height="420" as="geometry"/>
                 </mxCell>
                 <mxCell id="62" value="resellers" style="shape=table;startSize=30;container=1;collapsible=1;childLayout=tableLayout;fixedRows=1;rowLines=0;fontStyle=1;align=center;resizeLast=1;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="61" vertex="1">
@@ -477,7 +477,7 @@
                         <mxRectangle width="150" height="30" as="alternateBounds"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="112" value="notification-service" style="swimlane;whiteSpace=wrap;html=1;startSize=23;" parent="1" vertex="1">
+                <mxCell id="112" value="notification-service" style="swimlane;whiteSpace=wrap;html=1;startSize=23;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1">
                     <mxGeometry x="1200" y="-130" width="200" height="200" as="geometry"/>
                 </mxCell>
                 <mxCell id="113" value="" style="endArrow=classic;html=1;" parent="1" source="3" target="33" edge="1">

@@ -21,7 +21,7 @@
 | **Blog Service** | TBD | nexhub_blog | Content management system |
 | **Product Service** | TBD | nexhub_product | Product catalog management |
 | **Warranty Service** | TBD | nexhub_warranty | Warranty tracking system |
-| **Notification Service** | TBD | nexhub_notification | Notification delivery |
+| **Notification Service** | 8083 | - | Email & WebSocket notifications |
 | **Language Service** | TBD | nexhub_language | Internationalization |
 
 ### 🗄️ Data & Infrastructure
@@ -79,11 +79,14 @@ Client → API Gateway → Auth Service → JWT Token → Protected Resources
 - **Spring Data JPA** with **Hibernate**
 - **PostgreSQL 15** as primary database
 - **Redis 7** for caching and sessions
+- **Spring Data Redis** with **Lettuce** connection pool
 
 ### Service Communication
 - **Apache Kafka 7.4** for event streaming
+- **Spring Kafka** with consumer groups and producers
 - **OpenFeign** for service-to-service calls
 - **Spring Cloud LoadBalancer** for client-side load balancing
+- **Spring Mail** for SMTP email delivery
 
 ### Documentation & Monitoring
 - **SpringDoc OpenAPI 3** for API documentation
@@ -134,7 +137,8 @@ Network: Isolated bridge network (next-network)
 ```
 Main Swagger UI: http://localhost:8080/swagger-ui.html
 ├── 🔐 Authentication Service
-├── 👤 User Management Service
+├── 👤 User Management Service  
+├── 📬 Notification Service
 ├── 📝 Blog Service (planned)
 ├── 🛍️ Product Service (planned)
 └── 🛡️ Warranty Service (planned)
@@ -206,28 +210,29 @@ cd auth-service && mvn spring-boot:run
 
 ## 📋 Service Status
 
-| Service | Status | Implementation | API Docs |
-|---------|--------|----------------|----------|
-| Config Server | ✅ Active | Complete | N/A |
-| Discovery Service | ✅ Active | Complete | Health Check |
-| API Gateway | ✅ Active | Complete | Route Config |
-| Auth Service | ✅ Active | Complete | ✅ Swagger |
-| User Service | ✅ Active | Complete | ✅ Swagger |
-| Blog Service | 🔄 Planned | Not Started | 🔄 Pending |
-| Product Service | 🔄 Planned | Not Started | 🔄 Pending |
-| Warranty Service | 🔄 Planned | Not Started | 🔄 Pending |
-| Notification Service | 🔄 Planned | Not Started | 🔄 Pending |
-| Language Service | 🔄 Planned | Not Started | 🔄 Pending |
+| Service | Status | Implementation | API Docs | Features |
+|---------|--------|----------------|----------|----------|
+| Config Server | ✅ Active | Complete | N/A | External config |
+| Discovery Service | ✅ Active | Complete | Health Check | Eureka registry |
+| API Gateway | ✅ Active | Complete | Route Config | Security, CORS, Routing |
+| Auth Service | ✅ Active | Complete | ✅ Swagger | JWT, Kafka, Redis |
+| User Service | ✅ Active | Complete | ✅ Swagger | JPA, Redis, CRUD |
+| Notification Service | ✅ Active | Basic | ✅ Swagger | Kafka, Mail, WebSocket |
+| Blog Service | 🔄 Planned | Not Started | 🔄 Pending | - |
+| Product Service | 🔄 Planned | Not Started | 🔄 Pending | - |
+| Warranty Service | 🔄 Planned | Not Started | 🔄 Pending | - |
+| Language Service | 🔄 Planned | Not Started | 🔄 Pending | - |
 
 ## 🔍 Monitoring & Debugging
 
 ### Health Endpoints
 ```
-Config Server:     http://localhost:8888/actuator/health
-Discovery Service: http://localhost:8761/actuator/health
-API Gateway:       http://localhost:8080/actuator/health
-Auth Service:      http://localhost:8081/actuator/health
-User Service:      http://localhost:8082/actuator/health
+Config Server:        http://localhost:8888/actuator/health
+Discovery Service:    http://localhost:8761/actuator/health
+API Gateway:          http://localhost:8080/actuator/health
+Auth Service:         http://localhost:8081/actuator/health
+User Service:         http://localhost:8082/actuator/health
+Notification Service: http://localhost:8083/actuator/health
 ```
 
 ### Troubleshooting

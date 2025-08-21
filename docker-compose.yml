@@ -117,6 +117,10 @@ services:
       - DATABASE_URL=jdbc:postgresql://postgres:5432/nexhub_auth
       - DATABASE_USERNAME=nexhub
       - DATABASE_PASSWORD=nexhub123
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka1:9092,kafka2:9093,kafka3:9094
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=voduc123
     depends_on:
       config-server:
         condition: service_healthy
@@ -124,6 +128,14 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
+      kafka1:
+        condition: service_started
+      kafka2:
+        condition: service_started
+      kafka3:
+        condition: service_started
+      redis:
+        condition: service_started
     networks:
       - next-network
     restart: unless-stopped
@@ -156,6 +168,9 @@ services:
       - DATABASE_PASSWORD=nexhub123
       - DDL_AUTO=update
       - SHOW_SQL=false
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=voduc123
     depends_on:
       config-server:
         condition: service_healthy
@@ -168,6 +183,51 @@ services:
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  notification-service:
+    build: ./notification-service
+    container_name: nexhub-notification-service
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_APPLICATION_NAME=notification-service
+      - SERVER_PORT=8083
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
+      - EUREKA_CLIENT_FETCH_REGISTRY=true
+      - EUREKA_INSTANCE_HOSTNAME=notification-service
+      - EUREKA_INSTANCE_PREFER_IP=false
+      - LOGGING_LEVEL_ROOT=INFO
+      - LOGGING_LEVEL_COM_DEVWONDER_NOTIFICATION_SERVICE=DEBUG
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka1:9092,kafka2:9093,kafka3:9094
+      - KAFKA_CONSUMER_GROUP_ID=notification-service-group
+      - KAFKA_AUTO_OFFSET_RESET=earliest
+      - MAIL_HOST=smtp.gmail.com
+      - MAIL_PORT=587
+      - MAIL_USERNAME=vominhduc760@gmail.com
+      - MAIL_PASSWORD=agcbtolwkdbbjwoi
+    depends_on:
+      config-server:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+      kafka1:
+        condition: service_started
+      kafka2:
+        condition: service_started
+      kafka3:
+        condition: service_started
+    networks:
+      - next-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3

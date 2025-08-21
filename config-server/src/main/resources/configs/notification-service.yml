@@ -13,3 +13,36 @@ eureka:
   server:
     enable-self-preservation: ${EUREKA_SERVER_ENABLE_SELF_PRESERVATION}
     eviction-interval-timer-in-ms: ${EUREKA_SERVER_EVICTION_INTERVAL}
+
+spring:
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:kafka1:9092,kafka2:9093,kafka3:9094}
+
+# SpringDoc OpenAPI Configuration
+springdoc:
+  api-docs:
+    enabled: ${SWAGGER_ENABLED:true}
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: ${SWAGGER_UI_ENABLED:true}
+    path: /swagger-ui.html
+    try-it-out-enabled: true
+    persist-authorization: true
+    display-request-duration: true
+    config-url: /v3/api-docs/swagger-config
+    url: /v3/api-docs
+  packages-to-scan: com.devwonder.notification_service.controller
+
+mail:
+  host: ${MAIL_HOST:smtp.gmail.com}
+  port: ${MAIL_PORT:587}
+  username: ${MAIL_USERNAME:vominhduc760@gmail.com}
+  password: ${MAIL_PASSWORD:agcbtolwkdbbjwoi}
+  properties:
+    mail:
+      smtp:
+        auth: true
+        starttls:
+          enable: true
+        ssl:
+          trust: smtp.gmail.com
