@@ -155,6 +155,42 @@ spring:
             - StripPrefix=2
             - AddRequestHeader=X-Gateway-Request, true
             
+        - id: warranty-service-swagger-ui
+          uri: ${WARRANTY_SERVICE_URI}
+          order: 100
+          predicates:
+            - Path=/api/warranty/swagger-ui.html
+          filters:
+            - SetPath=/swagger-ui.html
+            - AddRequestHeader=X-Gateway-Request, true
+            
+        - id: warranty-service-swagger-resources
+          uri: ${WARRANTY_SERVICE_URI}
+          order: 100
+          predicates:
+            - Path=/api/warranty/swagger-ui/**
+          filters:
+            - StripPrefix=2
+            - AddRequestHeader=X-Gateway-Request, true
+            
+        - id: warranty-service-webjars
+          uri: ${WARRANTY_SERVICE_URI}
+          order: 100
+          predicates:
+            - Path=/api/warranty/webjars/**
+          filters:
+            - StripPrefix=2
+            - AddRequestHeader=X-Gateway-Request, true
+            
+        - id: warranty-service-api-docs
+          uri: ${WARRANTY_SERVICE_URI}
+          order: 100
+          predicates:
+            - Path=/api/warranty/v3/api-docs/**
+          filters:
+            - StripPrefix=2
+            - AddRequestHeader=X-Gateway-Request, true
+            
         - id: auth-service-direct
           uri: ${AUTH_SERVICE_URI}
           predicates:
@@ -250,5 +286,8 @@ springdoc:
       - url: /api/notification/v3/api-docs
         name: notification-service
         display-name: "📬 Notification Service"
+      - url: /api/warranty/v3/api-docs
+        name: warranty-service
+        display-name: "🛡️ Warranty Service"
   api-docs:
     enabled: ${SWAGGER_API_DOCS_ENABLED:true}

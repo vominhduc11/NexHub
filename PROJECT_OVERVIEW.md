@@ -20,7 +20,7 @@
 | **User Service** | 8082 | nexhub_user | Customer, Admin, Reseller management |
 | **Blog Service** | TBD | nexhub_blog | Content management system |
 | **Product Service** | TBD | nexhub_product | Product catalog management |
-| **Warranty Service** | TBD | nexhub_warranty | Warranty tracking system |
+| **Warranty Service** | 8085 | nexhub_warranty | Warranty tracking & product purchase management |
 | **Notification Service** | 8083 | - | Email & WebSocket notifications |
 | **Language Service** | TBD | nexhub_language | Internationalization |
 
@@ -66,7 +66,20 @@ Client → API Gateway → Auth Service → JWT Token → Protected Resources
 ### Data Models
 - **Account Entity**: Core authentication (username, password)
 - **User Entities**: Customer, Admin, Reseller with timestamps
-- **JPA Relationships**: Account ID as foreign key reference
+- **Purchased Products**: Product purchase records with warranty tracking
+- **JPA Relationships**: Account ID and entity cross-references between services
+
+#### Warranty Service Tables
+```sql
+purchased_products:
+├── id (PK)                      # Auto-generated primary key
+├── purchase_date                # Date when product was purchased
+├── expiration_date             # Warranty expiration date
+├── warranty_remaining_days     # Auto-calculated remaining days
+├── id_product_serial (FK)      # Reference to product serial
+├── id_reseller (FK)           # Reference to reseller who sold
+└── id_customer (FK)           # Reference to customer who bought
+```
 
 ## 🚀 Technology Stack
 
@@ -139,9 +152,9 @@ Main Swagger UI: http://localhost:8080/swagger-ui.html
 ├── 🔐 Authentication Service
 ├── 👤 User Management Service  
 ├── 📬 Notification Service
+├── 🛡️ Warranty Service
 ├── 📝 Blog Service (planned)
-├── 🛍️ Product Service (planned)
-└── 🛡️ Warranty Service (planned)
+└── 🛍️ Product Service (planned)
 ```
 
 ### Configuration Management
@@ -220,7 +233,7 @@ cd auth-service && mvn spring-boot:run
 | Notification Service | ✅ Active | Basic | ✅ Swagger | Kafka, Mail, WebSocket |
 | Blog Service | 🔄 Planned | Not Started | 🔄 Pending | - |
 | Product Service | 🔄 Planned | Not Started | 🔄 Pending | - |
-| Warranty Service | 🔄 Planned | Not Started | 🔄 Pending | - |
+| Warranty Service | ✅ Active | Basic | ✅ Swagger | JPA, Purchase tracking, Warranty calculation |
 | Language Service | 🔄 Planned | Not Started | 🔄 Pending | - |
 
 ## 🔍 Monitoring & Debugging
@@ -233,6 +246,7 @@ API Gateway:          http://localhost:8080/actuator/health
 Auth Service:         http://localhost:8081/actuator/health
 User Service:         http://localhost:8082/actuator/health
 Notification Service: http://localhost:8083/actuator/health
+Warranty Service:     http://localhost:8085/actuator/health
 ```
 
 ### Troubleshooting

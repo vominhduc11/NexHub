@@ -233,6 +233,162 @@ services:
       retries: 3
       start_period: 60s
 
+  warranty-service:
+    build: ./warranty-service
+    container_name: nexhub-warranty-service
+    ports:
+      - "8085:8085"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_APPLICATION_NAME=warranty-service
+      - SERVER_PORT=8085
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
+      - EUREKA_CLIENT_FETCH_REGISTRY=true
+      - EUREKA_INSTANCE_HOSTNAME=warranty-service
+      - EUREKA_INSTANCE_PREFER_IP=false
+      - LOGGING_LEVEL_ROOT=INFO
+      - LOGGING_LEVEL_COM_DEVWONDER_WARRANTY_SERVICE=DEBUG
+      - DATABASE_URL=jdbc:postgresql://postgres:5432/nexhub_warranty
+      - DATABASE_USERNAME=nexhub
+      - DATABASE_PASSWORD=nexhub123
+      - DDL_AUTO=update
+      - SHOW_SQL=false
+    depends_on:
+      config-server:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - next-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8085/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  product-service:
+    build: ./product-service
+    container_name: nexhub-product-service
+    ports:
+      - "8084:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_APPLICATION_NAME=product-service
+      - SERVER_PORT=8080
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
+      - EUREKA_CLIENT_FETCH_REGISTRY=true
+      - EUREKA_INSTANCE_HOSTNAME=product-service
+      - EUREKA_INSTANCE_PREFER_IP=false
+      - LOGGING_LEVEL_ROOT=INFO
+      - LOGGING_LEVEL_COM_DEVWONDER_PRODUCT_SERVICE=DEBUG
+      - DATABASE_URL=jdbc:postgresql://postgres:5432/nexhub_product
+      - DATABASE_USERNAME=nexhub
+      - DATABASE_PASSWORD=nexhub123
+      - DDL_AUTO=update
+      - SHOW_SQL=false
+    depends_on:
+      config-server:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - next-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  language-service:
+    build: ./language-service
+    container_name: nexhub-language-service
+    ports:
+      - "8086:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_APPLICATION_NAME=language-service
+      - SERVER_PORT=8080
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
+      - EUREKA_CLIENT_FETCH_REGISTRY=true
+      - EUREKA_INSTANCE_HOSTNAME=language-service
+      - EUREKA_INSTANCE_PREFER_IP=false
+      - LOGGING_LEVEL_ROOT=INFO
+      - LOGGING_LEVEL_COM_DEVWONDER_LANGUAGE_SERVICE=DEBUG
+      - DATABASE_URL=jdbc:postgresql://postgres:5432/nexhub_language
+      - DATABASE_USERNAME=nexhub
+      - DATABASE_PASSWORD=nexhub123
+      - DDL_AUTO=update
+      - SHOW_SQL=false
+    depends_on:
+      config-server:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - next-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  blog-service:
+    build: ./blog-service
+    container_name: nexhub-blog-service
+    ports:
+      - "8087:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_APPLICATION_NAME=blog-service
+      - SERVER_PORT=8080
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
+      - EUREKA_CLIENT_FETCH_REGISTRY=true
+      - EUREKA_INSTANCE_HOSTNAME=blog-service
+      - EUREKA_INSTANCE_PREFER_IP=false
+      - LOGGING_LEVEL_ROOT=INFO
+      - LOGGING_LEVEL_COM_DEVWONDER_BLOG_SERVICE=DEBUG
+      - DATABASE_URL=jdbc:postgresql://postgres:5432/nexhub_blog
+      - DATABASE_USERNAME=nexhub
+      - DATABASE_PASSWORD=nexhub123
+      - DDL_AUTO=update
+      - SHOW_SQL=false
+    depends_on:
+      config-server:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - next-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
   postgres:
     image: postgres:15-alpine
     container_name: nexhub-postgres
@@ -416,7 +572,6 @@ networks:
 
 volumes:
   postgres_data:
-  pgadmin_data:
   redis_data:
   zookeeper1_data:
   zookeeper1_logs:

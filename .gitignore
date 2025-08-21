@@ -1,10 +1,24 @@
 # Environment variables
 .env
+.env.local
+.env.production
+.env.test
+*.env
 
 # Maven
 target/
 !**/src/main/**/target/
 !**/src/test/**/target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+pom.xml.bak
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
 
 # Gradle
 .gradle
@@ -13,29 +27,135 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-# IDE
+# Spring Boot
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# IDE Files
 .idea/
 .vscode/
 *.swp
 *.swo
+*.iws
+*.iml
+*.ipr
+.project
+.metadata
+.classpath
+.c9/
+*.launch
+.settings/
+.loadpath
 
-# OS
+# Eclipse
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.settings/
+.loadpath
+.recommenders/
+.externalToolBuilders/
+*.launch
+
+# NetBeans
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+nbactions.xml
+nb-configuration.xml
+
+# VS Code
+.vscode/
+.factorypath
+
+# OS Files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+ehthumbs_vista.db
 Thumbs.db
-
-# Docker
-.dockerignore
 
 # Logs
 *.log
+/logs/
+/log/
+
+# Spring Boot specific
+application-*.properties
+application-*.yml
+!application-example.properties
+!application-example.yml
+
+# Security & Secrets
+*.p12
+*.key
+*.pem
+*.jks
+keystore.*
+truststore.*
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+h2/
+data/
 
 # Temporary files
 *.tmp
 *.temp
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
 
-# Node modules (if any frontend is added)
+# Testing
+coverage/
+test-output/
+.nyc_output/
+
+# Node modules (for any frontend)
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn/
+
+# Docker (but keep Dockerfile and .dockerignore)
+# Do not ignore .dockerignore files
 
 # Application specific
-/logs/
-/data/
+/uploads/
+/temp/
+/cache/
+/storage/
+
+# Config files with sensitive data
+*-local.yml
+*-local.properties
+*-dev.yml
+*-prod.yml
+*-staging.yml
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Other
+.history/
+.sass-cache/

@@ -1,0 +1,39 @@
+# Build outputs
+target/
+*.jar
+*.war
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.settings/
+.project
+.classpath
+.factorypath
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+docs/
+
+# Test files and coverage
+*.log
+logs/
+test-results/
+coverage/
+*.gcov
+
+# Maven wrapper (optional - keep if you want to use it in container)
+.mvn/
+mvnw
+mvnw.cmd
