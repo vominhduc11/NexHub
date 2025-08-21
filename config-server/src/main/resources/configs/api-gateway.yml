@@ -148,38 +148,48 @@ spring:
 
         - id: notification-service
           uri: ${NOTIFICATION_SERVICE_URI}
+          order: 200
           predicates:
             - Path=/api/notification/**
           filters:
             - StripPrefix=1
+            - AddRequestHeader=X-Gateway-Request, true
 
         - id: blog-service
           uri: ${BLOG_SERVICE_URI}
+          order: 200
           predicates:
             - Path=/api/blog/**
           filters:
             - StripPrefix=1
+            - AddRequestHeader=X-Gateway-Request, true
 
         - id: warranty-service
           uri: ${WARRANTY_SERVICE_URI}
+          order: 200
           predicates:
             - Path=/api/warranty/**
           filters:
             - StripPrefix=1
+            - AddRequestHeader=X-Gateway-Request, true
 
         - id: product-service
           uri: ${PRODUCT_SERVICE_URI}
+          order: 200
           predicates:
             - Path=/api/product/**
           filters:
             - StripPrefix=1
+            - AddRequestHeader=X-Gateway-Request, true
 
         - id: language-service
           uri: ${LANGUAGE_SERVICE_URI}
+          order: 200
           predicates:
             - Path=/api/language/**
           filters:
             - StripPrefix=1
+            - AddRequestHeader=X-Gateway-Request, true
 
       globals:
         corsConfigurations:
