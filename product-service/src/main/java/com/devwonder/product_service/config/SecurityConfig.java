@@ -33,8 +33,13 @@ public class SecurityConfig {
                     "request.getHeader('X-Gateway-Request') == 'true'"   // ONLY Gateway header
                 ))
                 
-                // All product endpoints - ONLY accessible via API Gateway
-                .requestMatchers("/products/**").access(new WebExpressionAuthorizationManager(
+                // Product list endpoints - permitAll via API Gateway
+                .requestMatchers("/product/products", "/product/products/category/**", "/product/products/search").access(new WebExpressionAuthorizationManager(
+                    "request.getHeader('X-Gateway-Request') == 'true'"   // ONLY Gateway header (permitAll for public access)
+                ))
+                
+                // Other product endpoints - require authentication via API Gateway  
+                .requestMatchers("/product/**").access(new WebExpressionAuthorizationManager(
                     "request.getHeader('X-Gateway-Request') == 'true'"   // ONLY Gateway header
                 ))
                 

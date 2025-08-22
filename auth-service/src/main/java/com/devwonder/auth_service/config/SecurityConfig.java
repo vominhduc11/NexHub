@@ -20,8 +20,17 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authorize -> authorize
-                // Actuator health check (always allow for Docker health checks)
-                .requestMatchers("/actuator/health").permitAll()
+                // Actuator endpoints (always allow for Docker health checks and Eureka)
+                .requestMatchers("/actuator/**").permitAll()
+                
+                // Eureka client endpoints (internal communication)
+                .requestMatchers("/eureka/**").permitAll()
+                .requestMatchers("/info").permitAll()
+                
+                // JWKS endpoint (ONLY via API Gateway)
+                .requestMatchers("/auth/.well-known/jwks.json").access(new WebExpressionAuthorizationManager(
+                    "request.getHeader('X-Gateway-Request') == 'true'"   // ONLY Gateway header
+                ))
                 
                 // Swagger docs (ONLY via API Gateway)
                 .requestMatchers(

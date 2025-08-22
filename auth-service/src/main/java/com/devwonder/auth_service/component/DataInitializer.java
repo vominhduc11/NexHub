@@ -7,9 +7,8 @@ import com.devwonder.auth_service.repository.RoleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-
-import java.util.Set;
 
 @Component
 @Slf4j
@@ -18,6 +17,7 @@ public class DataInitializer implements CommandLineRunner {
 
     private final RoleRepository roleRepository;
     private final AccountRepository accountRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public void run(String... args) throws Exception {
@@ -26,11 +26,13 @@ public class DataInitializer implements CommandLineRunner {
         try {
             // Create roles if not exist
             createRoleIfNotExists(1L, "CUSTOMER");
-            createRoleIfNotExists(2L, "DEALER"); 
+            createRoleIfNotExists(2L, "RESELLER"); 
             createRoleIfNotExists(3L, "ADMIN");
             
-            // Create admin account if not exist
-            createAdminAccountIfNotExists();
+            // Create test accounts if not exist
+            createTestAccountIfNotExists("admin", "admin123", "ADMIN");
+            createTestAccountIfNotExists("customer", "customer123", "CUSTOMER");
+            createTestAccountIfNotExists("reseller", "reseller123", "RESELLER");
             
             log.info("Auth-service data initialization completed successfully");
         } catch (Exception e) {
@@ -48,24 +50,23 @@ public class DataInitializer implements CommandLineRunner {
         }
     }
     
-    private void createAdminAccountIfNotExists() {
-        Account existingAdmin = accountRepository.findByUsername("admin");
-        if (existingAdmin == null) {
-            // Create admin account first without role
-            Account admin = new Account();
-            admin.setUsername("admin");
-            admin.setPassword("$2a$10$N9qo8uLOickgx2ZMRZoMye2PAdPRmZUNNgR3z5V0zT7Xwx8VzU9Hm"); // admin123
+    private void createTestAccountIfNotExists(String username, String password, String roleName) {
+        if (accountRepository.findByUsername(username).isEmpty()) {
+            // Create account first without role
+            Account account = new Account();
+            account.setUsername(username);
+            account.setPassword(passwordEncoder.encode(password));
             
             // Save account first
-            Account savedAdmin = accountRepository.save(admin);
-            log.info("Created admin account");
+            Account savedAccount = accountRepository.save(account);
+            log.info("Created {} account", username);
             
             // Then find and assign role
-            Role adminRole = roleRepository.findByName("ADMIN");
-            if (adminRole != null) {
-                savedAdmin.getRoles().add(adminRole);
-                accountRepository.save(savedAdmin);
-                log.info("Assigned ADMIN role to admin account");
+            Role role = roleRepository.findByName(roleName);
+            if (role != null) {
+                savedAccount.getRoles().add(role);
+                accountRepository.save(savedAccount);
+                log.info("Assigned {} role to {} account", roleName, username);
             }
         }
     }

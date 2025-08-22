@@ -83,6 +83,15 @@ spring:
             - AddRequestHeader=X-Gateway-Request, true
           order: 100
             
+        # JWKS endpoint for JWT token validation
+        - id: auth-service-jwks
+          uri: ${AUTH_SERVICE_URI}
+          predicates:
+            - Path=/auth/.well-known/jwks.json
+          filters:
+            - AddRequestHeader=X-Gateway-Request, true
+          order: 50
+            
         - id: user-service-swagger-ui
           uri: ${USER_SERVICE_URI}
           order: 100

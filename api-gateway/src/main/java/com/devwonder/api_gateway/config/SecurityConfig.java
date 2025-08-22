@@ -39,6 +39,8 @@ public class SecurityConfig {
                             "/auth/v3/api-docs"
                         ).permitAll()
                         .pathMatchers("/api/auth/**").permitAll()
+                        // Product endpoints - public access (all product endpoints for testing)
+                        .pathMatchers("/api/product/**").permitAll()
                         .anyExchange().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt
