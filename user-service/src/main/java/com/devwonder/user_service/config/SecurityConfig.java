@@ -23,31 +23,24 @@ public class SecurityConfig {
                 // Actuator health check (always allow for Docker health checks)
                 .requestMatchers("/actuator/health").permitAll()
                 
+                // Inter-service communication - ONLY allow calls from auth-service with valid API key
+                .requestMatchers("/user/reseller", "/user/reseller/**").access(new WebExpressionAuthorizationManager(
+                    "request.getHeader('X-API-Key') == 'AUTH_SERVICE_SECRET_2024_NEXHUB'"
+                ))
+                
                 // Swagger docs (ONLY via API Gateway)
                 .requestMatchers(
                     "/swagger-ui.html",
-                    "/swagger-ui/**",
+                    "/swagger-ui/**", 
                     "/v3/api-docs/**",
                     "/webjars/**"
                 ).access(new WebExpressionAuthorizationManager(
-                    "request.getHeader('X-Gateway-Request') == 'true'"   // ONLY Gateway header
+                    "request.getHeader('X-Gateway-Request') == 'true'"
                 ))
                 
-                // All user endpoints - ONLY accessible via API Gateway
-                .requestMatchers("/users/**").access(new WebExpressionAuthorizationManager(
-                    "request.getHeader('X-Gateway-Request') == 'true'"   // ONLY Gateway header
-                ))
-                
-                .requestMatchers("/admins/**").access(new WebExpressionAuthorizationManager(
-                    "request.getHeader('X-Gateway-Request') == 'true'"   // ONLY Gateway header
-                ))
-                
-                .requestMatchers("/customers/**").access(new WebExpressionAuthorizationManager(
-                    "request.getHeader('X-Gateway-Request') == 'true'"   // ONLY Gateway header
-                ))
-                
-                .requestMatchers("/resellers/**").access(new WebExpressionAuthorizationManager(
-                    "request.getHeader('X-Gateway-Request') == 'true'"   // ONLY Gateway header
+                // All other user endpoints - ONLY accessible via API Gateway
+                .requestMatchers("/users/**", "/admins/**", "/customers/**", "/resellers/**").access(new WebExpressionAuthorizationManager(
+                    "request.getHeader('X-Gateway-Request') == 'true'"
                 ))
                 
                 // Block all other direct access

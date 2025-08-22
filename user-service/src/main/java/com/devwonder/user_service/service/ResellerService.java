@@ -1,60 +1,54 @@
 package com.devwonder.user_service.service;
 
+import com.devwonder.user_service.dto.CreateResellerRequest;
+import com.devwonder.user_service.dto.ResellerResponse;
 import com.devwonder.user_service.entity.Reseller;
 import com.devwonder.user_service.repository.ResellerRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Optional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ResellerService {
-
+    
     private final ResellerRepository resellerRepository;
-
-    public List<Reseller> getAllResellers() {
-        return resellerRepository.findAll();
-    }
-
-    public Optional<Reseller> getResellerByAccountId(Long accountId) {
-        return resellerRepository.findById(accountId);
-    }
-
-    public Optional<Reseller> getResellerByEmail(String email) {
-        return resellerRepository.findByEmail(email);
-    }
-
-    public Optional<Reseller> getResellerByPhone(String phone) {
-        return resellerRepository.findByPhone(phone);
-    }
-
-    public Reseller createReseller(Reseller reseller) {
-        return resellerRepository.save(reseller);
-    }
-
-    public Reseller updateReseller(Long accountId, Reseller resellerDetails) {
-        Reseller reseller = resellerRepository.findById(accountId)
-                .orElseThrow(() -> new RuntimeException("Reseller not found with account_id: " + accountId));
-
-        reseller.setName(resellerDetails.getName());
-        reseller.setAddress(resellerDetails.getAddress());
-        reseller.setPhone(resellerDetails.getPhone());
-        reseller.setEmail(resellerDetails.getEmail());
-        reseller.setDistrict(resellerDetails.getDistrict());
-        reseller.setCity(resellerDetails.getCity());
-
-        return resellerRepository.save(reseller);
-    }
-
-    public void deleteReseller(Long accountId) {
-        Reseller reseller = resellerRepository.findById(accountId)
-                .orElseThrow(() -> new RuntimeException("Reseller not found with account_id: " + accountId));
-        resellerRepository.delete(reseller);
-    }
-
-    public boolean existsByAccountId(Long accountId) {
-        return resellerRepository.existsById(accountId);
+    
+    @Transactional
+    public ResellerResponse createReseller(CreateResellerRequest request) {
+        log.info("Creating reseller for account ID: {}", request.getAccountId());
+        
+        // Check if reseller already exists
+        if (resellerRepository.existsById(request.getAccountId())) {
+            throw new RuntimeException("Reseller with account ID " + request.getAccountId() + " already exists");
+        }
+        
+        // Create new reseller
+        Reseller reseller = new Reseller();
+        reseller.setAccountId(request.getAccountId());
+        reseller.setName(request.getName());
+        reseller.setAddress(request.getAddress());
+        reseller.setPhone(request.getPhone());
+        reseller.setEmail(request.getEmail());
+        reseller.setDistrict(request.getDistrict());
+        reseller.setCity(request.getCity());
+        
+        Reseller savedReseller = resellerRepository.save(reseller);
+        
+        log.info("Successfully created reseller for account ID: {}", savedReseller.getAccountId());
+        
+        return new ResellerResponse(
+            savedReseller.getAccountId(),
+            savedReseller.getName(),
+            savedReseller.getAddress(),
+            savedReseller.getPhone(),
+            savedReseller.getEmail(),
+            savedReseller.getDistrict(),
+            savedReseller.getCity(),
+            savedReseller.getCreatedAt(),
+            savedReseller.getUpdatedAt()
+        );
     }
 }

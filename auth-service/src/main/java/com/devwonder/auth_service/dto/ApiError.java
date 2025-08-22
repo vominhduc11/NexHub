@@ -7,8 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AccountDto {
-
-    private Long id;
-    private String username;
+public class ApiError {
+    private String code;
+    private Object details;
 }

@@ -14,7 +14,7 @@ import java.util.Set;
 @Table(name = "roles")
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(exclude = "permissions")
+@EqualsAndHashCode(exclude = {"permissions", "accounts"})
 public class Role {
 
     @Id
@@ -31,4 +31,7 @@ public class Role {
         inverseJoinColumns = @JoinColumn(name = "permission_id")
     )
     private Set<Permission> permissions = new HashSet<>();
+
+    @ManyToMany(mappedBy = "roles", fetch = FetchType.LAZY)
+    private Set<Account> accounts = new HashSet<>();
 }
