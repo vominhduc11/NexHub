@@ -17,6 +17,23 @@ eureka:
 spring:
   kafka:
     bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:kafka1:9092,kafka2:9093,kafka3:9094}
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:vominhduc760@gmail.com}
+    password: ${MAIL_PASSWORD:agcbtolwkdbbjwoi}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          ssl:
+            trust: smtp.gmail.com
+
+kafka:
+  topic:
+    email: ${KAFKA_TOPIC_EMAIL:email-notifications}
 
 # SpringDoc OpenAPI Configuration
 springdoc:
@@ -33,16 +50,3 @@ springdoc:
     url: /v3/api-docs
   packages-to-scan: com.devwonder.notification_service.controller
 
-mail:
-  host: ${MAIL_HOST:smtp.gmail.com}
-  port: ${MAIL_PORT:587}
-  username: ${MAIL_USERNAME:vominhduc760@gmail.com}
-  password: ${MAIL_PASSWORD:agcbtolwkdbbjwoi}
-  properties:
-    mail:
-      smtp:
-        auth: true
-        starttls:
-          enable: true
-        ssl:
-          trust: smtp.gmail.com

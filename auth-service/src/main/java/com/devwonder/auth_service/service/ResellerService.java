@@ -2,6 +2,7 @@ package com.devwonder.auth_service.service;
 
 import com.devwonder.auth_service.client.UserServiceClient;
 import com.devwonder.auth_service.dto.CreateResellerRequest;
+import com.devwonder.auth_service.dto.NotificationEvent;
 import com.devwonder.auth_service.dto.ResellerRegistrationRequest;
 import com.devwonder.auth_service.dto.ResellerRegistrationResponse;
 import com.devwonder.auth_service.entity.Account;
@@ -12,6 +13,9 @@ import com.devwonder.auth_service.repository.AccountRepository;
 import com.devwonder.auth_service.repository.RoleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import java.time.LocalDateTime;
+
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +28,7 @@ public class ResellerService {
     private final AccountRepository accountRepository;
     private final RoleRepository roleRepository;
     private final UserServiceClient userServiceClient;
+    private final NotificationService notificationService;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     
     @Transactional
@@ -71,12 +76,23 @@ public class ResellerService {
             
         } catch (Exception e) {
             log.error("Failed to create reseller profile in user-service for account ID: {}", savedAccount.getId(), e);
-            // Rollback account creation
-            accountRepository.delete(savedAccount);
             throw new RuntimeException("Failed to create reseller profile: " + e.getMessage());
         }
         
         log.info("Successfully registered reseller with ID: {}", savedAccount.getId());
+        
+        // Send async notification event
+        NotificationEvent event = new NotificationEvent(
+            "SEND_EMAIL",
+            savedAccount.getId(),
+            savedAccount.getUsername(),
+            request.getEmail(),
+            request.getName(),
+            "Welcome to NexHub - Reseller Account Created",
+            "Dear " + request.getName() + ",\n\nWelcome to NexHub! Your reseller account has been successfully created.\n\nUsername: " + savedAccount.getUsername() + "\n\nYou can now start using our platform to manage your business.\n\nBest regards,\nNexHub Team",
+            LocalDateTime.now()
+        );
+        notificationService.sendNotificationEvent(event);
         
         return new ResellerRegistrationResponse(
             savedAccount.getId(), 

@@ -1,7 +1,6 @@
 package com.devwonder.notification_service.config;
 
-import com.devwonder.notification_service.dto.EmailNotificationEvent;
-import com.devwonder.notification_service.dto.WebSocketNotificationEvent;
+import com.devwonder.notification_service.dto.NotificationEvent;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,32 +38,17 @@ public class KafkaConsumerConfig {
     }
 
     @Bean
-    public ConsumerFactory<String, EmailNotificationEvent> emailNotificationConsumerFactory() {
+    public ConsumerFactory<String, NotificationEvent> notificationEventConsumerFactory() {
         Map<String, Object> configProps = getBaseConsumerConfig("notification-service-group");
-        configProps.put(JsonDeserializer.VALUE_DEFAULT_TYPE, EmailNotificationEvent.class.getName());
-        configProps.put(JsonDeserializer.TYPE_MAPPINGS, "com.devwonder.auth_service.dto.EmailNotificationEvent:com.devwonder.notification_service.dto.EmailNotificationEvent");
+        configProps.put(JsonDeserializer.VALUE_DEFAULT_TYPE, NotificationEvent.class.getName());
+        configProps.put(JsonDeserializer.TYPE_MAPPINGS, "com.devwonder.auth_service.dto.NotificationEvent:com.devwonder.notification_service.dto.NotificationEvent");
         return new DefaultKafkaConsumerFactory<>(configProps);
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, EmailNotificationEvent> emailNotificationKafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, EmailNotificationEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(emailNotificationConsumerFactory());
-        return factory;
-    }
-
-    @Bean
-    public ConsumerFactory<String, WebSocketNotificationEvent> webSocketNotificationConsumerFactory() {
-        Map<String, Object> configProps = getBaseConsumerConfig("notification-service-websocket-group");
-        configProps.put(JsonDeserializer.VALUE_DEFAULT_TYPE, WebSocketNotificationEvent.class.getName());
-        configProps.put(JsonDeserializer.TYPE_MAPPINGS, "com.devwonder.auth_service.dto.WebSocketNotificationEvent:com.devwonder.notification_service.dto.WebSocketNotificationEvent");
-        return new DefaultKafkaConsumerFactory<>(configProps);
-    }
-
-    @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, WebSocketNotificationEvent> webSocketNotificationKafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, WebSocketNotificationEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(webSocketNotificationConsumerFactory());
+    public ConcurrentKafkaListenerContainerFactory<String, NotificationEvent> notificationEventKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, NotificationEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(notificationEventConsumerFactory());
         return factory;
     }
 }

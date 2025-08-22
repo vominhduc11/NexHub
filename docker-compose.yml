@@ -118,6 +118,7 @@ services:
       - DATABASE_USERNAME=nexhub
       - DATABASE_PASSWORD=nexhub123
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka1:9092,kafka2:9093,kafka3:9094
+      - KAFKA_TOPIC_EMAIL=email-notifications
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_PASSWORD=voduc123
@@ -206,6 +207,7 @@ services:
       - LOGGING_LEVEL_ROOT=INFO
       - LOGGING_LEVEL_COM_DEVWONDER_NOTIFICATION_SERVICE=DEBUG
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka1:9092,kafka2:9093,kafka3:9094
+      - KAFKA_TOPIC_EMAIL=email-notifications
       - KAFKA_CONSUMER_GROUP_ID=notification-service-group
       - KAFKA_AUTO_OFFSET_RESET=earliest
       - MAIL_HOST=smtp.gmail.com

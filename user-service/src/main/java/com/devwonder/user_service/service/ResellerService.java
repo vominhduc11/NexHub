@@ -3,6 +3,8 @@ package com.devwonder.user_service.service;
 import com.devwonder.user_service.dto.CreateResellerRequest;
 import com.devwonder.user_service.dto.ResellerResponse;
 import com.devwonder.user_service.entity.Reseller;
+import com.devwonder.user_service.exception.EmailAlreadyExistsException;
+import com.devwonder.user_service.exception.PhoneAlreadyExistsException;
 import com.devwonder.user_service.repository.ResellerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +25,16 @@ public class ResellerService {
         // Check if reseller already exists
         if (resellerRepository.existsById(request.getAccountId())) {
             throw new RuntimeException("Reseller with account ID " + request.getAccountId() + " already exists");
+        }
+        
+        // Check if phone already exists
+        if (resellerRepository.findByPhone(request.getPhone()).isPresent()) {
+            throw new PhoneAlreadyExistsException("Phone number '" + request.getPhone() + "' already exists");
+        }
+        
+        // Check if email already exists
+        if (resellerRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new EmailAlreadyExistsException("Email '" + request.getEmail() + "' already exists");
         }
         
         // Create new reseller

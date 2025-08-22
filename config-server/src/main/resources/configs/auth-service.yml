@@ -9,6 +9,10 @@ spring:
     driver-class-name: org.postgresql.Driver
   kafka:
     bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:kafka1:9092,kafka2:9093,kafka3:9094}
+
+kafka:
+  topic:
+    email: ${KAFKA_TOPIC_EMAIL:email-notifications}
   data:
     redis:
       host: ${REDIS_HOST:redis}
