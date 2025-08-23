@@ -4,6 +4,8 @@ import com.devwonder.product_service.entity.Category;
 import com.devwonder.product_service.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,6 +24,7 @@ public class CategoryService {
 
     private final CategoryRepository categoryRepository;
 
+    @CacheEvict(value = {"categories", "categories-active", "products-by-category"}, allEntries = true)
     public Category createCategory(Category category) {
         log.info("Creating category: {}", category.getName());
         
@@ -35,16 +38,21 @@ public class CategoryService {
         return savedCategory;
     }
 
+    @Cacheable(value = "categories", key = "'all'")
     @Transactional(readOnly = true)
     public List<Category> getAllCategories() {
+        log.info("Fetching all categories from database");
         return categoryRepository.findAll();
     }
 
+    @Cacheable(value = "category-detail", key = "#id")
     @Transactional(readOnly = true)
     public Optional<Category> findById(Long id) {
+        log.info("Fetching category detail from database for ID: {}", id);
         return categoryRepository.findById(id);
     }
 
+    @CacheEvict(value = {"categories", "categories-active", "category-detail", "products-by-category"}, allEntries = true)
     public Category updateCategory(Long id, Category categoryDetails) {
         log.info("Updating category with ID: {}", id);
         
@@ -64,6 +72,7 @@ public class CategoryService {
         return updatedCategory;
     }
 
+    @CacheEvict(value = {"categories", "categories-active", "category-detail", "products-by-category"}, allEntries = true)
     public void deleteCategory(Long id) {
         log.info("Hard deleting category with ID: {}", id);
         
@@ -74,6 +83,7 @@ public class CategoryService {
         log.info("Category hard deleted successfully: {}", category.getName());
     }
 
+    @CacheEvict(value = {"categories", "categories-active", "category-detail", "products-by-category"}, allEntries = true)
     public void softDeleteCategory(Long id) {
         log.info("Soft deleting category with ID: {}", id);
         
@@ -89,6 +99,7 @@ public class CategoryService {
         log.info("Category soft deleted successfully: {}", category.getName());
     }
 
+    @CacheEvict(value = {"categories", "categories-active", "category-detail", "products-by-category"}, allEntries = true)
     public void restoreCategory(Long id) {
         log.info("Restoring category with ID: {}", id);
         
@@ -104,16 +115,19 @@ public class CategoryService {
         log.info("Category restored successfully: {}", category.getName());
     }
 
+    @Cacheable(value = "categories-active", key = "'active:page:' + #page + ':size:' + #size")
     @Transactional(readOnly = true)
     public Page<Category> getAllActiveCategories(int page, int size) {
-        log.info("Fetching all active categories - page: {}, size: {}", page, size);
+        log.info("Fetching all active categories from database - page: {}, size: {}", page, size);
         
         Pageable pageable = PageRequest.of(page, size);
         return categoryRepository.findAllActive(pageable);
     }
 
+    @Cacheable(value = "category-detail", key = "'active:' + #id")
     @Transactional(readOnly = true)
     public Optional<Category> findActiveById(Long id) {
+        log.info("Fetching active category detail from database for ID: {}", id);
         return categoryRepository.findActiveById(id);
     }
 }

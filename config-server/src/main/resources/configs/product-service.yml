@@ -7,6 +7,22 @@ spring:
     username: ${DATABASE_USERNAME:nexhub}
     password: ${DATABASE_PASSWORD:nexhub123}
     driver-class-name: org.postgresql.Driver
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:voduc123}
+      timeout: ${REDIS_TIMEOUT:2000ms}
+      lettuce:
+        pool:
+          max-active: ${REDIS_POOL_MAX_ACTIVE:8}
+          max-idle: ${REDIS_POOL_MAX_IDLE:8}
+          min-idle: ${REDIS_POOL_MIN_IDLE:0}
+          max-wait: ${REDIS_POOL_MAX_WAIT:-1ms}
+  cache:
+    type: redis
+    redis:
+      time-to-live: 600000  # 10 minutes default TTL
   jpa:
     hibernate:
       ddl-auto: ${DDL_AUTO:update}

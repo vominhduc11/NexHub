@@ -9,6 +9,8 @@ import com.devwonder.product_service.repository.CategoryRepository;
 import com.devwonder.product_service.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -28,8 +30,9 @@ public class ProductService {
     private final CategoryRepository categoryRepository;
     private final ProductMapper productMapper;
 
+    @Cacheable(value = "products", key = "'page:' + #page + ':size:' + #size")
     public Page<ProductResponse> getAllProducts(int page, int size) {
-        log.info("Fetching products - page: {}, size: {}", page, size);
+        log.info("Fetching products from database - page: {}, size: {}", page, size);
         
         Pageable pageable = PageRequest.of(page, size);
         Page<Product> products = productRepository.findAvailableProducts(pageable);
@@ -37,8 +40,9 @@ public class ProductService {
         return products.map(productMapper::toResponse);
     }
 
+    @Cacheable(value = "products-by-category", key = "'cat:' + #categoryId + ':page:' + #page + ':size:' + #size")
     public Page<ProductResponse> getProductsByCategory(Long categoryId, int page, int size) {
-        log.info("Fetching products by category: {} - page: {}, size: {}", categoryId, page, size);
+        log.info("Fetching products by category from database: {} - page: {}, size: {}", categoryId, page, size);
         
         Pageable pageable = PageRequest.of(page, size);
         Page<Product> products = productRepository.findAvailableProductsByCategory(categoryId, pageable);
@@ -46,8 +50,9 @@ public class ProductService {
         return products.map(productMapper::toResponse);
     }
 
+    @Cacheable(value = "products-search", key = "'search:' + #keyword + ':page:' + #page + ':size:' + #size")
     public Page<ProductResponse> searchProducts(String keyword, int page, int size) {
-        log.info("Searching products with keyword: '{}' - page: {}, size: {}", keyword, page, size);
+        log.info("Searching products in database with keyword: '{}' - page: {}, size: {}", keyword, page, size);
         
         Pageable pageable = PageRequest.of(page, size);
         Page<Product> products = productRepository.findAvailableProductsByKeyword(keyword, pageable);
@@ -55,6 +60,7 @@ public class ProductService {
         return products.map(productMapper::toResponse);
     }
 
+    @CacheEvict(value = {"products", "products-active", "products-by-category", "products-search"}, allEntries = true)
     public ProductResponse createProduct(ProductRequest request) {
         log.info("Creating new product: {}", request.getName());
         
@@ -104,12 +110,15 @@ public class ProductService {
         return productMapper.toResponse(savedProduct);
     }
 
+    @Cacheable(value = "product-detail", key = "#id")
     @Transactional(readOnly = true)
     public Optional<ProductResponse> findById(Long id) {
+        log.info("Fetching product detail from database for ID: {}", id);
         return productRepository.findById(id)
             .map(productMapper::toResponse);
     }
 
+    @CacheEvict(value = {"products", "products-active", "products-by-category", "products-search", "product-detail"}, allEntries = true)
     public ProductResponse updateProduct(Long id, ProductRequest productRequest) {
         log.info("Updating product with ID: {}", id);
         
@@ -133,6 +142,7 @@ public class ProductService {
         return productMapper.toResponse(updatedProduct);
     }
 
+    @CacheEvict(value = {"products", "products-active", "products-by-category", "products-search", "product-detail"}, allEntries = true)
     public ProductResponse patchProduct(Long id, ProductRequest productRequest) {
         log.info("Partially updating product with ID: {}", id);
         
@@ -174,6 +184,7 @@ public class ProductService {
         return productMapper.toResponse(updatedProduct);
     }
 
+    @CacheEvict(value = {"products", "products-active", "products-by-category", "products-search", "product-detail"}, allEntries = true)
     public void deleteProduct(Long id) {
         log.info("Hard deleting product with ID: {}", id);
         
@@ -184,6 +195,7 @@ public class ProductService {
         log.info("Product hard deleted successfully: {}", product.getName());
     }
 
+    @CacheEvict(value = {"products", "products-active", "products-by-category", "products-search", "product-detail"}, allEntries = true)
     public void softDeleteProduct(Long id) {
         log.info("Soft deleting product with ID: {}", id);
         
@@ -199,6 +211,7 @@ public class ProductService {
         log.info("Product soft deleted successfully: {}", product.getName());
     }
 
+    @CacheEvict(value = {"products", "products-active", "products-by-category", "products-search", "product-detail"}, allEntries = true)
     public void restoreProduct(Long id) {
         log.info("Restoring product with ID: {}", id);
         
@@ -214,8 +227,9 @@ public class ProductService {
         log.info("Product restored successfully: {}", product.getName());
     }
 
+    @Cacheable(value = "products-active", key = "'active:page:' + #page + ':size:' + #size")
     public Page<ProductResponse> getAllActiveProducts(int page, int size) {
-        log.info("Fetching all active products - page: {}, size: {}", page, size);
+        log.info("Fetching all active products from database - page: {}, size: {}", page, size);
         
         Pageable pageable = PageRequest.of(page, size);
         Page<Product> products = productRepository.findAllActive(pageable);
