@@ -31,7 +31,7 @@
 |---------|------|----------|-------------|---------------------|
 | **User Service** | 8082 | nexhub_user | Customer, Admin, Reseller management | ✅ Complete |
 | **Notification Service** | 8083 | - | Async email notifications via Kafka | ✅ Complete |
-| **Product Service** | 8084 | nexhub_product | Product catalog with serial numbers | 🚧 Skeleton only |
+| **Product Service** | 8084 | nexhub_product | Complete product ecosystem with media, categories, and serial management | ✅ Complete Implementation |
 | **Warranty Service** | 8085 | nexhub_warranty | Warranty tracking & product purchases | ✅ Basic structure |
 | **Language Service** | 8086 | nexhub_language | Internationalization support | 🚧 Skeleton only |
 | **Blog Service** | 8087 | nexhub_blog | Content management system | 🚧 Skeleton only |
@@ -60,6 +60,7 @@ Client → API Gateway → Auth Service → JWT Token (RSA-256) → Protected Re
 - **Token Claims**: accountId, username, userType, roles, permissions
 - **Token Expiration**: 24 hours (configurable)
 - **Refresh Strategy**: Client-managed re-authentication
+- **Gateway Integration**: JWT forwarding filter with claim extraction
 
 ### Authorization Levels
 - **Admin**: Full system access across all services
@@ -69,8 +70,11 @@ Client → API Gateway → Auth Service → JWT Token (RSA-256) → Protected Re
 ### API Security
 - JWT-based authentication with role validation
 - Gateway-level CORS configuration for multi-origin support
+- **JWT Forwarding Filter**: Automatic JWT claim extraction and header forwarding
 - Service-to-service communication via X-Gateway-Request headers
+- **Role-Based Access Control**: Header-based authorization in downstream services
 - Database isolation per service with dedicated schemas
+- **Security Headers**: X-JWT-Subject, X-JWT-Username, X-JWT-Account-ID, X-User-Roles, X-JWT-Authorities
 
 ## 📊 Database Design
 
@@ -115,6 +119,67 @@ resellers:
 ├── address, phone    # Contact information
 ├── district, city    # Location
 └── created_at/updated_at
+```
+
+#### Product Service (nexhub_product)
+```sql
+products:
+├── id (PK)                    # Auto-generated product ID
+├── name                       # Product name
+├── subtitle                   # Product subtitle
+├── description                # Short description
+├── long_description           # Detailed description
+├── category_id (FK)           # Reference to categories
+├── specifications (JSONB)     # Technical specifications
+├── availability_status        # AVAILABLE, OUT_OF_STOCK, DISCONTINUED
+├── release_date               # Product release date
+├── estimated_delivery         # Delivery timeframe
+├── warranty_period           # Warranty duration in months
+├── warranty_coverage         # What's covered
+├── warranty_conditions       # Warranty terms
+├── warranty_excludes         # What's not covered
+├── warranty_registration_required # Boolean flag
+├── highlights                # Key features
+├── target_audience           # Intended users
+├── use_cases                 # Usage scenarios
+├── popularity                # Popularity score
+├── rating                    # Average rating
+├── review_count              # Number of reviews
+├── tags                      # Searchable tags
+├── sku (UNIQUE)              # Stock keeping unit
+├── related_product_ids (JSONB) # Related products
+├── accessories               # Available accessories
+├── seo_title, seo_description # SEO metadata
+├── created_at, updated_at    # Timestamps
+└── published_at              # Publication date
+
+categories:
+├── id (PK)                   # Category ID
+├── name                      # Category name
+├── description               # Category description
+└── slug (UNIQUE)             # URL-friendly identifier
+
+product_images:
+├── id (PK)                   # Image ID
+├── product_id (FK)           # Reference to products
+├── image_url                 # Image URL
+├── alt_text                  # Accessibility text
+├── display_order             # Sort order
+└── is_primary                # Primary image flag
+
+product_features:
+├── id (PK)                   # Feature ID
+├── product_id (FK)           # Reference to products
+├── feature_name              # Feature name
+├── feature_value             # Feature value
+└── display_order             # Sort order
+
+product_serials:
+├── id (PK)                   # Serial ID
+├── product_id (FK)           # Reference to products
+├── serial_number (UNIQUE)    # Unique serial number
+├── status                    # AVAILABLE, SOLD, RESERVED
+└── created_at                # Registration date
 ```
 
 #### Warranty Service (nexhub_warranty)
@@ -230,11 +295,16 @@ Main Swagger UI: http://localhost:8080/swagger-ui.html
 - **Hot Reload**: Runtime configuration updates
 - **Secret Management**: Secure credential handling
 
-### Code Quality
+### Code Quality & Testing
 - **Lombok**: Reduced boilerplate code
-- **Validation**: JSR-303 bean validation
-- **Exception Handling**: Centralized error management
+- **Validation**: JSR-303 bean validation with comprehensive DTOs
+  - ProductRequest/Response for product management
+  - ProductImageRequest/Response for image management  
+  - ProductVideoRequest/Response for video management
+- **Exception Handling**: Centralized error management with ApiError responses
 - **Logging**: Structured logging with SLF4J
+- **Unit Testing**: MockMvc tests with security validation
+- **Integration Testing**: Service layer tests with role-based access control
 
 ## 🌐 API Endpoints & Gateway Configuration
 
@@ -243,7 +313,7 @@ Main Swagger UI: http://localhost:8080/swagger-ui.html
 /api/auth/**         → Auth Service (8081)     ✅ Implemented
 /api/user/**         → User Service (8082)     ✅ Implemented  
 /api/notification/** → Notification Service (8083) ✅ Implemented
-/api/product/**      → Product Service (8084)  🚧 Skeleton
+/api/product/**      → Product Service (8084)  ⚠️ Partial
 /api/warranty/**     → Warranty Service (8085) ✅ Basic
 /api/language/**     → Language Service (8086) 🚧 Skeleton
 /api/blog/**         → Blog Service (8087)     🚧 Skeleton
@@ -256,10 +326,68 @@ Main Hub: http://localhost:8080/swagger-ui.html
 ├── 👤 User Management Service  
 ├── 📬 Notification Service
 ├── 🛡️ Warranty Service
-├── 🛍️ Product Service (planned)
+├── 🛍️ Product Service
+│   ├── Product Management
+│   ├── Category Management
+│   ├── Product Images
+│   └── Product Videos
 ├── 📝 Blog Service (planned)
 └── 🌐 Language Service (planned)
 ```
+
+### Product Service API Endpoints
+```
+Public Endpoints (via API Gateway):
+├── GET  /api/product/products                    # Get all products (paginated)
+├── GET  /api/product/products/category/{id}      # Get products by category (paginated) 
+└── GET  /api/product/products/search             # Search products by keyword (paginated)
+
+Category Management:
+├── GET  /api/product/categories                  # Get all categories (public)
+├── POST /api/product/categories                  # Create category (ADMIN only)
+├── PUT  /api/product/categories/{id}             # Update category (ADMIN only)
+└── DELETE /api/product/categories/{id}           # Delete category (ADMIN only)
+
+Product Management (ADMIN only):
+├── POST /api/product/products                    # Create new product
+├── PUT  /api/product/products/{id}               # Update product (in development)
+└── DELETE /api/product/products/{id}             # Delete product (in development)
+
+Product Media Management:
+Images:
+├── GET  /api/product/products/{id}/images        # Get product images (public)
+├── POST /api/product/products/{id}/images        # Add product image (ADMIN only)
+├── PUT  /api/product/products/{id}/images/{imageId}  # Update image (ADMIN only)
+└── DELETE /api/product/products/{id}/images/{imageId} # Delete image (ADMIN only)
+
+Videos:
+├── GET  /api/product/products/{id}/videos        # Get product videos (public)
+├── POST /api/product/products/{id}/videos        # Add product video (ADMIN only)
+├── PUT  /api/product/products/{id}/videos/{videoId}  # Update video (ADMIN only)
+└── DELETE /api/product/products/{id}/videos/{videoId} # Delete video (ADMIN only)
+```
+
+### Product Media Management System
+The Product Service now includes a comprehensive media management system:
+
+**Image Management Features:**
+- **CRUD Operations**: Complete create, read, update, delete for product images
+- **Display Ordering**: Configurable image display order
+- **Primary Image Support**: Designation of primary product images  
+- **Alt Text**: Accessibility support with alt text for images
+- **URL-based Storage**: Flexible image URL management
+
+**Video Management Features:**
+- **CRUD Operations**: Complete create, read, update, delete for product videos
+- **Thumbnail Support**: Video thumbnail URL management
+- **Metadata**: Title, description, and duration tracking
+- **Display Ordering**: Configurable video display order
+
+**Security & Access Control:**
+- **Public Access**: Anyone can view product media
+- **ADMIN Controls**: Only ADMIN users can create, update, or delete media
+- **JWT Integration**: Secure authentication via API Gateway
+- **Role Validation**: Server-side role checking with SecurityUtil
 
 ### CORS Configuration
 - **Allowed Origins**: `localhost:3000,localhost:8080,localhost:5731`
@@ -318,17 +446,20 @@ cd auth-service && mvn spring-boot:run
 | **User Service** | ✅ Production Ready | Complete | ✅ Swagger | nexhub_user | Reseller CRUD, Account mapping |
 | **Notification Service** | ✅ Production Ready | Complete | ✅ Swagger | - | Async email via Kafka, Gmail SMTP |
 | **Warranty Service** | ⚠️ Basic Implementation | Entities only | ✅ Swagger | nexhub_warranty | Purchase tracking, warranty calculation |
-| **Product Service** | 🚧 Skeleton Only | Entities only | 🔄 Planned | nexhub_product | Product catalog structure |
+| **Product Service** | ✅ Complete Implementation | Full CRUD + Media Management | ✅ Swagger | nexhub_product | Complete product ecosystem with media, categories, and security |
 | **Blog Service** | 🚧 Skeleton Only | Entities only | 🔄 Planned | nexhub_blog | Content management structure |
 | **Language Service** | 🚧 Skeleton Only | Entities only | 🔄 Planned | nexhub_language | I18n support structure |
 
 ### Recent Development Focus
-- ✅ **Authentication System**: Complete JWT implementation with JWKS
+- ✅ **Authentication System**: Complete JWT implementation with JWKS and Gateway JWT forwarding
 - ✅ **Async Notifications**: Kafka-based email system
-- ✅ **API Gateway Integration**: Centralized Swagger documentation
+- ✅ **API Gateway Integration**: Centralized Swagger documentation with JWT forwarding filter
 - ✅ **Database Architecture**: Multi-database setup with proper isolation
-- ⚠️ **Business Logic**: Limited to auth, user management, and notifications
-- 🚧 **Product Operations**: Requires implementation for e-commerce functionality
+- ✅ **Product Service**: Complete product ecosystem with full CRUD operations
+- ✅ **Product Media Management**: Complete image and video management systems
+- ✅ **Security Enhancement**: Gateway-level JWT forwarding and service-level role validation
+- ✅ **Testing Framework**: Comprehensive unit tests for product controller with security validation
+- ⚠️ **Final Product Features**: Inventory management, pricing, and remaining product CRUD endpoints
 
 ## 🔍 Monitoring & Debugging
 
@@ -382,11 +513,17 @@ curl http://localhost:8761/eureka/apps
 - User management service for resellers
 - Centralized Swagger UI documentation
 - Multi-database architecture with proper isolation
+- Product Service with complete product ecosystem including media management
+- Advanced product catalog with categories, images, videos, features, serial numbers, and comprehensive data model
+- Complete media management system for product images and videos with ADMIN controls
+- Enhanced security with JWT forwarding and role-based access control
 
 ### In Progress ⚠️
-- Warranty service business logic implementation
-- Product catalog management system
+- Warranty service business logic implementation  
 - Customer purchase workflow
+- Product Service: Final product CRUD operations (UPDATE, DELETE endpoints for products)
+- Advanced product features: inventory management, pricing, and stock tracking
+- Product serial number management and tracking
 
 ### Planned 🚧
 - Complete product service with inventory management
@@ -398,7 +535,7 @@ curl http://localhost:8761/eureka/apps
 
 ---
 
-**Last Updated**: August 22, 2025  
-**Version**: 1.2.0  
+**Last Updated**: August 23, 2025  
+**Version**: 1.4.0  
 **Architecture**: Spring Boot 3.5.4 Microservices  
 **Maintainer**: DevWonder Team

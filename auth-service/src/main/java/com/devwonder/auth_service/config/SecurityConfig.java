@@ -27,10 +27,8 @@ public class SecurityConfig {
                 .requestMatchers("/eureka/**").permitAll()
                 .requestMatchers("/info").permitAll()
                 
-                // JWKS endpoint (ONLY via API Gateway)
-                .requestMatchers("/auth/.well-known/jwks.json").access(new WebExpressionAuthorizationManager(
-                    "request.getHeader('X-Gateway-Request') == 'true'"   // ONLY Gateway header
-                ))
+                // JWKS endpoint (publicly accessible for JWT validation)
+                .requestMatchers("/auth/.well-known/jwks.json").permitAll()
                 
                 // Swagger docs (ONLY via API Gateway)
                 .requestMatchers(

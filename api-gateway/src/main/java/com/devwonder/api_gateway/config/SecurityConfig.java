@@ -3,6 +3,7 @@ package com.devwonder.api_gateway.config;
 import java.util.Collections;
 
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpMethod;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
@@ -21,7 +22,7 @@ public class SecurityConfig {
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .cors(ServerHttpSecurity.CorsSpec::disable)
                 .authorizeExchange(exchanges -> exchanges
-                        // Swagger UI
+                        // Swagger UI - public access for development
                         .pathMatchers(
                             "/swagger-ui.html",
                             "/swagger-ui/**",
@@ -31,7 +32,7 @@ public class SecurityConfig {
                             "/api/*/swagger-ui/**",
                             "/api/*/webjars/**",
                             "/api/user/v3/api-docs/**",
-                            "/api/user/swagger-ui/**",
+                            "/api/user/swagger-ui/**", 
                             "/api/user/webjars/**",
                             "/auth/swagger-ui.html",
                             "/auth/swagger-ui/**",
@@ -39,8 +40,12 @@ public class SecurityConfig {
                             "/auth/v3/api-docs"
                         ).permitAll()
                         .pathMatchers("/api/auth/**").permitAll()
-                        // Product endpoints - public access (all product endpoints for testing)
-                        .pathMatchers("/api/product/**").permitAll()
+                        // Product GET endpoints - public access
+                        .pathMatchers(HttpMethod.GET, "/api/product/**").permitAll()
+                        // Product POST/PUT/DELETE endpoints - require ADMIN role
+                        .pathMatchers(HttpMethod.POST, "/api/product/**").hasAnyRole("ADMIN")
+                        .pathMatchers(HttpMethod.PUT, "/api/product/**").hasAnyRole("ADMIN")
+                        .pathMatchers(HttpMethod.DELETE, "/api/product/**").hasAnyRole("ADMIN")
                         .anyExchange().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt

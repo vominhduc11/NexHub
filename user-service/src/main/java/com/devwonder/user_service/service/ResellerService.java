@@ -5,11 +5,18 @@ import com.devwonder.user_service.dto.ResellerResponse;
 import com.devwonder.user_service.entity.Reseller;
 import com.devwonder.user_service.exception.EmailAlreadyExistsException;
 import com.devwonder.user_service.exception.PhoneAlreadyExistsException;
+import com.devwonder.user_service.mapper.ResellerMapper;
 import com.devwonder.user_service.repository.ResellerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -17,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ResellerService {
     
     private final ResellerRepository resellerRepository;
+    private final ResellerMapper resellerMapper;
     
     @Transactional
     public ResellerResponse createReseller(CreateResellerRequest request) {
@@ -37,30 +45,80 @@ public class ResellerService {
             throw new EmailAlreadyExistsException("Email '" + request.getEmail() + "' already exists");
         }
         
-        // Create new reseller
-        Reseller reseller = new Reseller();
-        reseller.setAccountId(request.getAccountId());
-        reseller.setName(request.getName());
-        reseller.setAddress(request.getAddress());
-        reseller.setPhone(request.getPhone());
-        reseller.setEmail(request.getEmail());
-        reseller.setDistrict(request.getDistrict());
-        reseller.setCity(request.getCity());
+        // Create new reseller using Builder pattern
+        Reseller reseller = Reseller.builder()
+                .accountId(request.getAccountId())
+                .name(request.getName())
+                .address(request.getAddress())
+                .phone(request.getPhone())
+                .email(request.getEmail())
+                .district(request.getDistrict())
+                .city(request.getCity())
+                .build();
         
         Reseller savedReseller = resellerRepository.save(reseller);
         
         log.info("Successfully created reseller for account ID: {}", savedReseller.getAccountId());
         
-        return new ResellerResponse(
-            savedReseller.getAccountId(),
-            savedReseller.getName(),
-            savedReseller.getAddress(),
-            savedReseller.getPhone(),
-            savedReseller.getEmail(),
-            savedReseller.getDistrict(),
-            savedReseller.getCity(),
-            savedReseller.getCreatedAt(),
-            savedReseller.getUpdatedAt()
-        );
+        return resellerMapper.toResponse(savedReseller);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ResellerResponse> getAllActiveResellers(int page, int size) {
+        log.info("Fetching all active resellers - page: {}, size: {}", page, size);
+        
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Reseller> resellers = resellerRepository.findAllActive(pageable);
+        
+        return resellers.map(resellerMapper::toResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<ResellerResponse> findActiveById(Long accountId) {
+        return resellerRepository.findActiveById(accountId)
+            .map(resellerMapper::toResponse);
+    }
+
+    @Transactional
+    public void softDeleteReseller(Long accountId) {
+        log.info("Soft deleting reseller with account ID: {}", accountId);
+        
+        Reseller reseller = resellerRepository.findById(accountId)
+            .orElseThrow(() -> new RuntimeException("Reseller not found with account ID: " + accountId));
+
+        if (reseller.getDeletedAt() != null) {
+            throw new IllegalStateException("Reseller is already deleted");
+        }
+
+        reseller.setDeletedAt(LocalDateTime.now());
+        resellerRepository.save(reseller);
+        log.info("Reseller soft deleted successfully: {}", reseller.getName());
+    }
+
+    @Transactional
+    public void restoreReseller(Long accountId) {
+        log.info("Restoring reseller with account ID: {}", accountId);
+        
+        Reseller reseller = resellerRepository.findById(accountId)
+            .orElseThrow(() -> new RuntimeException("Reseller not found with account ID: " + accountId));
+
+        if (reseller.getDeletedAt() == null) {
+            throw new IllegalStateException("Reseller is not deleted");
+        }
+
+        reseller.setDeletedAt(null);
+        resellerRepository.save(reseller);
+        log.info("Reseller restored successfully: {}", reseller.getName());
+    }
+
+    @Transactional
+    public void hardDeleteReseller(Long accountId) {
+        log.info("Hard deleting reseller with account ID: {}", accountId);
+        
+        Reseller reseller = resellerRepository.findById(accountId)
+            .orElseThrow(() -> new RuntimeException("Reseller not found with account ID: " + accountId));
+
+        resellerRepository.delete(reseller);
+        log.info("Reseller hard deleted successfully: {}", reseller.getName());
     }
 }

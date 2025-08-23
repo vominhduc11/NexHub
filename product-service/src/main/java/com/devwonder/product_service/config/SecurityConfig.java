@@ -2,6 +2,7 @@ package com.devwonder.product_service.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -34,8 +35,18 @@ public class SecurityConfig {
                 ))
                 
                 // Product list endpoints - permitAll via API Gateway
-                .requestMatchers("/product/products", "/product/products/category/**", "/product/products/search").access(new WebExpressionAuthorizationManager(
+                .requestMatchers(HttpMethod.GET, "/product/products", "/product/products/category/**", "/product/products/search").access(new WebExpressionAuthorizationManager(
                     "request.getHeader('X-Gateway-Request') == 'true'"   // ONLY Gateway header (permitAll for public access)
+                ))
+                
+                // Product creation endpoint - require authentication via API Gateway (JWT validated at Gateway)
+                .requestMatchers(HttpMethod.POST, "/product/products").access(new WebExpressionAuthorizationManager(
+                    "request.getHeader('X-Gateway-Request') == 'true'"   // ONLY Gateway header (JWT + ADMIN role validated at Gateway)
+                ))
+                
+                // Category endpoints - allow via API Gateway
+                .requestMatchers("/product/categories/**").access(new WebExpressionAuthorizationManager(
+                    "request.getHeader('X-Gateway-Request') == 'true'"   // ONLY Gateway header
                 ))
                 
                 // Other product endpoints - require authentication via API Gateway  

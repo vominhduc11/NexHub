@@ -1,7 +1,10 @@
 package com.devwonder.product_service.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -12,6 +15,9 @@ import java.util.List;
 @Entity
 @Table(name = "products")
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,7 +39,7 @@ public class Product {
     @JoinColumn(name = "category_id")
     private Category category;
 
-    @Column(columnDefinition = "JSONB")
+    @Column(columnDefinition = "TEXT")
     private String specifications;
 
     @Column(name = "availability_status", length = 50)
@@ -82,7 +88,7 @@ public class Product {
     @Column(unique = true, nullable = false)
     private String sku;
 
-    @Column(name = "related_product_ids", columnDefinition = "JSONB")
+    @Column(name = "related_product_ids", columnDefinition = "TEXT")
     private String relatedProductIds;
 
     @Column(columnDefinition = "TEXT")
@@ -93,14 +99,6 @@ public class Product {
 
     @Column(name = "seo_description", columnDefinition = "TEXT")
     private String seoDescription;
-
-    @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
 
     @Column(name = "published_at")
     private LocalDateTime publishedAt;
@@ -116,4 +114,15 @@ public class Product {
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductSerial> productSerials;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 }

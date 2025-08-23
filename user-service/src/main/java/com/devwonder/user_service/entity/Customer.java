@@ -37,4 +37,7 @@ public class Customer {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 }
