@@ -2,7 +2,7 @@
 
 ## 🏗️ Architecture Overview
 
-**NexHub** is a comprehensive e-commerce microservices platform built with Spring Boot, featuring a complete ecosystem of infrastructure and business services focused on product management, warranty tracking, and reseller operations.
+**NexHub** is a comprehensive e-commerce microservices platform built with Spring Boot, featuring a complete ecosystem of infrastructure and business services focused on product management, warranty tracking, customer management, and reseller operations. The platform implements a distributed architecture with advanced caching, event-driven communication, and robust security features.
 
 ### 🔧 Infrastructure Services
 
@@ -29,10 +29,10 @@
 
 | Service | Port | Database | Description | Implementation Status |
 |---------|------|----------|-------------|---------------------|
-| **User Service** | 8082 | nexhub_user | Customer, Admin, Reseller management | ✅ Complete |
-| **Notification Service** | 8083 | - | Async email notifications via Kafka | ✅ Complete |
-| **Product Service** | 8084 | nexhub_product | Complete product ecosystem with media, categories, and serial management | ✅ Complete Implementation |
-| **Warranty Service** | 8085 | nexhub_warranty | Warranty tracking & product purchases | ✅ Basic structure |
+| **User Service** | 8082 | nexhub_user | Customer, Admin, Reseller management with complete CRUD operations | ✅ Complete Implementation |
+| **Notification Service** | 8083 | nexhub_notification | Async email notifications via Kafka with Gmail SMTP integration | ✅ Complete Implementation |
+| **Product Service** | 8084 | nexhub_product | Complete product ecosystem with Redis caching, media management, categories, and serial tracking | ✅ Complete Implementation |
+| **Warranty Service** | 8085 | nexhub_warranty | Warranty tracking & product purchases with expiration management | ⚠️ Entities implemented |
 | **Language Service** | 8086 | nexhub_language | Internationalization support | 🚧 Skeleton only |
 | **Blog Service** | 8087 | nexhub_blog | Content management system | 🚧 Skeleton only |
 
@@ -118,6 +118,17 @@ resellers:
 ├── name              # Business name
 ├── address, phone    # Contact information
 ├── district, city    # Location
+└── created_at/updated_at
+
+customers:
+├── account_id (PK)    # Maps to auth_service.accounts.id
+├── full_name         # Customer full name
+├── email (UNIQUE)    # Email address
+├── phone (UNIQUE)    # Phone number
+├── date_of_birth     # Date of birth
+├── address           # Full address
+├── ward, district, city, province # Location details
+├── is_active         # Account status
 └── created_at/updated_at
 ```
 
@@ -259,6 +270,42 @@ Network: Isolated bridge network (next-network)
 - Service-specific health check URLs and timeouts
 - Database connection validation in health checks
 
+## ⚡ Performance & Caching
+
+### Redis Caching Implementation
+The Product Service now implements comprehensive Redis caching for optimal performance:
+
+**Cache Configuration:**
+- **Redis Host**: Centralized Redis instance with password protection
+- **Connection Pool**: Lettuce connection pooling with optimized settings
+- **TTL Management**: 10-minute default cache expiration
+- **Cache Type**: Redis-based caching with Spring Boot
+
+**Caching Strategies:**
+```java
+// Product listings with pagination parameters
+@Cacheable(value = "products", key = "'page:' + #page + ':size:' + #size")
+public Page<ProductResponse> getAllProducts(int page, int size)
+
+// Category-based product filtering
+@Cacheable(value = "products-by-category", key = "'cat:' + #categoryId + ':page:' + #page + ':size:' + #size") 
+public Page<ProductResponse> getProductsByCategory(Long categoryId, int page, int size)
+
+// Search results caching
+@Cacheable(value = "product-search", key = "'search:' + #keyword + ':page:' + #page + ':size:' + #size")
+public Page<ProductResponse> searchProducts(String keyword, int page, int size)
+
+// Cache eviction on updates
+@CacheEvict(value = {"products", "products-by-category", "product-search"}, allEntries = true)
+public ProductResponse createProduct(ProductRequest request)
+```
+
+**Performance Benefits:**
+- **Database Load Reduction**: Cached queries reduce PostgreSQL database hits
+- **Response Time Improvement**: Sub-millisecond cache retrieval vs database queries
+- **Scalability**: Better performance under high concurrent load
+- **Smart Cache Keys**: Granular caching with composite key strategies
+
 ## 📈 Scalability Features
 
 ### Horizontal Scaling
@@ -273,9 +320,14 @@ Network: Isolated bridge network (next-network)
 - **Consumer Groups**: Reliable message processing with offset management
 
 ### Caching Strategy
-- **Redis Cluster**: Distributed caching
-- **Session Management**: Centralized session storage
-- **Application Cache**: Performance optimization
+- **Redis Integration**: Centralized caching with password-protected access
+- **Product Service Caching**: Advanced caching with @Cacheable annotations
+  - Product listings cached by page/size parameters
+  - Category-based product filtering with cache keys
+  - Search results caching with keyword-based keys
+  - Cache eviction on product updates for data consistency
+- **Session Management**: Centralized session storage with Redis
+- **TTL Management**: 10-minute default TTL for cached data
 
 ## 🔧 Development Features
 
@@ -442,24 +494,26 @@ cd auth-service && mvn spring-boot:run
 ### Business Services
 | Service | Status | Implementation | API Docs | Database | Key Features |
 |---------|--------|----------------|----------|----------|--------------|
-| **Auth Service** | ✅ Production Ready | Complete | ✅ Swagger | nexhub_auth | RSA-256 JWT, Role-based auth, Kafka integration |
-| **User Service** | ✅ Production Ready | Complete | ✅ Swagger | nexhub_user | Reseller CRUD, Account mapping |
-| **Notification Service** | ✅ Production Ready | Complete | ✅ Swagger | - | Async email via Kafka, Gmail SMTP |
-| **Warranty Service** | ⚠️ Basic Implementation | Entities only | ✅ Swagger | nexhub_warranty | Purchase tracking, warranty calculation |
-| **Product Service** | ✅ Complete Implementation | Full CRUD + Media Management | ✅ Swagger | nexhub_product | Complete product ecosystem with media, categories, and security |
+| **Auth Service** | ✅ Production Ready | Complete | ✅ Swagger | nexhub_auth | RSA-256 JWT, Role-based auth, Kafka integration, JWKS endpoint |
+| **User Service** | ✅ Production Ready | Complete | ✅ Swagger | nexhub_user | Full Customer & Reseller CRUD, Account mapping, Redis caching |
+| **Notification Service** | ✅ Production Ready | Complete | ✅ Swagger | nexhub_notification | Async email via Kafka, Gmail SMTP, Event processing |
+| **Product Service** | ✅ Complete Implementation | Full CRUD + Media + Caching | ✅ Swagger | nexhub_product | Redis caching, Media management, Categories, Serial tracking, Security |
+| **Warranty Service** | ⚠️ Basic Implementation | Entities only | ✅ Swagger | nexhub_warranty | Purchase tracking, warranty calculation, expiration management |
 | **Blog Service** | 🚧 Skeleton Only | Entities only | 🔄 Planned | nexhub_blog | Content management structure |
 | **Language Service** | 🚧 Skeleton Only | Entities only | 🔄 Planned | nexhub_language | I18n support structure |
 
 ### Recent Development Focus
 - ✅ **Authentication System**: Complete JWT implementation with JWKS and Gateway JWT forwarding
-- ✅ **Async Notifications**: Kafka-based email system
+- ✅ **Async Notifications**: Kafka-based email system with Gmail SMTP integration
 - ✅ **API Gateway Integration**: Centralized Swagger documentation with JWT forwarding filter
-- ✅ **Database Architecture**: Multi-database setup with proper isolation
-- ✅ **Product Service**: Complete product ecosystem with full CRUD operations
-- ✅ **Product Media Management**: Complete image and video management systems
+- ✅ **Database Architecture**: Multi-database setup with proper isolation (7 databases)
+- ✅ **Product Service**: Complete product ecosystem with full CRUD operations and Redis caching
+- ✅ **Product Media Management**: Complete image and video management systems with ADMIN controls
+- ✅ **Customer Management**: Full Customer service implementation with CRUD operations
+- ✅ **Redis Integration**: Advanced caching strategy across Product and User services
 - ✅ **Security Enhancement**: Gateway-level JWT forwarding and service-level role validation
 - ✅ **Testing Framework**: Comprehensive unit tests for product controller with security validation
-- ⚠️ **Final Product Features**: Inventory management, pricing, and remaining product CRUD endpoints
+- ⚠️ **Warranty Service**: Business logic implementation for purchase and warranty tracking
 
 ## 🔍 Monitoring & Debugging
 
@@ -519,23 +573,25 @@ curl http://localhost:8761/eureka/apps
 - Enhanced security with JWT forwarding and role-based access control
 
 ### In Progress ⚠️
-- Warranty service business logic implementation  
-- Customer purchase workflow
-- Product Service: Final product CRUD operations (UPDATE, DELETE endpoints for products)
-- Advanced product features: inventory management, pricing, and stock tracking
-- Product serial number management and tracking
+- Warranty service business logic implementation with purchase workflow
+- Product inventory management and pricing system
+- Advanced product features: stock tracking and availability management
+- Customer purchase workflow integration with warranty service
+- Performance optimization and monitoring enhancements
 
 ### Planned 🚧
-- Complete product service with inventory management
-- Blog/CMS functionality for marketing content
-- Language service for internationalization
-- Advanced warranty tracking and reporting
-- Customer portal and self-service features
-- Admin dashboard for system management
+- Blog/CMS functionality for marketing content and SEO
+- Language service for full internationalization support
+- Advanced warranty tracking with reporting and analytics
+- Customer portal with self-service features and purchase history
+- Admin dashboard for comprehensive system management
+- Mobile API optimizations and rate limiting
+- Advanced monitoring and observability with distributed tracing
 
 ---
 
 **Last Updated**: August 23, 2025  
-**Version**: 1.4.0  
-**Architecture**: Spring Boot 3.5.4 Microservices  
+**Version**: 1.5.0  
+**Architecture**: Spring Boot 3.5.4 Microservices with Redis Caching  
+**Implementation Status**: Production-Ready Core Services (Auth, User, Product, Notification)  
 **Maintainer**: DevWonder Team
