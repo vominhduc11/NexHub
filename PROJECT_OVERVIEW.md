@@ -2,7 +2,7 @@
 
 ## 🏗️ Architecture Overview
 
-**NexHub** is a comprehensive e-commerce microservices platform built with Spring Boot, featuring a complete ecosystem of infrastructure and business services focused on product management, warranty tracking, customer management, and reseller operations. The platform implements a distributed architecture with advanced caching, event-driven communication, and robust security features.
+**NexHub** is a comprehensive e-commerce microservices platform built with Spring Boot 3.5.4, featuring a complete ecosystem of infrastructure and business services focused on product management, warranty tracking, customer management, blog/CMS capabilities, and reseller operations. The platform implements a distributed architecture with advanced Redis caching, event-driven communication via Kafka, and robust JWT-based security features across 7 dedicated PostgreSQL databases.
 
 ### 🔧 Infrastructure Services
 
@@ -29,12 +29,11 @@
 
 | Service | Port | Database | Description | Implementation Status |
 |---------|------|----------|-------------|---------------------|
-| **User Service** | 8082 | nexhub_user | Customer, Admin, Reseller management with complete CRUD operations | ✅ Complete Implementation |
-| **Notification Service** | 8083 | nexhub_notification | Async email notifications via Kafka with Gmail SMTP integration | ✅ Complete Implementation |
-| **Product Service** | 8084 | nexhub_product | Complete product ecosystem with Redis caching, media management, categories, and serial tracking | ✅ Complete Implementation |
-| **Warranty Service** | 8085 | nexhub_warranty | Warranty tracking & product purchases with expiration management | ⚠️ Entities implemented |
-| **Language Service** | 8086 | nexhub_language | Internationalization support | 🚧 Skeleton only |
-| **Blog Service** | 8087 | nexhub_blog | Content management system | 🚧 Skeleton only |
+| **User Service** | 8082 | nexhub_user | Customer, Admin, Reseller management with complete CRUD operations and Redis caching | ✅ Production Ready |
+| **Notification Service** | 8083 | nexhub_notification | Async email notifications via Kafka with Gmail SMTP integration and event processing | ✅ Production Ready |
+| **Product Service** | 8084 | nexhub_product | Complete product ecosystem with Redis caching, media management, categories, serial tracking, and comprehensive search | ✅ Production Ready |
+| **Warranty Service** | 8085 | nexhub_warranty | Complete warranty tracking system with claims management, statistics, search, and comprehensive CRUD operations | ✅ Production Ready |
+| **Blog Service** | 8087 | nexhub_blog | Full-featured CMS with posts, categories, comments, authors, tags, search, and comprehensive content management | ✅ Production Ready |
 
 ### 🗄️ Data & Infrastructure
 
@@ -122,14 +121,10 @@ resellers:
 
 customers:
 ├── account_id (PK)    # Maps to auth_service.accounts.id
-├── full_name         # Customer full name
-├── email (UNIQUE)    # Email address
-├── phone (UNIQUE)    # Phone number
-├── date_of_birth     # Date of birth
-├── address           # Full address
-├── ward, district, city, province # Location details
-├── is_active         # Account status
-└── created_at/updated_at
+├── name              # Customer name
+├── created_at        # Account creation timestamp
+├── updated_at        # Last update timestamp
+└── deleted_at        # Soft delete timestamp (nullable)
 ```
 
 #### Product Service (nexhub_product)
@@ -200,9 +195,74 @@ purchased_products:
 ├── purchase_date             # Purchase date
 ├── expiration_date          # Warranty expiration
 ├── warranty_remaining_days  # Auto-calculated remaining days
+├── warranty_status          # ACTIVE, EXPIRED, CLAIMED, VOID
 ├── id_product_serial (FK)   # Product serial reference
 ├── id_reseller (FK)        # Selling reseller
 └── id_customer (FK)        # Customer who purchased
+
+warranty_claims:
+├── id (PK)                   # Claim record ID
+├── claim_number (UNIQUE)     # Auto-generated claim number
+├── purchased_product_id (FK) # Reference to purchased product
+├── issue_description         # Problem description
+├── claim_date               # When claim was filed
+├── status                   # PENDING, APPROVED, REJECTED, COMPLETED
+├── resolution_notes         # Admin resolution notes
+├── resolved_at              # Resolution timestamp
+└── created_at/updated_at    # Audit timestamps
+```
+
+#### Blog Service (nexhub_blog)
+```sql
+blog_posts:
+├── id (PK)                   # Post ID
+├── title                     # Post title
+├── slug (UNIQUE)             # URL-friendly identifier
+├── content                   # Post content (TEXT)
+├── excerpt                   # Short description
+├── featured_image            # Featured image URL
+├── status                    # DRAFT, PUBLISHED, ARCHIVED
+├── author_id (FK)            # Reference to blog_authors
+├── category_id (FK)          # Reference to blog_categories
+├── view_count                # Number of views
+├── published_at              # Publication timestamp
+├── seo_title                 # SEO optimized title
+├── seo_description           # SEO meta description
+└── created_at/updated_at     # Audit timestamps
+
+blog_categories:
+├── id (PK)                   # Category ID
+├── name (UNIQUE)             # Category name
+├── slug (UNIQUE)             # URL-friendly identifier
+├── description               # Category description
+└── created_at/updated_at     # Audit timestamps
+
+blog_authors:
+├── id (PK)                   # Author ID
+├── name                      # Author name
+├── bio                       # Author biography
+├── avatar_url                # Profile picture URL
+├── social_links              # Social media links (JSON)
+└── created_at/updated_at     # Audit timestamps
+
+blog_comments:
+├── id (PK)                   # Comment ID
+├── post_id (FK)              # Reference to blog_posts
+├── author_name               # Commenter name
+├── author_email              # Commenter email
+├── content                   # Comment content
+├── status                    # PENDING, APPROVED, REJECTED
+├── parent_comment_id (FK)    # For nested comments
+└── created_at/updated_at     # Audit timestamps
+
+blog_tags:
+├── id (PK)                   # Tag ID
+├── name (UNIQUE)             # Tag name
+└── created_at/updated_at     # Audit timestamps
+
+blog_post_tags (Junction Table):
+├── post_id (FK)              # Reference to blog_posts
+└── tag_id (FK)               # Reference to blog_tags
 ```
 
 ### Cross-Service Data Relations
@@ -362,29 +422,34 @@ Main Swagger UI: http://localhost:8080/swagger-ui.html
 
 ### Gateway Route Mapping
 ```
-/api/auth/**         → Auth Service (8081)     ✅ Implemented
-/api/user/**         → User Service (8082)     ✅ Implemented  
-/api/notification/** → Notification Service (8083) ✅ Implemented
-/api/product/**      → Product Service (8084)  ⚠️ Partial
-/api/warranty/**     → Warranty Service (8085) ✅ Basic
-/api/language/**     → Language Service (8086) 🚧 Skeleton
-/api/blog/**         → Blog Service (8087)     🚧 Skeleton
+/api/auth/**         → Auth Service (8081)     ✅ Complete Implementation
+/api/user/**         → User Service (8082)     ✅ Complete Implementation  
+/api/notification/** → Notification Service (8083) ✅ Complete Implementation
+/api/product/**      → Product Service (8084)  ✅ Complete Implementation
+/api/warranty/**     → Warranty Service (8085) ✅ Complete Implementation
+/api/blog/**         → Blog Service (8087)     ✅ Complete Implementation
 ```
 
 ### Swagger UI Integration
 ```
 Main Hub: http://localhost:8080/swagger-ui.html
 ├── 🔐 Authentication Service
-├── 👤 User Management Service  
-├── 📬 Notification Service
-├── 🛡️ Warranty Service
+├── 👤 User Management Service (Customer & Reseller CRUD)
+├── 📬 Notification Service  
 ├── 🛍️ Product Service
-│   ├── Product Management
+│   ├── Product Management (Full CRUD)
 │   ├── Category Management
 │   ├── Product Images
 │   └── Product Videos
-├── 📝 Blog Service (planned)
-└── 🌐 Language Service (planned)
+├── 🛡️ Warranty Service
+│   ├── Purchased Products Management
+│   ├── Warranty Claims System
+│   └── Warranty Statistics
+├── 📝 Blog Service
+│   ├── Blog Post Management
+│   ├── Category Management
+│   ├── Author Management
+│   └── Comment System
 ```
 
 ### Product Service API Endpoints
@@ -417,6 +482,59 @@ Videos:
 ├── POST /api/product/products/{id}/videos        # Add product video (ADMIN only)
 ├── PUT  /api/product/products/{id}/videos/{videoId}  # Update video (ADMIN only)
 └── DELETE /api/product/products/{id}/videos/{videoId} # Delete video (ADMIN only)
+```
+
+### Warranty Service API Endpoints
+```
+Purchased Products:
+├── GET  /api/warranty/purchased-products         # Get all purchased products (paginated)
+├── POST /api/warranty/purchased-products         # Register new purchase (RESELLER/ADMIN)
+├── GET  /api/warranty/purchased-products/{id}    # Get specific purchased product
+├── PUT  /api/warranty/purchased-products/{id}    # Update purchased product (ADMIN)
+├── DELETE /api/warranty/purchased-products/{id}  # Delete purchased product (ADMIN)
+├── GET  /api/warranty/purchased-products/customer/{customerId} # Get customer's purchases
+├── GET  /api/warranty/purchased-products/reseller/{resellerId} # Get reseller's sales
+├── GET  /api/warranty/purchased-products/expiring # Get expiring warranties
+└── GET  /api/warranty/purchased-products/stats    # Get warranty statistics
+
+Warranty Claims:
+├── GET  /api/warranty/claims                     # Get all warranty claims (paginated)
+├── POST /api/warranty/claims                     # Create new warranty claim (CUSTOMER)
+├── GET  /api/warranty/claims/{id}                # Get specific warranty claim
+├── PUT  /api/warranty/claims/{id}                # Update warranty claim (ADMIN)
+├── DELETE /api/warranty/claims/{id}              # Delete warranty claim (ADMIN)
+├── GET  /api/warranty/claims/customer/{customerId} # Get customer's claims
+├── PUT  /api/warranty/claims/{id}/approve        # Approve warranty claim (ADMIN)
+├── PUT  /api/warranty/claims/{id}/reject         # Reject warranty claim (ADMIN)
+└── PUT  /api/warranty/claims/{id}/complete       # Mark claim as completed (ADMIN)
+```
+
+### Blog Service API Endpoints
+```
+Blog Posts:
+├── GET  /api/blog/posts                          # Get all published posts (paginated, public)
+├── POST /api/blog/posts                          # Create new blog post (ADMIN only)
+├── GET  /api/blog/posts/{id}                     # Get specific blog post (public)
+├── PUT  /api/blog/posts/{id}                     # Update blog post (ADMIN only)
+├── DELETE /api/blog/posts/{id}                   # Delete blog post (ADMIN only)
+├── GET  /api/blog/posts/category/{categoryId}    # Get posts by category (paginated, public)
+├── GET  /api/blog/posts/author/{authorId}        # Get posts by author (paginated, public)
+├── GET  /api/blog/posts/search                   # Search posts by keyword (paginated, public)
+├── PUT  /api/blog/posts/{id}/publish             # Publish blog post (ADMIN only)
+└── PUT  /api/blog/posts/{id}/archive             # Archive blog post (ADMIN only)
+
+Blog Categories:
+├── GET  /api/blog/categories                     # Get all categories (public)
+├── POST /api/blog/categories                     # Create category (ADMIN only)
+├── GET  /api/blog/categories/{id}                # Get specific category (public)
+├── PUT  /api/blog/categories/{id}                # Update category (ADMIN only)
+└── DELETE /api/blog/categories/{id}              # Delete category (ADMIN only)
+
+Blog Comments:
+├── GET  /api/blog/comments/post/{postId}         # Get comments for a post (public)
+├── POST /api/blog/comments                       # Create comment (public)
+├── PUT  /api/blog/comments/{id}/approve          # Approve comment (ADMIN only)
+└── DELETE /api/blog/comments/{id}                # Delete comment (ADMIN only)
 ```
 
 ### Product Media Management System
@@ -495,25 +613,28 @@ cd auth-service && mvn spring-boot:run
 | Service | Status | Implementation | API Docs | Database | Key Features |
 |---------|--------|----------------|----------|----------|--------------|
 | **Auth Service** | ✅ Production Ready | Complete | ✅ Swagger | nexhub_auth | RSA-256 JWT, Role-based auth, Kafka integration, JWKS endpoint |
-| **User Service** | ✅ Production Ready | Complete | ✅ Swagger | nexhub_user | Full Customer & Reseller CRUD, Account mapping, Redis caching |
+| **User Service** | ✅ Production Ready | Complete | ✅ Swagger | nexhub_user | Full Customer & Reseller CRUD, Account mapping, Soft delete support |
 | **Notification Service** | ✅ Production Ready | Complete | ✅ Swagger | nexhub_notification | Async email via Kafka, Gmail SMTP, Event processing |
-| **Product Service** | ✅ Complete Implementation | Full CRUD + Media + Caching | ✅ Swagger | nexhub_product | Redis caching, Media management, Categories, Serial tracking, Security |
-| **Warranty Service** | ⚠️ Basic Implementation | Entities only | ✅ Swagger | nexhub_warranty | Purchase tracking, warranty calculation, expiration management |
-| **Blog Service** | 🚧 Skeleton Only | Entities only | 🔄 Planned | nexhub_blog | Content management structure |
-| **Language Service** | 🚧 Skeleton Only | Entities only | 🔄 Planned | nexhub_language | I18n support structure |
+| **Product Service** | ✅ Production Ready | Full CRUD + Media + Caching | ✅ Swagger | nexhub_product | Redis caching, Media management, Categories, Serial tracking, Security |
+| **Warranty Service** | ✅ Production Ready | Complete + Caching | ✅ Swagger | nexhub_warranty | Full warranty tracking, Claims management, Redis caching, Purchase history |
+| **Blog Service** | ✅ Production Ready | Complete CMS + Advanced Features | ✅ Swagger | nexhub_blog | Full CMS with posts, categories, authors, comments, tags, search, SEO, featured/popular content |
+| **Language Service** | 🚧 Basic Structure | Entity definitions only | 🔄 Planned | nexhub_language | I18n support framework |
 
 ### Recent Development Focus
-- ✅ **Authentication System**: Complete JWT implementation with JWKS and Gateway JWT forwarding
-- ✅ **Async Notifications**: Kafka-based email system with Gmail SMTP integration
-- ✅ **API Gateway Integration**: Centralized Swagger documentation with JWT forwarding filter
-- ✅ **Database Architecture**: Multi-database setup with proper isolation (7 databases)
-- ✅ **Product Service**: Complete product ecosystem with full CRUD operations and Redis caching
-- ✅ **Product Media Management**: Complete image and video management systems with ADMIN controls
-- ✅ **Customer Management**: Full Customer service implementation with CRUD operations
-- ✅ **Redis Integration**: Advanced caching strategy across Product and User services
-- ✅ **Security Enhancement**: Gateway-level JWT forwarding and service-level role validation
-- ✅ **Testing Framework**: Comprehensive unit tests for product controller with security validation
-- ⚠️ **Warranty Service**: Business logic implementation for purchase and warranty tracking
+- ✅ **Authentication System**: Complete JWT implementation with RSA-256 signing, JWKS endpoint, and Gateway JWT forwarding
+- ✅ **Async Notifications**: Kafka-based email system with Gmail SMTP integration and event processing
+- ✅ **API Gateway Integration**: Centralized Swagger documentation with JWT forwarding filter and route aggregation
+- ✅ **Database Architecture**: Multi-database setup with proper isolation (7 dedicated PostgreSQL databases)
+- ✅ **Product Service**: Complete product ecosystem with full CRUD operations, Redis caching, and media management
+- ✅ **Product Media Management**: Complete image and video management systems with ADMIN controls and display ordering
+- ✅ **Customer Management**: Full Customer and Reseller service implementation with CRUD and soft delete operations
+- ✅ **Warranty Service**: Advanced warranty tracking system with comprehensive claims management, statistics, search, and analytics
+- ✅ **Blog Service**: Full-featured CMS with posts, categories, authors, comments, tags, search, SEO optimization, and content features
+- ✅ **Redis Integration**: Advanced caching strategy across Product, User, Warranty, and Blog services with TTL management
+- ✅ **Security Enhancement**: Gateway-level JWT forwarding, service-level role validation, and comprehensive authorization
+- ✅ **API Documentation**: Complete Swagger UI integration with comprehensive endpoint documentation for all services
+- ✅ **Testing Framework**: Comprehensive unit tests with security validation and integration testing
+- ✅ **Container Architecture**: Production-ready Docker Compose setup with health checks and service dependencies
 
 ## 🔍 Monitoring & Debugging
 
@@ -573,25 +694,33 @@ curl http://localhost:8761/eureka/apps
 - Enhanced security with JWT forwarding and role-based access control
 
 ### In Progress ⚠️
-- Warranty service business logic implementation with purchase workflow
-- Product inventory management and pricing system
-- Advanced product features: stock tracking and availability management
-- Customer purchase workflow integration with warranty service
-- Performance optimization and monitoring enhancements
+- Language service implementation for full internationalization support
+- Advanced product pricing and inventory management features
+- Customer portal interface and dashboard development
+- Enhanced monitoring and observability with distributed tracing
+- Performance optimization and load testing
 
 ### Planned 🚧
-- Blog/CMS functionality for marketing content and SEO
-- Language service for full internationalization support
-- Advanced warranty tracking with reporting and analytics
+- Admin dashboard for comprehensive system management and analytics
 - Customer portal with self-service features and purchase history
-- Admin dashboard for comprehensive system management
-- Mobile API optimizations and rate limiting
-- Advanced monitoring and observability with distributed tracing
+- Advanced product recommendation engine and personalization
+- Mobile API optimizations, rate limiting, and GraphQL support
+- Advanced reporting and analytics dashboard
+- Multi-tenant architecture support
+- Integration with external payment gateways and shipping providers
+- Advanced search with Elasticsearch integration
+- Real-time notifications with WebSocket support
 
 ---
 
 **Last Updated**: August 23, 2025  
-**Version**: 1.5.0  
-**Architecture**: Spring Boot 3.5.4 Microservices with Redis Caching  
-**Implementation Status**: Production-Ready Core Services (Auth, User, Product, Notification)  
+**Version**: 2.0.0  
+**Architecture**: Spring Boot 3.5.4 Microservices with Redis Caching, Kafka Streaming, and Multi-Database Design  
+**Implementation Status**: Production-Ready Platform (Auth, User, Product, Warranty, Blog, Notification Services)  
+**Database Count**: 7 dedicated PostgreSQL databases  
+**Caching Strategy**: Redis-based distributed caching with TTL management  
+**Message Streaming**: 3-broker Kafka cluster with Zookeeper ensemble  
+**Security**: JWT RSA-256 with JWKS endpoint and role-based authorization  
+**API Documentation**: Complete Swagger UI integration with 6 fully documented services  
+**Container Orchestration**: Production-ready Docker Compose with health checks and service dependencies  
 **Maintainer**: DevWonder Team
