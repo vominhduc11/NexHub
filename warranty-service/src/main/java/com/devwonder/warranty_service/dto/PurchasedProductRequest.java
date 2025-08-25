@@ -3,6 +3,8 @@ package com.devwonder.warranty_service.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PastOrPresent;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,6 +18,7 @@ import java.time.LocalDate;
 public class PurchasedProductRequest {
     
     @NotNull(message = "Purchase date is required")
+    @PastOrPresent(message = "Purchase date cannot be in the future")
     @Schema(description = "Date when the product was purchased", example = "2024-01-15")
     private LocalDate purchaseDate;
     
@@ -25,14 +28,17 @@ public class PurchasedProductRequest {
     private LocalDate expirationDate;
     
     @NotNull(message = "Product serial ID is required")
+    @Positive(message = "Product serial ID must be positive")
     @Schema(description = "ID of the product serial", example = "1")
     private Long idProductSerial;
     
     @NotNull(message = "Reseller ID is required")
+    @Positive(message = "Reseller ID must be positive")
     @Schema(description = "ID of the reseller who sold the product", example = "1")
     private Long idReseller;
     
     @NotNull(message = "Customer ID is required")
+    @Positive(message = "Customer ID must be positive")
     @Schema(description = "ID of the customer who purchased the product", example = "1")
     private Long idCustomer;
 }

@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,6 +16,7 @@ import lombok.NoArgsConstructor;
 public class WarrantyClaimRequest {
     
     @NotNull(message = "Purchased product ID is required")
+    @Positive(message = "Purchased product ID must be positive")
     @Schema(description = "ID of the purchased product", example = "1")
     private Long purchasedProductId;
     
@@ -29,6 +31,7 @@ public class WarrantyClaimRequest {
     @Schema(description = "Priority level of the claim", example = "MEDIUM")
     private Priority priority;
     
+    @Size(max = 2000, message = "Customer notes cannot exceed 2000 characters")
     @Schema(description = "Additional notes from customer", example = "Device was handled carefully")
     private String customerNotes;
     

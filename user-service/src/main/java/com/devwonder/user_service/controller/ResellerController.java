@@ -47,4 +47,11 @@ public class ResellerController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
+
+    @Operation(summary = "Check if reseller exists by account ID")
+    @GetMapping("/{accountId}/exists")
+    public ResponseEntity<Boolean> existsById(@PathVariable Long accountId) {
+        boolean exists = resellerService.existsById(accountId);
+        return ResponseEntity.ok(exists);
+    }
 }

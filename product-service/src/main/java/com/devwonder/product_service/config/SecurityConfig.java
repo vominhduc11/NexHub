@@ -39,6 +39,11 @@ public class SecurityConfig {
                     "request.getHeader('X-Gateway-Request') == 'true'"   // ONLY Gateway header (permitAll for public access)
                 ))
                 
+                // Validation endpoints for cross-service calls (warranty-service)
+                .requestMatchers("/api/product-serials/*/exists").access(new WebExpressionAuthorizationManager(
+                    "request.getHeader('X-Gateway-Request') == 'true'"
+                ))
+                
                 // Product creation endpoint - require authentication via API Gateway (JWT validated at Gateway)
                 .requestMatchers(HttpMethod.POST, "/product/products").access(new WebExpressionAuthorizationManager(
                     "request.getHeader('X-Gateway-Request') == 'true'"   // ONLY Gateway header (JWT + ADMIN role validated at Gateway)

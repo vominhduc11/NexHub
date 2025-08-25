@@ -121,4 +121,9 @@ public class ResellerService {
         resellerRepository.delete(reseller);
         log.info("Reseller hard deleted successfully: {}", reseller.getName());
     }
+
+    @Transactional(readOnly = true)
+    public boolean existsById(Long accountId) {
+        return resellerRepository.existsById(accountId);
+    }
 }

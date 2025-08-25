@@ -6,6 +6,7 @@ import com.devwonder.warranty_service.dto.WarrantyClaimRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -98,7 +99,7 @@ public interface WarrantyClaimRepository extends JpaRepository<WarrantyClaim, Lo
     Long countRecentClaims(@Param("fromDate") LocalDateTime fromDate);
     
     // Average resolution time in days (PostgreSQL compatible)
-    @Query("SELECT AVG(wc.resolvedAt - wc.submittedAt) FROM WarrantyClaim wc WHERE wc.resolvedAt IS NOT NULL AND wc.deletedAt IS NULL")
+    @Query(value = "SELECT AVG(EXTRACT(EPOCH FROM (resolved_at - submitted_at))/86400) FROM warranty_claims WHERE resolved_at IS NOT NULL AND deleted_at IS NULL", nativeQuery = true)
     Double calculateAverageResolutionDays();
     
     // Approval rate calculation

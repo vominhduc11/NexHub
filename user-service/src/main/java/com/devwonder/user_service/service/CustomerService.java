@@ -117,4 +117,9 @@ public class CustomerService {
         customerRepository.delete(customer);
         log.info("Customer hard deleted successfully: {}", customer.getName());
     }
+
+    @Transactional(readOnly = true)
+    public boolean existsById(Long accountId) {
+        return customerRepository.existsById(accountId);
+    }
 }

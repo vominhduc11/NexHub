@@ -3,25 +3,38 @@ package com.devwonder.user_service.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
 public class CreateResellerRequest {
     
     @NotNull(message = "Account ID is required")
+    @Positive(message = "Account ID must be positive")
     private Long accountId;
     
-    @NotBlank(message = "Name is required")
+    @NotBlank(message = "Full name is required")
+    @Size(min = 2, max = 100, message = "Full name must be between 2 and 100 characters")
+    @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s]+$", message = "Name can only contain letters and spaces")
     private String name;
     
+    @Size(max = 255, message = "Address cannot exceed 255 characters")
     private String address;
     
+    @Pattern(regexp = "^[\\d\\-\\+\\(\\)\\s]+$", message = "Phone number format is invalid")
+    @Size(min = 10, max = 15, message = "Phone number must be between 10 and 15 characters")
     private String phone;
     
+    @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
+    @Size(max = 100, message = "Email cannot exceed 100 characters")
     private String email;
     
+    @Size(max = 100, message = "District cannot exceed 100 characters")
     private String district;
     
+    @Size(max = 100, message = "City cannot exceed 100 characters")
     private String city;
 }

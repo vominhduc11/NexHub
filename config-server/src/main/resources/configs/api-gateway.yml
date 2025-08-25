@@ -18,7 +18,11 @@ spring:
   cloud:
     gateway:
       routes:
-        # Tổng hợp Swagger UI cho tất cả services - dùng auth-service làm host chính
+        # ===================================================================================
+        # MAIN SWAGGER UI HUB - Order 50 (High Priority)
+        # Central Swagger documentation hosted by auth-service
+        # Accessible at: http://localhost:9000/swagger-ui.html
+        # ===================================================================================
         - id: gateway-swagger-ui-main
           uri: ${AUTH_SERVICE_URI}
           order: 50
@@ -44,6 +48,11 @@ spring:
           filters:
             - AddRequestHeader=X-Gateway-Request, true
 
+        # ===================================================================================
+        # AUTH-SERVICE SWAGGER ENDPOINTS - Order 100
+        # Individual Swagger documentation for Authentication Service
+        # Accessible at: http://localhost:9000/api/auth/swagger-ui.html
+        # ===================================================================================
         - id: auth-service-swagger-ui
           uri: ${AUTH_SERVICE_URI}
           predicates:
@@ -83,7 +92,11 @@ spring:
             - AddRequestHeader=X-Gateway-Request, true
           order: 100
             
-        # JWKS endpoint for JWT token validation
+        # ===================================================================================
+        # SECURITY & JWT ENDPOINTS - Order 50 (High Priority)
+        # JWKS endpoint for JWT public key distribution (required for token validation)
+        # Accessible at: http://localhost:9000/auth/.well-known/jwks.json
+        # ===================================================================================
         - id: auth-service-jwks
           uri: ${AUTH_SERVICE_URI}
           predicates:
@@ -92,6 +105,11 @@ spring:
             - AddRequestHeader=X-Gateway-Request, true
           order: 50
             
+        # ===================================================================================
+        # USER-SERVICE SWAGGER ENDPOINTS - Order 100
+        # Individual Swagger documentation for User Management Service
+        # Accessible at: http://localhost:9000/api/user/swagger-ui.html
+        # ===================================================================================
         - id: user-service-swagger-ui
           uri: ${USER_SERVICE_URI}
           order: 100
@@ -128,6 +146,11 @@ spring:
             - StripPrefix=2
             - AddRequestHeader=X-Gateway-Request, true
             
+        # ===================================================================================
+        # NOTIFICATION-SERVICE SWAGGER ENDPOINTS - Order 100
+        # Individual Swagger documentation for Notification Service
+        # Accessible at: http://localhost:9000/api/notification/swagger-ui.html
+        # ===================================================================================
         - id: notification-service-swagger-ui
           uri: ${NOTIFICATION_SERVICE_URI}
           order: 100
@@ -164,6 +187,11 @@ spring:
             - StripPrefix=2
             - AddRequestHeader=X-Gateway-Request, true
             
+        # ===================================================================================
+        # WARRANTY-SERVICE SWAGGER ENDPOINTS - Order 100
+        # Individual Swagger documentation for Warranty Service
+        # Accessible at: http://localhost:9000/api/warranty/swagger-ui.html
+        # ===================================================================================
         - id: warranty-service-swagger-ui
           uri: ${WARRANTY_SERVICE_URI}
           order: 100
@@ -200,6 +228,11 @@ spring:
             - StripPrefix=2
             - AddRequestHeader=X-Gateway-Request, true
             
+        # ===================================================================================
+        # BLOG-SERVICE SWAGGER ENDPOINTS - Order 100
+        # Individual Swagger documentation for Blog Service
+        # Accessible at: http://localhost:9000/api/blog/swagger-ui.html
+        # ===================================================================================
         - id: blog-service-swagger-ui
           uri: ${BLOG_SERVICE_URI}
           order: 100
@@ -236,6 +269,11 @@ spring:
             - StripPrefix=2
             - AddRequestHeader=X-Gateway-Request, true
             
+        # ===================================================================================
+        # PRODUCT-SERVICE SWAGGER ENDPOINTS - Order 100
+        # Individual Swagger documentation for Product Service
+        # Accessible at: http://localhost:9000/api/product/swagger-ui.html
+        # ===================================================================================
         - id: product-service-swagger-ui
           uri: ${PRODUCT_SERVICE_URI}
           order: 100
@@ -272,122 +310,110 @@ spring:
             - StripPrefix=2
             - AddRequestHeader=X-Gateway-Request, true
             
-        - id: language-service-swagger-ui
-          uri: ${LANGUAGE_SERVICE_URI}
-          order: 100
-          predicates:
-            - Path=/api/language/swagger-ui.html
-          filters:
-            - SetPath=/swagger-ui.html
-            - AddRequestHeader=X-Gateway-Request, true
-            
-        - id: language-service-swagger-resources
-          uri: ${LANGUAGE_SERVICE_URI}
-          order: 100
-          predicates:
-            - Path=/api/language/swagger-ui/**
-          filters:
-            - StripPrefix=2
-            - AddRequestHeader=X-Gateway-Request, true
-            
-        - id: language-service-webjars
-          uri: ${LANGUAGE_SERVICE_URI}
-          order: 100
-          predicates:
-            - Path=/api/language/webjars/**
-          filters:
-            - StripPrefix=2
-            - AddRequestHeader=X-Gateway-Request, true
-            
-        - id: language-service-api-docs
-          uri: ${LANGUAGE_SERVICE_URI}
-          order: 100
-          predicates:
-            - Path=/api/language/v3/api-docs/**
-          filters:
-            - StripPrefix=2
-            - AddRequestHeader=X-Gateway-Request, true
-            
+        # ===================================================================================
+        # BUSINESS API ROUTES - Order 200 (Lower Priority)
+        # Main business logic endpoints for all microservices
+        # Security: All routes require X-Gateway-Request header for service access control
+        # URL Pattern: /api/{service}/** → StripPrefix=1 → /{service}/**
+        # ===================================================================================
+        
+        # Auth Service API Routes
         - id: auth-service-direct
           uri: ${AUTH_SERVICE_URI}
           predicates:
-            - Path=/auth/**
+            - Path=/auth/**                    # Direct access without /api prefix
           filters:
-            - StripPrefix=1
+            - StripPrefix=1                    # /auth/** → /**
             - AddRequestHeader=X-Gateway-Request, true
           order: 200
+            
+        - id: auth-service-options
+          uri: ${AUTH_SERVICE_URI}
+          predicates:
+            - Path=/api/auth/**               # CORS preflight pattern  
+            - Method=OPTIONS
+          filters:
+            - StripPrefix=1                   # /api/auth/** → /auth/**
+            - AddRequestHeader=X-Gateway-Request, true
+          order: 150                          # Higher priority than main route
             
         - id: auth-service
           uri: ${AUTH_SERVICE_URI}
           predicates:
-            - Path=/api/auth/**
+            - Path=/api/auth/**               # Standard API pattern
           filters:
-            - StripPrefix=1
+            - StripPrefix=1                   # /api/auth/** → /auth/**
             - AddRequestHeader=X-Gateway-Request, true
           order: 200
 
+        # User Management Service API Routes
         - id: user-service
           uri: ${USER_SERVICE_URI}
           order: 200
           predicates:
-            - Path=/api/user/**
+            - Path=/api/user/**               # Customer & Reseller management
           filters:
-            - StripPrefix=1
+            - StripPrefix=1                   # /api/user/** → /user/**
             - AddRequestHeader=X-Gateway-Request, true
 
+        # Notification Service API Routes
         - id: notification-service
           uri: ${NOTIFICATION_SERVICE_URI}
           order: 200
           predicates:
-            - Path=/api/notification/**
+            - Path=/api/notification/**       # Email notifications via Kafka
           filters:
-            - StripPrefix=1
+            - StripPrefix=1                   # /api/notification/** → /notification/**
             - AddRequestHeader=X-Gateway-Request, true
 
+        # Blog Service API Routes (CMS)
         - id: blog-service
           uri: ${BLOG_SERVICE_URI}
           order: 200
           predicates:
-            - Path=/api/blog/**
+            - Path=/api/blog/**               # Blog posts, categories, comments
           filters:
-            - StripPrefix=1
+            - StripPrefix=1                   # /api/blog/** → /blog/**
             - AddRequestHeader=X-Gateway-Request, true
 
+        # Warranty Service API Routes
         - id: warranty-service
           uri: ${WARRANTY_SERVICE_URI}
           order: 200
           predicates:
-            - Path=/api/warranty/**
+            - Path=/api/warranty/**           # Warranty tracking & claims
           filters:
-            - StripPrefix=1
+            - StripPrefix=1                   # /api/warranty/** → /warranty/**
             - AddRequestHeader=X-Gateway-Request, true
 
+        # Product Service API Routes
         - id: product-service
           uri: ${PRODUCT_SERVICE_URI}
           order: 200
           predicates:
-            - Path=/api/product/**
+            - Path=/api/product/**            # Product catalog & management
           filters:
-            - StripPrefix=1
+            - StripPrefix=1                   # /api/product/** → /product/**
             - AddRequestHeader=X-Gateway-Request, true
 
-        - id: language-service
-          uri: ${LANGUAGE_SERVICE_URI}
-          order: 200
-          predicates:
-            - Path=/api/language/**
-          filters:
-            - StripPrefix=1
-            - AddRequestHeader=X-Gateway-Request, true
-
+      # ===================================================================================
+      # GLOBAL CONFIGURATIONS
+      # ===================================================================================
       globals:
+        # CORS Configuration - Cross-Origin Resource Sharing
+        # Allows frontend applications to access the API Gateway from different domains
         corsConfigurations:
           '[/**]':
-            allowedOrigins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:8080,http://localhost:5731}
+            allowedOrigins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:8080,http://localhost:5173}
             allowedMethods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS}
             allowedHeaders: ${CORS_ALLOWED_HEADERS:Content-Type,Authorization,X-Requested-With,Accept,Origin,Access-Control-Request-Method,Access-Control-Request-Headers}
             allowCredentials: ${CORS_ALLOW_CREDENTIALS:true}
 
+# ===================================================================================
+# SPRINGDOC OPENAPI CONFIGURATION
+# Centralized Swagger UI configuration aggregating all microservices documentation
+# Main Hub: http://localhost:9000/swagger-ui.html
+# ===================================================================================
 springdoc:
   swagger-ui:
     enabled: ${SWAGGER_UI_ENABLED:true}
@@ -406,9 +432,6 @@ springdoc:
       - url: /api/product/v3/api-docs
         name: product-service
         display-name: "🛍️ Product Service"
-      - url: /api/language/v3/api-docs
-        name: language-service
-        display-name: "🌐 Language Service"
       - url: /api/notification/v3/api-docs
         name: notification-service
         display-name: "📬 Notification Service"

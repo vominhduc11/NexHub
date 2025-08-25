@@ -28,6 +28,11 @@ public class SecurityConfig {
                     "request.getHeader('X-API-Key') == 'AUTH_SERVICE_SECRET_2024_NEXHUB'"
                 ))
                 
+                // Validation endpoints for cross-service calls (warranty-service)
+                .requestMatchers("/user/reseller/*/exists", "/api/customers/*/exists").access(new WebExpressionAuthorizationManager(
+                    "request.getHeader('X-Gateway-Request') == 'true'"
+                ))
+                
                 // Swagger docs (ONLY via API Gateway)
                 .requestMatchers(
                     "/swagger-ui.html",

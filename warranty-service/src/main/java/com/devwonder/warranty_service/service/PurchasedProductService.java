@@ -28,6 +28,7 @@ public class PurchasedProductService {
     
     private final PurchasedProductRepository purchasedProductRepository;
     private final WarrantyMapper warrantyMapper;
+    private final ValidationService validationService;
     
     // Get all purchased products
     @Transactional(readOnly = true)
@@ -139,6 +140,13 @@ public class PurchasedProductService {
     public PurchasedProductResponse registerPurchasedProduct(PurchasedProductRequest request) {
         log.info("Registering new purchased product for customer: {}", request.getIdCustomer());
         
+        // Validate foreign key references
+        validationService.validatePurchasedProductReferences(
+            request.getIdProductSerial(), 
+            request.getIdReseller(), 
+            request.getIdCustomer()
+        );
+        
         // Check if product serial is already registered
         if (purchasedProductRepository.existsByIdProductSerial(request.getIdProductSerial())) {
             throw new IllegalArgumentException("Product with serial ID " + request.getIdProductSerial() + " is already registered");
@@ -163,6 +171,13 @@ public class PurchasedProductService {
         
         PurchasedProduct purchasedProduct = purchasedProductRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Purchased product not found with id: " + id));
+        
+        // Validate foreign key references
+        validationService.validatePurchasedProductReferences(
+            request.getIdProductSerial(), 
+            request.getIdReseller(), 
+            request.getIdCustomer()
+        );
         
         // Check if product serial is already registered by another product
         if (!purchasedProduct.getIdProductSerial().equals(request.getIdProductSerial()) &&

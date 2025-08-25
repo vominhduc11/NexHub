@@ -2,7 +2,7 @@
 
 ## 🏗️ Architecture Overview
 
-**NexHub** is a comprehensive e-commerce microservices platform built with Spring Boot 3.5.4, featuring a complete ecosystem of infrastructure and business services focused on product management, warranty tracking, customer management, blog/CMS capabilities, and reseller operations. The platform implements a distributed architecture with advanced Redis caching, event-driven communication via Kafka, and robust JWT-based security features across 7 dedicated PostgreSQL databases.
+**NexHub** is a comprehensive e-commerce microservices platform built with Spring Boot 3.5.4, featuring a complete ecosystem of infrastructure and business services focused on product management, warranty tracking, customer management, blog/CMS capabilities, and reseller operations. The platform implements a distributed architecture with advanced Redis caching, event-driven communication via Kafka, and robust JWT-based security features across 6 dedicated PostgreSQL databases.
 
 ### 🔧 Infrastructure Services
 
@@ -85,7 +85,6 @@ Client → API Gateway → Auth Service → JWT Token (RSA-256) → Protected Re
 ├── nexhub_warranty    # Purchased products, warranty tracking
 ├── nexhub_blog        # Blog posts, authors, categories
 ├── nexhub_notification # Notification history
-└── nexhub_language    # Localization data
 ```
 
 ### Key Data Models
@@ -618,13 +617,12 @@ cd auth-service && mvn spring-boot:run
 | **Product Service** | ✅ Production Ready | Full CRUD + Media + Caching | ✅ Swagger | nexhub_product | Redis caching, Media management, Categories, Serial tracking, Security |
 | **Warranty Service** | ✅ Production Ready | Complete + Caching | ✅ Swagger | nexhub_warranty | Full warranty tracking, Claims management, Redis caching, Purchase history |
 | **Blog Service** | ✅ Production Ready | Complete CMS + Advanced Features | ✅ Swagger | nexhub_blog | Full CMS with posts, categories, authors, comments, tags, search, SEO, featured/popular content |
-| **Language Service** | 🚧 Basic Structure | Entity definitions only | 🔄 Planned | nexhub_language | I18n support framework |
 
 ### Recent Development Focus
 - ✅ **Authentication System**: Complete JWT implementation with RSA-256 signing, JWKS endpoint, and Gateway JWT forwarding
 - ✅ **Async Notifications**: Kafka-based email system with Gmail SMTP integration and event processing
 - ✅ **API Gateway Integration**: Centralized Swagger documentation with JWT forwarding filter and route aggregation
-- ✅ **Database Architecture**: Multi-database setup with proper isolation (7 dedicated PostgreSQL databases)
+- ✅ **Database Architecture**: Multi-database setup with proper isolation (6 dedicated PostgreSQL databases)
 - ✅ **Product Service**: Complete product ecosystem with full CRUD operations, Redis caching, and media management
 - ✅ **Product Media Management**: Complete image and video management systems with ADMIN controls and display ordering
 - ✅ **Customer Management**: Full Customer and Reseller service implementation with CRUD and soft delete operations
@@ -651,7 +649,6 @@ Business Services:
 ├── Notification Service: http://localhost:8083/actuator/health
 ├── Product Service:      http://localhost:8084/actuator/health
 ├── Warranty Service:     http://localhost:8085/actuator/health
-├── Language Service:     http://localhost:8086/actuator/health
 └── Blog Service:         http://localhost:8087/actuator/health
 ```
 
@@ -694,7 +691,6 @@ curl http://localhost:8761/eureka/apps
 - Enhanced security with JWT forwarding and role-based access control
 
 ### In Progress ⚠️
-- Language service implementation for full internationalization support
 - Advanced product pricing and inventory management features
 - Customer portal interface and dashboard development
 - Enhanced monitoring and observability with distributed tracing
@@ -717,7 +713,7 @@ curl http://localhost:8761/eureka/apps
 **Version**: 2.0.0  
 **Architecture**: Spring Boot 3.5.4 Microservices with Redis Caching, Kafka Streaming, and Multi-Database Design  
 **Implementation Status**: Production-Ready Platform (Auth, User, Product, Warranty, Blog, Notification Services)  
-**Database Count**: 7 dedicated PostgreSQL databases  
+**Database Count**: 6 dedicated PostgreSQL databases  
 **Caching Strategy**: Redis-based distributed caching with TTL management  
 **Message Streaming**: 3-broker Kafka cluster with Zookeeper ensemble  
 **Security**: JWT RSA-256 with JWKS endpoint and role-based authorization  

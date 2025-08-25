@@ -2,6 +2,7 @@ package com.devwonder.auth_service.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -18,8 +19,12 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
+            .cors(cors -> cors.and())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authorize -> authorize
+                // CORS preflight requests - MUST be first
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                
                 // Actuator endpoints (always allow for Docker health checks and Eureka)
                 .requestMatchers("/actuator/**").permitAll()
                 
@@ -40,7 +45,8 @@ public class SecurityConfig {
                     "request.getHeader('X-Gateway-Request') == 'true'"   // ONLY Gateway header
                 ))
                 
-                // All auth endpoints - ONLY accessible via API Gateway
+                // All auth endpoints - ONLY accessible via API Gateway (except OPTIONS)
+                .requestMatchers(HttpMethod.OPTIONS, "/auth/**").permitAll()
                 .requestMatchers("/auth/**").access(new WebExpressionAuthorizationManager(
                     "request.getHeader('X-Gateway-Request') == 'true'"   // ONLY Gateway header
                 ))
