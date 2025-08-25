@@ -7,6 +7,8 @@ import com.devwonder.auth_service.dto.ResellerRegistrationRequest;
 import com.devwonder.auth_service.dto.ResellerRegistrationResponse;
 import com.devwonder.auth_service.entity.Account;
 import com.devwonder.auth_service.entity.Role;
+
+import java.util.Optional;
 import com.devwonder.auth_service.exception.RoleNotFoundException;
 import com.devwonder.auth_service.exception.UsernameAlreadyExistsException;
 import com.devwonder.auth_service.repository.AccountRepository;
@@ -33,71 +35,84 @@ public class ResellerService {
     
     @Transactional
     public ResellerRegistrationResponse registerReseller(ResellerRegistrationRequest request) {
-        log.info("Registering new reseller with username: {}", request.getUsername());
-        
-        // Check if username already exists
-        if (accountRepository.findByUsername(request.getUsername()) != null) {
-            throw new UsernameAlreadyExistsException("Username '" + request.getUsername() + "' already exists");
-        }
-        
-        // Find DEALER role
-        Role dealerRole = roleRepository.findByName("DEALER");
-        if (dealerRole == null) {
-            throw new RoleNotFoundException("DEALER role not found in database");
-        }
-        
-        // Create new account
-        Account account = new Account();
-        account.setUsername(request.getUsername());
-        account.setPassword(passwordEncoder.encode(request.getPassword()));
-        
-        // Save account first
-        Account savedAccount = accountRepository.save(account);
-        
-        // Assign DEALER role
-        savedAccount.getRoles().add(dealerRole);
-        accountRepository.save(savedAccount);
+        log.info("=== ENTERING registerReseller method for username: {} ===", request.getUsername());
         
         try {
-            // Create reseller profile in user-service
-            CreateResellerRequest createResellerRequest = new CreateResellerRequest(
+            // Check if username already exists
+            log.info("Checking if username '{}' exists in database", request.getUsername());
+            
+            // Simple check without complex queries
+            Optional<Account> existingAccount = accountRepository.findByUsername(request.getUsername());
+            if (existingAccount.isPresent()) {
+                log.error("Username '{}' already exists in database", request.getUsername());
+                throw new UsernameAlreadyExistsException("Username '" + request.getUsername() + "' already exists");
+            }
+            
+            log.info("Username '{}' is available, proceeding with registration", request.getUsername());
+            
+            // Find DEALER role
+            Role dealerRole = roleRepository.findByName("DEALER");
+            if (dealerRole == null) {
+                throw new RoleNotFoundException("DEALER role not found in database");
+            }
+            
+            // Create new account
+            Account account = new Account();
+            account.setUsername(request.getUsername());
+            account.setPassword(passwordEncoder.encode(request.getPassword()));
+            
+            // Save account first
+            Account savedAccount = accountRepository.save(account);
+            
+            // Assign DEALER role
+            savedAccount.getRoles().add(dealerRole);
+            accountRepository.save(savedAccount);
+            
+            try {
+                // Create reseller profile in user-service
+                CreateResellerRequest createResellerRequest = new CreateResellerRequest(
+                    savedAccount.getId(),
+                    request.getName(),
+                    request.getAddress(),
+                    request.getPhone(),
+                    request.getEmail(),
+                    request.getDistrict(),
+                    request.getCity()
+                );
+                
+                log.info("Calling user-service to create reseller profile for account ID: {}", savedAccount.getId());
+                userServiceClient.createReseller(createResellerRequest, "AUTH_SERVICE_SECRET_2024_NEXHUB");
+                log.info("Successfully created reseller profile in user-service");
+                
+            } catch (Exception e) {
+                log.error("Failed to create reseller profile in user-service for account ID: {}", savedAccount.getId(), e);
+                throw new RuntimeException("Failed to create reseller profile: " + e.getMessage());
+            }
+            
+            log.info("Successfully registered reseller with ID: {}", savedAccount.getId());
+            
+            // Send async notification event
+            NotificationEvent event = new NotificationEvent(
+                "SEND_EMAIL",
                 savedAccount.getId(),
-                request.getName(),
-                request.getAddress(),
-                request.getPhone(),
+                savedAccount.getUsername(),
                 request.getEmail(),
-                request.getDistrict(),
-                request.getCity()
+                request.getName(),
+                "Welcome to NexHub - Reseller Account Created",
+                "Dear " + request.getName() + ",\n\nWelcome to NexHub! Your reseller account has been successfully created.\n\nUsername: " + savedAccount.getUsername() + "\n\nYou can now start using our platform to manage your business.\n\nBest regards,\nNexHub Team",
+                LocalDateTime.now()
+            );
+            notificationService.sendNotificationEvent(event);
+            
+            return new ResellerRegistrationResponse(
+                savedAccount.getId(), 
+                savedAccount.getUsername(), 
+                "Reseller account created successfully"
             );
             
-            log.info("Calling user-service to create reseller profile for account ID: {}", savedAccount.getId());
-            userServiceClient.createReseller(createResellerRequest, "AUTH_SERVICE_SECRET_2024_NEXHUB");
-            log.info("Successfully created reseller profile in user-service");
-            
         } catch (Exception e) {
-            log.error("Failed to create reseller profile in user-service for account ID: {}", savedAccount.getId(), e);
-            throw new RuntimeException("Failed to create reseller profile: " + e.getMessage());
+            log.error("=== EXCEPTION in registerReseller: {} ===", e.getMessage(), e);
+            throw e;
         }
-        
-        log.info("Successfully registered reseller with ID: {}", savedAccount.getId());
-        
-        // Send async notification event
-        NotificationEvent event = new NotificationEvent(
-            "SEND_EMAIL",
-            savedAccount.getId(),
-            savedAccount.getUsername(),
-            request.getEmail(),
-            request.getName(),
-            "Welcome to NexHub - Reseller Account Created",
-            "Dear " + request.getName() + ",\n\nWelcome to NexHub! Your reseller account has been successfully created.\n\nUsername: " + savedAccount.getUsername() + "\n\nYou can now start using our platform to manage your business.\n\nBest regards,\nNexHub Team",
-            LocalDateTime.now()
-        );
-        notificationService.sendNotificationEvent(event);
-        
-        return new ResellerRegistrationResponse(
-            savedAccount.getId(), 
-            savedAccount.getUsername(), 
-            "Reseller account created successfully"
-        );
     }
 }

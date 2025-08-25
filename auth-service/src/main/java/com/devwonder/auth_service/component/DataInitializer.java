@@ -26,13 +26,13 @@ public class DataInitializer implements CommandLineRunner {
         try {
             // Create roles if not exist
             createRoleIfNotExists(1L, "CUSTOMER");
-            createRoleIfNotExists(2L, "RESELLER"); 
+            createRoleIfNotExists(2L, "DEALER"); 
             createRoleIfNotExists(3L, "ADMIN");
             
             // Create test accounts if not exist
             createTestAccountIfNotExists("admin", "admin123", "ADMIN");
             createTestAccountIfNotExists("customer", "customer123", "CUSTOMER");
-            createTestAccountIfNotExists("reseller", "reseller123", "RESELLER");
+            createTestAccountIfNotExists("dealer", "dealer123", "DEALER");
             
             log.info("Auth-service data initialization completed successfully");
         } catch (Exception e) {
