@@ -30,7 +30,7 @@ public class OpenApiConfig {
                                 .name("DevWonder Team")
                                 .email("support@devwonder.com")))
                 .servers(List.of(
-                        new Server().url("http://localhost:9000/api").description("Via API Gateway"),
+                        new Server().url("http://localhost:8080/api").description("Via API Gateway"),
                         new Server().url("http://localhost:8084").description("Direct access (dev only)")
                 ))
                 .components(new Components()

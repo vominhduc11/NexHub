@@ -55,11 +55,11 @@ services:
     build: ./api-gateway
     container_name: nexhub-api-gateway
     ports:
-      - "9000:9000"
+      - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_APPLICATION_NAME=api-gateway
-      - SERVER_PORT=9000
+      - SERVER_PORT=8080
       - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
       - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
@@ -71,7 +71,7 @@ services:
       - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_GATEWAY_ROUTE_ROUTEDEFINITIONLOCATOR=INFO
       - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_GATEWAY_HANDLER_ROUTEPREDICATEHANDLERMAPPING=DEBUG
       - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_GATEWAY_HANDLER_ROUTEPREDICATEFACTORY=DEBUG
-      - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080,http://localhost:5173
+      - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:9000,http://localhost:5173
       - CORS_ALLOWED_METHODS=GET,POST,PUT,DELETE,OPTIONS
       - CORS_ALLOWED_HEADERS=Content-Type,Authorization,X-Requested-With,Accept,Origin,Access-Control-Request-Method,Access-Control-Request-Headers
       - CORS_ALLOW_CREDENTIALS=true
@@ -90,7 +90,7 @@ services:
       - next-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3

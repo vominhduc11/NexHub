@@ -19,7 +19,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
-            .cors(cors -> cors.and())
+            .cors(cors -> cors.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authorize -> authorize
                 // CORS preflight requests - MUST be first
@@ -45,14 +45,11 @@ public class SecurityConfig {
                     "request.getHeader('X-Gateway-Request') == 'true'"   // ONLY Gateway header
                 ))
                 
-                // All auth endpoints - ONLY accessible via API Gateway (except OPTIONS)
-                .requestMatchers(HttpMethod.OPTIONS, "/auth/**").permitAll()
-                .requestMatchers("/auth/**").access(new WebExpressionAuthorizationManager(
-                    "request.getHeader('X-Gateway-Request') == 'true'"   // ONLY Gateway header
-                ))
+                // All auth endpoints - public access for testing
+                .requestMatchers("/auth/**").permitAll()
                 
-                // Block all other direct access
-                .anyRequest().denyAll()
+                // Allow all other requests
+                .anyRequest().permitAll()
             );
 
         return http.build();

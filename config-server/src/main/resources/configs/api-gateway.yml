@@ -21,7 +21,7 @@ spring:
         # ===================================================================================
         # MAIN SWAGGER UI HUB - Order 50 (High Priority)
         # Central Swagger documentation hosted by auth-service
-        # Accessible at: http://localhost:9000/swagger-ui.html
+        # Accessible at: http://localhost:8080/swagger-ui.html
         # ===================================================================================
         - id: gateway-swagger-ui-main
           uri: ${AUTH_SERVICE_URI}
@@ -51,7 +51,7 @@ spring:
         # ===================================================================================
         # AUTH-SERVICE SWAGGER ENDPOINTS - Order 100
         # Individual Swagger documentation for Authentication Service
-        # Accessible at: http://localhost:9000/api/auth/swagger-ui.html
+        # Accessible at: http://localhost:8080/api/auth/swagger-ui.html
         # ===================================================================================
         - id: auth-service-swagger-ui
           uri: ${AUTH_SERVICE_URI}
@@ -95,7 +95,7 @@ spring:
         # ===================================================================================
         # SECURITY & JWT ENDPOINTS - Order 50 (High Priority)
         # JWKS endpoint for JWT public key distribution (required for token validation)
-        # Accessible at: http://localhost:9000/auth/.well-known/jwks.json
+        # Accessible at: http://localhost:8080/auth/.well-known/jwks.json
         # ===================================================================================
         - id: auth-service-jwks
           uri: ${AUTH_SERVICE_URI}
@@ -108,7 +108,7 @@ spring:
         # ===================================================================================
         # USER-SERVICE SWAGGER ENDPOINTS - Order 100
         # Individual Swagger documentation for User Management Service
-        # Accessible at: http://localhost:9000/api/user/swagger-ui.html
+        # Accessible at: http://localhost:8080/api/user/swagger-ui.html
         # ===================================================================================
         - id: user-service-swagger-ui
           uri: ${USER_SERVICE_URI}
@@ -149,7 +149,7 @@ spring:
         # ===================================================================================
         # NOTIFICATION-SERVICE SWAGGER ENDPOINTS - Order 100
         # Individual Swagger documentation for Notification Service
-        # Accessible at: http://localhost:9000/api/notification/swagger-ui.html
+        # Accessible at: http://localhost:8080/api/notification/swagger-ui.html
         # ===================================================================================
         - id: notification-service-swagger-ui
           uri: ${NOTIFICATION_SERVICE_URI}
@@ -190,7 +190,7 @@ spring:
         # ===================================================================================
         # WARRANTY-SERVICE SWAGGER ENDPOINTS - Order 100
         # Individual Swagger documentation for Warranty Service
-        # Accessible at: http://localhost:9000/api/warranty/swagger-ui.html
+        # Accessible at: http://localhost:8080/api/warranty/swagger-ui.html
         # ===================================================================================
         - id: warranty-service-swagger-ui
           uri: ${WARRANTY_SERVICE_URI}
@@ -231,7 +231,7 @@ spring:
         # ===================================================================================
         # BLOG-SERVICE SWAGGER ENDPOINTS - Order 100
         # Individual Swagger documentation for Blog Service
-        # Accessible at: http://localhost:9000/api/blog/swagger-ui.html
+        # Accessible at: http://localhost:8080/api/blog/swagger-ui.html
         # ===================================================================================
         - id: blog-service-swagger-ui
           uri: ${BLOG_SERVICE_URI}
@@ -272,7 +272,7 @@ spring:
         # ===================================================================================
         # PRODUCT-SERVICE SWAGGER ENDPOINTS - Order 100
         # Individual Swagger documentation for Product Service
-        # Accessible at: http://localhost:9000/api/product/swagger-ui.html
+        # Accessible at: http://localhost:8080/api/product/swagger-ui.html
         # ===================================================================================
         - id: product-service-swagger-ui
           uri: ${PRODUCT_SERVICE_URI}
@@ -404,7 +404,8 @@ spring:
         # Allows frontend applications to access the API Gateway from different domains
         corsConfigurations:
           '[/**]':
-            allowedOrigins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:8080,http://localhost:5173}
+            allowedOrigins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:9000,http://localhost:5173}
+            allowedOriginPatterns: "*"
             allowedMethods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS}
             allowedHeaders: ${CORS_ALLOWED_HEADERS:Content-Type,Authorization,X-Requested-With,Accept,Origin,Access-Control-Request-Method,Access-Control-Request-Headers}
             allowCredentials: ${CORS_ALLOW_CREDENTIALS:true}
@@ -412,7 +413,7 @@ spring:
 # ===================================================================================
 # SPRINGDOC OPENAPI CONFIGURATION
 # Centralized Swagger UI configuration aggregating all microservices documentation
-# Main Hub: http://localhost:9000/swagger-ui.html
+# Main Hub: http://localhost:8080/swagger-ui.html
 # ===================================================================================
 springdoc:
   swagger-ui:
