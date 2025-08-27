@@ -2,7 +2,7 @@
 
 ## 🏗️ Architecture Overview
 
-**NexHub** is a comprehensive e-commerce microservices platform built with Spring Boot 3.5.4, featuring a complete ecosystem of infrastructure and business services focused on product management, warranty tracking, customer management, blog/CMS capabilities, and reseller operations. The platform implements a distributed architecture with advanced Redis caching, event-driven communication via Kafka, and robust JWT-based security features across 6 dedicated PostgreSQL databases.
+**NexHub** is a comprehensive e-commerce microservices platform built with Spring Boot 3.5.4, featuring a complete ecosystem of infrastructure and business services focused on product management, warranty tracking, customer management, blog/CMS capabilities, reseller operations, and real-time communication. The platform implements a distributed architecture with advanced Redis caching, event-driven communication via Kafka, WebSocket-based real-time notifications, and robust JWT-based security features across 6 dedicated PostgreSQL databases.
 
 ### 🔧 Infrastructure Services
 
@@ -30,7 +30,7 @@
 | Service | Port | Database | Description | Implementation Status |
 |---------|------|----------|-------------|---------------------|
 | **User Service** | 8082 | nexhub_user | Customer, Admin, Reseller management with complete CRUD operations and Redis caching | ✅ Production Ready |
-| **Notification Service** | 8083 | nexhub_notification | Async email notifications via Kafka with Gmail SMTP integration and event processing | ✅ Production Ready |
+| **Notification Service** | 8083 | nexhub_notification | Async email notifications via Kafka with Gmail SMTP integration, WebSocket real-time notifications, and event processing | ✅ Production Ready |
 | **Product Service** | 8084 | nexhub_product | Complete product ecosystem with Redis caching, media management, categories, serial tracking, and comprehensive search | ✅ Production Ready |
 | **Warranty Service** | 8085 | nexhub_warranty | Complete warranty tracking system with claims management, statistics, search, and comprehensive CRUD operations | ✅ Production Ready |
 | **Blog Service** | 8087 | nexhub_blog | Full-featured CMS with posts, categories, comments, authors, tags, search, and comprehensive content management | ✅ Production Ready |
@@ -285,6 +285,8 @@ blog_post_tags (Junction Table):
 ### Message Streaming & Communication
 - **Apache Kafka 7.4** with 3-broker cluster for event streaming
 - **Spring Kafka** with consumer groups and producers
+- **WebSocket Communication**: Real-time notifications with STOMP protocol and SockJS fallback
+- **JWT-based WebSocket Security**: Role-based subscription access control
 - **Async Email Notifications**: Auth Service → Kafka → Notification Service
 - **OpenFeign** for synchronous service-to-service calls
 - **Spring Cloud LoadBalancer** for client-side load balancing
@@ -328,6 +330,55 @@ Network: Isolated bridge network (next-network)
 - Auto-restart policy: `unless-stopped`
 - Service-specific health check URLs and timeouts
 - Database connection validation in health checks
+
+## 🔄 Real-time Communication & WebSocket
+
+### WebSocket Implementation
+The Notification Service now provides comprehensive real-time communication capabilities with secure, role-based access control:
+
+**WebSocket Configuration:**
+- **Endpoint**: `/ws/notifications` with SockJS fallback support
+- **Protocol**: STOMP (Simple Text Oriented Messaging Protocol)
+- **Security**: JWT-based authentication with role-based subscription authorization
+- **Connection**: API Gateway routing at `/api/notification/ws/notifications`
+
+**Subscription Channels:**
+```javascript
+// Public broadcasts - accessible to all authenticated users
+/topic/dealer-registrations     # New dealer registration announcements
+
+// Role-based channels
+/topic/admin-notifications      # Admin-only system notifications
+/topic/dealer-updates          # Dealer and Admin notifications
+
+// Private messaging
+/user/queue/notifications      # User-specific private messages
+```
+
+**Authentication & Authorization:**
+- **JWT Token Validation**: Automatic token verification on WebSocket connection
+- **Role Extraction**: Claims parsing for user roles and permissions
+- **Session Storage**: JWT claims stored in WebSocket session for authorization checks
+- **Authorization Interceptor**: Pre-subscription role validation
+- **Fallback Authentication**: Username-based connection for testing
+
+**WebSocket Security Features:**
+- **Token Expiration Checking**: Automatic JWT expiration validation
+- **Role-Based Subscriptions**: Authorization interceptor prevents unauthorized channel access
+- **Session Management**: Secure session attribute storage for user context
+- **Gateway Integration**: Seamless JWT forwarding from API Gateway
+
+**Notification Types:**
+- **Dealer Registration Broadcasts**: Real-time new dealer announcements
+- **Admin Notifications**: System-wide administrative messages  
+- **Private Messages**: User-specific notifications
+- **Dealer Updates**: Business-specific announcements
+
+**Testing Interface:**
+- **HTML WebSocket Client**: `websocket-test.html` for connection testing
+- **Multi-channel Support**: Test various subscription patterns
+- **JWT Integration**: Token-based authentication testing
+- **Real-time Updates**: Live notification display with timestamps
 
 ## ⚡ Performance & Caching
 
@@ -536,6 +587,29 @@ Blog Comments:
 └── DELETE /api/blog/comments/{id}                # Delete comment (ADMIN only)
 ```
 
+### WebSocket Real-time Communication Endpoints
+```
+WebSocket Connection:
+└── WS   /api/notification/ws/notifications       # WebSocket endpoint with SockJS support
+
+Subscription Channels:
+├── /topic/dealer-registrations                   # Public: New dealer registration announcements
+├── /topic/admin-notifications                    # ADMIN only: System-wide administrative messages
+├── /topic/dealer-updates                         # DEALER/ADMIN: Business-specific announcements
+└── /user/queue/notifications                     # PRIVATE: User-specific notifications
+
+Authentication:
+├── Authorization: Bearer {jwt-token}             # JWT token for WebSocket authentication
+└── username: {fallback-username}                 # Fallback username header for testing
+
+WebSocket Features:
+├── JWT Token Validation                          # Automatic token verification on connection
+├── Role-based Subscriptions                      # Authorization interceptor for channel access
+├── Real-time Notifications                       # Instant message delivery
+├── Session Management                             # Secure user context storage
+└── Connection Testing                             # HTML test client included (websocket-test.html)
+```
+
 ### Product Media Management System
 The Product Service now includes a comprehensive media management system:
 
@@ -619,6 +693,8 @@ cd auth-service && mvn spring-boot:run
 | **Blog Service** | ✅ Production Ready | Complete CMS + Advanced Features | ✅ Swagger | nexhub_blog | Full CMS with posts, categories, authors, comments, tags, search, SEO, featured/popular content |
 
 ### Recent Development Focus
+- ✅ **WebSocket Real-time Communication**: Complete WebSocket implementation with JWT authentication, role-based subscriptions, and real-time dealer registration notifications
+- ✅ **WebSocket Security & Authorization**: Advanced JWT-based WebSocket authentication with role validation and authorization interceptors
 - ✅ **Authentication System**: Complete JWT implementation with RSA-256 signing, JWKS endpoint, and Gateway JWT forwarding
 - ✅ **Async Notifications**: Kafka-based email system with Gmail SMTP integration and event processing
 - ✅ **API Gateway Integration**: Centralized Swagger documentation with JWT forwarding filter and route aggregation
@@ -705,18 +781,19 @@ curl http://localhost:8761/eureka/apps
 - Multi-tenant architecture support
 - Integration with external payment gateways and shipping providers
 - Advanced search with Elasticsearch integration
-- Real-time notifications with WebSocket support
+- Enhanced WebSocket features with file sharing and chat capabilities
 
 ---
 
-**Last Updated**: August 23, 2025  
-**Version**: 2.0.0  
-**Architecture**: Spring Boot 3.5.4 Microservices with Redis Caching, Kafka Streaming, and Multi-Database Design  
-**Implementation Status**: Production-Ready Platform (Auth, User, Product, Warranty, Blog, Notification Services)  
+**Last Updated**: August 27, 2025  
+**Version**: 2.1.0  
+**Architecture**: Spring Boot 3.5.4 Microservices with Redis Caching, Kafka Streaming, WebSocket Real-time Communication, and Multi-Database Design  
+**Implementation Status**: Production-Ready Platform (Auth, User, Product, Warranty, Blog, Notification Services with WebSocket Support)  
 **Database Count**: 6 dedicated PostgreSQL databases  
 **Caching Strategy**: Redis-based distributed caching with TTL management  
 **Message Streaming**: 3-broker Kafka cluster with Zookeeper ensemble  
-**Security**: JWT RSA-256 with JWKS endpoint and role-based authorization  
+**Real-time Communication**: WebSocket with STOMP protocol and JWT-based security  
+**Security**: JWT RSA-256 with JWKS endpoint, role-based authorization, and WebSocket authentication  
 **API Documentation**: Complete Swagger UI integration with 6 fully documented services  
 **Container Orchestration**: Production-ready Docker Compose with health checks and service dependencies  
 **Maintainer**: DevWonder Team
