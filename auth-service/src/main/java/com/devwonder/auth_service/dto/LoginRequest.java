@@ -21,6 +21,6 @@ public class LoginRequest {
     private String password;
 
     @NotBlank(message = "User type is required")
-    @Pattern(regexp = "ADMIN|CUSTOMER|RESELLER", message = "User type must be ADMIN, CUSTOMER, or RESELLER")
+    @Pattern(regexp = "ADMIN|CUSTOMER|DEALER", message = "User type must be ADMIN, CUSTOMER, or DEALER")
     private String userType;
 }
