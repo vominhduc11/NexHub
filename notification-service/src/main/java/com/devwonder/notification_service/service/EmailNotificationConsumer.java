@@ -1,5 +1,6 @@
 package com.devwonder.notification_service.service;
 
+import com.devwonder.notification_service.controller.NotificationWebSocketController;
 import com.devwonder.notification_service.dto.NotificationEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 public class EmailNotificationConsumer {
     
     private final EmailService emailService;
+    private final NotificationWebSocketController webSocketController;
     
     @KafkaListener(
         topics = "${kafka.topic.email:email-notifications}",
@@ -28,6 +30,15 @@ public class EmailNotificationConsumer {
                     event.getSubject(),
                     event.getMessage()
                 );
+                
+                // Send WebSocket notification for dealer registration
+                if (event.getSubject() != null && event.getSubject().contains("Reseller Account Created")) {
+                    webSocketController.broadcastDealerRegistration(
+                        event.getUsername(),
+                        event.getName(),
+                        event.getEmail()
+                    );
+                }
                 
                 log.info("Email notification processed for account ID: {}", event.getAccountId());
             } else {

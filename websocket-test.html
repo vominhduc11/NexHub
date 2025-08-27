@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Dealer Registration Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@7.0.0/lib/stomp.umd.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #notifications { border: 1px solid #ccc; height: 400px; overflow-y: scroll; padding: 10px; margin: 20px 0; }
+        .notification { padding: 10px; margin: 5px 0; background-color: #f0f8ff; border-radius: 5px; }
+        .timestamp { color: #666; font-size: 0.8em; }
+        button { padding: 10px 20px; margin: 5px; font-size: 16px; }
+        .connected { color: green; }
+        .disconnected { color: red; }
+    </style>
+</head>
+<body>
+    <h1>WebSocket Dealer Registration Notifications</h1>
+    
+    <div>
+        Status: <span id="status" class="disconnected">Disconnected</span>
+    </div>
+    
+    <div>
+        <input type="text" id="username" placeholder="Enter username" value="admin">
+        <input type="text" id="jwtToken" placeholder="Enter JWT token (optional)" style="width: 300px;">
+        <br><br>
+        <button onclick="connect()">Connect</button>
+        <button onclick="disconnect()">Disconnect</button>
+        <button onclick="clearNotifications()">Clear Notifications</button>
+        <button onclick="testDealerRegistration()">Test Dealer Registration</button>
+    </div>
+    
+    <h2>Notifications:</h2>
+    <div id="notifications"></div>
+
+    <script>
+        let stompClient = null;
+
+        function connect() {
+            const username = document.getElementById('username').value;
+            if (!username.trim()) {
+                alert('Please enter a username');
+                return;
+            }
+            
+            const jwtToken = document.getElementById('jwtToken').value;
+            const socket = new SockJS('http://localhost:8080/api/notification/ws/notifications');
+            stompClient = Stomp.over(socket);
+            
+            // Add headers for authentication
+            const headers = {
+                'username': username
+            };
+            
+            // Add JWT token if provided (from API Gateway authentication)
+            if (jwtToken && jwtToken.trim()) {
+                headers['Authorization'] = 'Bearer ' + jwtToken.trim();
+            }
+            
+            stompClient.connect(headers, function (frame) {
+                console.log('Connected: ' + frame);
+                document.getElementById('status').textContent = `Connected as: ${username}`;
+                document.getElementById('status').className = 'connected';
+                
+                // Subscribe to public broadcasts
+                stompClient.subscribe('/topic/dealer-registrations', function (message) {
+                    const notification = JSON.parse(message.body);
+                    showNotification(notification, 'PUBLIC');
+                });
+                
+                // Subscribe to private messages
+                stompClient.subscribe('/user/queue/notifications', function (message) {
+                    const notification = JSON.parse(message.body);
+                    showNotification(notification, 'PRIVATE');
+                });
+                
+            }, function (error) {
+                console.log('Connection error: ' + error);
+                document.getElementById('status').textContent = 'Connection Failed';
+                document.getElementById('status').className = 'disconnected';
+            });
+        }
+
+        function disconnect() {
+            if (stompClient !== null) {
+                stompClient.disconnect();
+            }
+            document.getElementById('status').textContent = 'Disconnected';
+            document.getElementById('status').className = 'disconnected';
+            console.log("Disconnected");
+        }
+
+        function showNotification(notification, messageType = 'PUBLIC') {
+            const notificationsDiv = document.getElementById('notifications');
+            const notificationElement = document.createElement('div');
+            notificationElement.className = 'notification';
+            
+            // Different styling for private messages
+            if (messageType === 'PRIVATE') {
+                notificationElement.style.backgroundColor = '#ffe6f0';
+                notificationElement.style.borderLeft = '4px solid #ff69b4';
+            }
+            
+            const timestamp = new Date(notification.timestamp).toLocaleString();
+            
+            notificationElement.innerHTML = `
+                <strong>[${messageType}] ${notification.type}</strong><br>
+                <strong>Username:</strong> ${notification.username}<br>
+                <strong>Name:</strong> ${notification.name}<br>
+                <strong>Email:</strong> ${notification.email}<br>
+                <strong>Message:</strong> ${notification.message}<br>
+                <span class="timestamp">Time: ${timestamp}</span>
+            `;
+            
+            notificationsDiv.insertBefore(notificationElement, notificationsDiv.firstChild);
+        }
+
+        function clearNotifications() {
+            document.getElementById('notifications').innerHTML = '';
+        }
+
+        function testDealerRegistration() {
+            const randomId = Math.floor(Math.random() * 1000);
+            const testData = {
+                username: `test_dealer_${randomId}`,
+                password: "TestPassword123!",
+                name: `Test Dealer ${randomId}`,
+                address: "123 Test Street",
+                phone: `099${randomId}0000`.substring(0, 10),
+                email: `testdealer${randomId}@example.com`,
+                district: "Test District",
+                city: "Test City"
+            };
+
+            fetch('http://localhost:8080/api/auth/reseller/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(testData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Registration response:', data);
+                if (data.success) {
+                    alert(`Test dealer registered: ${testData.username}`);
+                } else {
+                    alert(`Registration failed: ${data.message}`);
+                }
+            })
+            .catch(error => {
+                console.error('Registration error:', error);
+                alert('Registration request failed');
+            });
+        }
+
+        // Auto connect on page load - DISABLED for manual testing
+        // window.onload = function() {
+        //     connect();
+        // };
+    </script>
+</body>
+</html>

@@ -19,6 +19,8 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
+            .httpBasic(httpBasic -> httpBasic.disable())
+            .formLogin(formLogin -> formLogin.disable())
             .cors(cors -> cors.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authorize -> authorize
@@ -45,11 +47,13 @@ public class SecurityConfig {
                     "request.getHeader('X-Gateway-Request') == 'true'"   // ONLY Gateway header
                 ))
                 
-                // All auth endpoints - public access for testing
-                .requestMatchers("/auth/**").permitAll()
+                // All auth endpoints - ONLY accessible via API Gateway
+                .requestMatchers("/auth/**").access(new WebExpressionAuthorizationManager(
+                    "request.getHeader('X-Gateway-Request') == 'true'"   // ONLY Gateway header
+                ))
                 
-                // Allow all other requests
-                .anyRequest().permitAll()
+                // Block all other direct access
+                .anyRequest().denyAll()
             );
 
         return http.build();

@@ -396,6 +396,16 @@ spring:
             - StripPrefix=1                   # /api/product/** → /product/**
             - AddRequestHeader=X-Gateway-Request, true
 
+        # WebSocket Routes for Notification Service
+        - id: notification-websocket
+          uri: ${NOTIFICATION_SERVICE_URI}
+          order: 100
+          predicates:
+            - Path=/api/notification/ws/**    # WebSocket endpoint
+          filters:
+            - StripPrefix=2                   # /api/notification/ws/** → /ws/**
+            - AddRequestHeader=X-Gateway-Request, true
+
       # ===================================================================================
       # GLOBAL CONFIGURATIONS
       # ===================================================================================

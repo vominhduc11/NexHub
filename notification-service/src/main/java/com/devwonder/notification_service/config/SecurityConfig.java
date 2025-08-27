@@ -18,6 +18,8 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
+            .httpBasic(httpBasic -> httpBasic.disable())
+            .formLogin(formLogin -> formLogin.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authorize -> authorize
                 // Actuator health check (always allow for Docker health checks)
@@ -38,8 +40,8 @@ public class SecurityConfig {
                     "request.getHeader('X-Gateway-Request') == 'true'"   // ONLY Gateway header
                 ))
                 
-                // WebSocket endpoints - Direct access allowed (bypasses Gateway)
-                .requestMatchers("/ws/**", "/websocket/**").permitAll()
+                // WebSocket endpoints - Allow both direct and Gateway access
+                .requestMatchers("/ws/**", "/websocket/**", "/info", "/sockjs-node/**").permitAll()
                 
                 // Block all other direct access
                 .anyRequest().denyAll()
