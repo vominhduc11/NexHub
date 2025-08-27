@@ -4,7 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Base64;
+import java.util.List;
 import java.util.Map;
+import java.util.Collections;
 
 @Slf4j
 public class JwtUtil {
@@ -65,6 +67,81 @@ public class JwtUtil {
             log.error("Failed to extract userType from JWT token: {}", e.getMessage());
             return null;
         }
+    }
+    
+    /**
+     * Extract roles from JWT token
+     */
+    @SuppressWarnings("unchecked")
+    public static List<String> extractRoles(String token) {
+        try {
+            String[] parts = token.split("\\.");
+            if (parts.length != 3) {
+                return Collections.emptyList();
+            }
+            
+            String payload = new String(Base64.getUrlDecoder().decode(parts[1]));
+            Map<String, Object> claims = objectMapper.readValue(payload, Map.class);
+            
+            List<String> roles = (List<String>) claims.get("roles");
+            return roles != null ? roles : Collections.emptyList();
+            
+        } catch (Exception e) {
+            log.error("Failed to extract roles from JWT token: {}", e.getMessage());
+            return Collections.emptyList();
+        }
+    }
+    
+    /**
+     * Extract permissions from JWT token
+     */
+    @SuppressWarnings("unchecked")
+    public static List<String> extractPermissions(String token) {
+        try {
+            String[] parts = token.split("\\.");
+            if (parts.length != 3) {
+                return Collections.emptyList();
+            }
+            
+            String payload = new String(Base64.getUrlDecoder().decode(parts[1]));
+            Map<String, Object> claims = objectMapper.readValue(payload, Map.class);
+            
+            List<String> permissions = (List<String>) claims.get("permissions");
+            return permissions != null ? permissions : Collections.emptyList();
+            
+        } catch (Exception e) {
+            log.error("Failed to extract permissions from JWT token: {}", e.getMessage());
+            return Collections.emptyList();
+        }
+    }
+    
+    /**
+     * Check if user has specific role
+     */
+    public static boolean hasRole(String token, String role) {
+        List<String> roles = extractRoles(token);
+        return roles.contains(role);
+    }
+    
+    /**
+     * Check if user has any of the specified roles
+     */
+    public static boolean hasAnyRole(String token, String... roles) {
+        List<String> userRoles = extractRoles(token);
+        for (String role : roles) {
+            if (userRoles.contains(role)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * Check if user has specific permission
+     */
+    public static boolean hasPermission(String token, String permission) {
+        List<String> permissions = extractPermissions(token);
+        return permissions.contains(permission);
     }
     
     /**

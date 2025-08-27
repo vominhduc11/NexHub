@@ -25,6 +25,9 @@ public class SecurityConfig {
                 // Actuator health check (always allow for Docker health checks)
                 .requestMatchers("/actuator/health").permitAll()
                 
+                // Test endpoints - Allow direct access for testing (HIGH PRIORITY)
+                .requestMatchers("/notification/test/**").permitAll()
+                
                 // Swagger docs (ONLY via API Gateway)
                 .requestMatchers(
                     "/swagger-ui.html",

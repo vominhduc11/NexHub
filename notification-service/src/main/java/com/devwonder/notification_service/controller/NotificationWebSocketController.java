@@ -44,6 +44,38 @@ public class NotificationWebSocketController {
         
         log.info("Private notification sent to user: {}", username);
     }
+    
+    // Send admin-only notification
+    public void broadcastAdminNotification(String message) {
+        log.info("Broadcasting admin notification: {}", message);
+        
+        messagingTemplate.convertAndSend("/topic/admin-notifications", new DealerNotification(
+            "ADMIN_NOTIFICATION",
+            "system",
+            "System Admin",
+            "",
+            message,
+            System.currentTimeMillis()
+        ));
+        
+        log.info("Admin notification broadcasted");
+    }
+    
+    // Send dealer-specific notification
+    public void broadcastDealerUpdate(String message) {
+        log.info("Broadcasting dealer update: {}", message);
+        
+        messagingTemplate.convertAndSend("/topic/dealer-updates", new DealerNotification(
+            "DEALER_UPDATE",
+            "system", 
+            "System",
+            "",
+            message,
+            System.currentTimeMillis()
+        ));
+        
+        log.info("Dealer update broadcasted");
+    }
 
     public static class DealerNotification {
         private String type;

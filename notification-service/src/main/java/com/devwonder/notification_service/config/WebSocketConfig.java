@@ -17,6 +17,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.Map;
 import com.devwonder.notification_service.util.JwtUtil;
 import lombok.extern.slf4j.Slf4j;
 
@@ -43,7 +44,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureClientInboundChannel(@NonNull ChannelRegistration registration) {
-        registration.interceptors(new ChannelInterceptor() {
+        registration.interceptors(
+            // Authentication interceptor
+            new ChannelInterceptor() {
             public Message<?> preSend(@NonNull Message<?> message, @NonNull MessageChannel channel) {
                 StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
                 
@@ -67,6 +70,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                         if (username != null && !username.isEmpty()) {
                             log.info("WebSocket authentication successful for user: {} ({})", username, userType);
                             
+                            // Store JWT token in session for authorization checks
+                            Map<String, Object> sessionAttributes = accessor.getSessionAttributes();
+                            if (sessionAttributes != null) {
+                                sessionAttributes.put("jwtToken", token);
+                                sessionAttributes.put("userRoles", JwtUtil.extractRoles(token));
+                                sessionAttributes.put("userPermissions", JwtUtil.extractPermissions(token));
+                            }
+                            
                             // Create principal with username from JWT
                             Principal principal = new UsernamePasswordAuthenticationToken(username, null, new ArrayList<>());
                             accessor.setUser(principal);
@@ -86,6 +97,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 
                 return message;
             }
-        });
+            },
+            // Authorization interceptor
+            new WebSocketAuthorizationInterceptor()
+        );
     }
 }
