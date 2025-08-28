@@ -396,7 +396,35 @@ spring:
             - StripPrefix=1                   # /api/product/** → /product/**
             - AddRequestHeader=X-Gateway-Request, true
 
-        # WebSocket Routes for Notification Service
+        # WebSocket CORS Preflight Route - MUST be before main route
+        - id: notification-websocket-cors
+          uri: no://op
+          order: 50
+          predicates:
+            - Path=/api/notification/ws/**
+            - Method=OPTIONS
+          filters:
+            - name: SetResponseHeader
+              args:
+                name: Access-Control-Allow-Origin
+                value: "*"
+            - name: SetResponseHeader
+              args:
+                name: Access-Control-Allow-Methods
+                value: "GET,POST,PUT,DELETE,OPTIONS,CONNECT,HEAD"
+            - name: SetResponseHeader
+              args:
+                name: Access-Control-Allow-Headers
+                value: "*"
+            - name: SetResponseHeader
+              args:
+                name: Access-Control-Max-Age
+                value: "86400"
+            - name: SetStatus
+              args:
+                status: 200
+            
+        # WebSocket Main Route
         - id: notification-websocket
           uri: ${NOTIFICATION_SERVICE_URI}
           order: 100
@@ -405,10 +433,29 @@ spring:
           filters:
             - StripPrefix=2                   # /api/notification/ws/** → /ws/**
             - AddRequestHeader=X-Gateway-Request, true
+            - name: SetResponseHeader
+              args:
+                name: Access-Control-Allow-Origin
+                value: "*"
 
       # ===================================================================================
       # GLOBAL CONFIGURATIONS
       # ===================================================================================
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+              - HEAD
+              - CONNECT
+            allowedHeaders: "*"
+            allowCredentials: false
+            maxAge: 86400
 
 # ===================================================================================
 # SPRINGDOC OPENAPI CONFIGURATION

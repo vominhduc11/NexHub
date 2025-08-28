@@ -54,31 +54,25 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
     }
     
     private boolean isAuthorizedForTopic(String destination, Principal user, StompHeaderAccessor accessor) {
-        // Handle private queues - only ADMIN can subscribe to any private queue
-        if (destination.startsWith("/user/queue/")) {
-            String token = getJwtTokenFromSession(accessor);
-            if (token == null) {
-                return false; // No token, deny access
-            }
-            return JwtUtil.hasAnyRole(token, new String[]{"ADMIN"});
-        }
-        
-        // Handle public topics with role-based access
-        String[] allowedRoles = TOPIC_PERMISSIONS.get(destination);
-        if (allowedRoles == null) {
-            log.warn("No permission configuration found for topic: {}", destination);
-            return false; // Deny access to unconfigured topics
-        }
-        
         // Get JWT token from session attributes (set during connect)
         String token = getJwtTokenFromSession(accessor);
+        
+        // If no token, deny access
         if (token == null) {
-            // Fallback: allow if it's a public topic and user has basic auth
-            return destination.equals("/topic/dealer-registrations");
+            log.warn("No JWT token found for subscription to: {}", destination);
+            return false;
         }
         
-        // Check if user has any of the required roles
-        return JwtUtil.hasAnyRole(token, allowedRoles);
+        // Check if token is expired
+        if (JwtUtil.isTokenExpired(token)) {
+            log.warn("Expired JWT token used for subscription to: {}", destination);
+            return false;
+        }
+        
+        // For simplified authentication - any valid token can access topics
+        // No role-based authorization required anymore
+        log.debug("Valid token found - allowing access to: {}", destination);
+        return true;
     }
     
     private String getJwtTokenFromSession(StompHeaderAccessor accessor) {

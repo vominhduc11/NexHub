@@ -28,6 +28,12 @@ public class SecurityConfig {
                 // Test endpoints - Allow direct access for testing (HIGH PRIORITY)
                 .requestMatchers("/notification/test/**").permitAll()
                 
+                // WebSocket endpoints - Allow both direct and Gateway access (HIGHEST PRIORITY)
+                .requestMatchers("/ws/**", "/websocket/**", "/info", "/sockjs-node/**").permitAll()
+                
+                // SockJS specific endpoints
+                .requestMatchers("/**/websocket", "/**/info", "/**/iframe.html").permitAll()
+                
                 // Swagger docs (ONLY via API Gateway)
                 .requestMatchers(
                     "/swagger-ui.html",
@@ -42,9 +48,6 @@ public class SecurityConfig {
                 .requestMatchers("/notifications/**").access(new WebExpressionAuthorizationManager(
                     "request.getHeader('X-Gateway-Request') == 'true'"   // ONLY Gateway header
                 ))
-                
-                // WebSocket endpoints - Allow both direct and Gateway access
-                .requestMatchers("/ws/**", "/websocket/**", "/info", "/sockjs-node/**").permitAll()
                 
                 // Block all other direct access
                 .anyRequest().denyAll()

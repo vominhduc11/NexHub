@@ -38,6 +38,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(@NonNull StompEndpointRegistry registry) {
         registry.addEndpoint("/ws/notifications")
+                .setAllowedOriginPatterns("*")  // Allow all origins for testing
                 .withSockJS();
     }
 
@@ -47,7 +48,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             // Authentication interceptor
             new ChannelInterceptor() {
             public Message<?> preSend(@NonNull Message<?> message, @NonNull MessageChannel channel) {
+                log.info("WebSocket interceptor - preSend called");
                 StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
+                
+                if (accessor != null) {
+                    log.info("WebSocket interceptor - accessor found, command: {}", accessor.getCommand());
+                }
                 
                 if (accessor != null && StompCommand.CONNECT.equals(accessor.getCommand())) {
                     log.info("WebSocket CONNECT attempt - checking authentication");
@@ -58,9 +64,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                     
                     if (authHeader != null && authHeader.startsWith("Bearer ")) {
                         String token = authHeader.substring(7);
+                        log.info("Token extracted, length: {}", token.length());
                         
                         // Check if token is expired
-                        if (JwtUtil.isTokenExpired(token)) {
+                        boolean isExpired = JwtUtil.isTokenExpired(token);
+                        log.info("Token expiration check result: {}", isExpired);
+                        if (isExpired) {
                             log.warn("JWT token is expired");
                             return null; // Reject connection
                         }
@@ -68,28 +77,17 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                         // Extract username from JWT token
                         String username = JwtUtil.extractUsername(token);
                         String userType = JwtUtil.extractUserType(token);
+                        log.info("JWT extraction results - username: {}, userType: {}", username, userType);
                         
                         log.info("Extracted user info - username: {}, userType: {}", username, userType);
                         
                         if (username != null && !username.isEmpty()) {
-                            // Extract and log user roles
-                            java.util.List<String> userRoles = JwtUtil.extractRoles(token);
-                            log.info("User roles from JWT: {}", userRoles);
+                            log.info("WebSocket authentication successful for user: {} ({})", username, userType);
                             
-                            // Check if user has ADMIN role for WebSocket access
-                            if (!JwtUtil.hasAnyRole(token, new String[]{"ADMIN"})) {
-                                log.warn("WebSocket access denied for user: {} - ADMIN role required. User roles: {}", username, userRoles);
-                                return null; // Reject connection
-                            }
-                            
-                            log.info("WebSocket authentication successful for ADMIN user: {} ({})", username, userType);
-                            
-                            // Store JWT token in session for authorization checks
-                            Map<String, Object> sessionAttributes = accessor.getSessionAttributes();
+                            // Store JWT token in session
+                            Map<String, Object> sessionAttributes = (Map<String, Object>) accessor.getSessionAttributes();
                             if (sessionAttributes != null) {
                                 sessionAttributes.put("jwtToken", token);
-                                sessionAttributes.put("userRoles", JwtUtil.extractRoles(token));
-                                sessionAttributes.put("userPermissions", JwtUtil.extractPermissions(token));
                             }
                             
                             // Create principal with username from JWT
