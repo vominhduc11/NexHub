@@ -53,6 +53,18 @@ public class JwtForwardingFilter implements GlobalFilter, Ordered {
                         }
                     }
                     
+                    // Forward permissions from JWT token
+                    Object permissions = jwt.getClaim("permissions");
+                    if (permissions != null) {
+                        if (permissions instanceof java.util.List) {
+                            @SuppressWarnings("unchecked")
+                            String permsStr = String.join(",", (java.util.List<String>) permissions);
+                            requestBuilder.header("X-User-Permissions", permsStr);
+                        } else {
+                            requestBuilder.header("X-User-Permissions", permissions.toString());
+                        }
+                    }
+                    
                     return exchange.mutate()
                             .request(requestBuilder.build())
                             .build();
