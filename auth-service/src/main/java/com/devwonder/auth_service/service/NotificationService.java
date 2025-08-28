@@ -18,15 +18,28 @@ public class NotificationService {
     @Value("${kafka.topic.email:email-notifications}")
     private String emailTopic;
     
+    @Value("${kafka.topic.websocket:websocket-notifications}")
+    private String websocketTopic;
+    
     @Async
     public void sendNotificationEvent(NotificationEvent event) {
         try {
-            log.info("Sending email notification to topic {}: {}", emailTopic, event.getEventType());
-            kafkaTemplate.send(emailTopic, event.getAccountId().toString(), event);
+            String topic = determineTopicByEventType(event.getEventType());
+            log.info("Sending {} notification to topic {}", event.getEventType(), topic);
+            
+            kafkaTemplate.send(topic, event.getAccountId().toString(), event);
             log.info("Successfully sent notification event for account ID: {}", event.getAccountId());
             
         } catch (Exception e) {
             log.error("Failed to send notification event for account ID: {}", event.getAccountId(), e);
         }
+    }
+    
+    private String determineTopicByEventType(String eventType) {
+        return switch (eventType) {
+            case "SEND_EMAIL" -> emailTopic;
+            case "WEBSOCKET_DEALER_REGISTRATION" -> websocketTopic;
+            default -> emailTopic; // Default for backward compatibility
+        };
     }
 }

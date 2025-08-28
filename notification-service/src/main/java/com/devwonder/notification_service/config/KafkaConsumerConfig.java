@@ -38,8 +38,8 @@ public class KafkaConsumerConfig {
     }
 
     @Bean
-    public ConsumerFactory<String, NotificationEvent> notificationEventConsumerFactory() {
-        Map<String, Object> configProps = getBaseConsumerConfig("notification-service-group");
+    public ConsumerFactory<String, NotificationEvent> emailNotificationConsumerFactory() {
+        Map<String, Object> configProps = getBaseConsumerConfig("email-notification-group");
         configProps.put(JsonDeserializer.VALUE_DEFAULT_TYPE, NotificationEvent.class.getName());
         configProps.put(JsonDeserializer.TYPE_MAPPINGS, "com.devwonder.auth_service.dto.NotificationEvent:com.devwonder.notification_service.dto.NotificationEvent");
         return new DefaultKafkaConsumerFactory<>(configProps);
@@ -48,7 +48,22 @@ public class KafkaConsumerConfig {
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, NotificationEvent> notificationEventKafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, NotificationEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(notificationEventConsumerFactory());
+        factory.setConsumerFactory(emailNotificationConsumerFactory());
+        return factory;
+    }
+    
+    @Bean
+    public ConsumerFactory<String, NotificationEvent> websocketNotificationConsumerFactory() {
+        Map<String, Object> configProps = getBaseConsumerConfig("websocket-notification-group");
+        configProps.put(JsonDeserializer.VALUE_DEFAULT_TYPE, NotificationEvent.class.getName());
+        configProps.put(JsonDeserializer.TYPE_MAPPINGS, "com.devwonder.auth_service.dto.NotificationEvent:com.devwonder.notification_service.dto.NotificationEvent");
+        return new DefaultKafkaConsumerFactory<>(configProps);
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, NotificationEvent> websocketNotificationKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, NotificationEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(websocketNotificationConsumerFactory());
         return factory;
     }
 }

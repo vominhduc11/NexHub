@@ -71,10 +71,6 @@ services:
       - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_GATEWAY_ROUTE_ROUTEDEFINITIONLOCATOR=INFO
       - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_GATEWAY_HANDLER_ROUTEPREDICATEHANDLERMAPPING=DEBUG
       - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_GATEWAY_HANDLER_ROUTEPREDICATEFACTORY=DEBUG
-      - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:9000,http://localhost:5173
-      - CORS_ALLOWED_METHODS=GET,POST,PUT,DELETE,OPTIONS
-      - CORS_ALLOWED_HEADERS=Content-Type,Authorization,X-Requested-With,Accept,Origin,Access-Control-Request-Method,Access-Control-Request-Headers
-      - CORS_ALLOW_CREDENTIALS=true
       - AUTH_SERVICE_URI=lb://auth-service
       - USER_SERVICE_URI=lb://user-service
       - NOTIFICATION_SERVICE_URI=lb://notification-service
@@ -316,7 +312,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
-
 
   blog-service:
     build: ./blog-service

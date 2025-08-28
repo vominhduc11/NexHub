@@ -71,21 +71,24 @@ public class SecurityConfig {
                         // User Service - ADMIN can manage all, users can access their own data
                         .pathMatchers("/api/user/reseller/*/exists").permitAll() // For validation
                         .pathMatchers("/api/customers/*/exists").permitAll() // For validation
-                        .pathMatchers(HttpMethod.POST, "/api/user/**").hasAnyRole("ADMIN", "RESELLER")
-                        .pathMatchers(HttpMethod.PUT, "/api/user/**").hasAnyRole("ADMIN", "RESELLER", "CUSTOMER")
+                        .pathMatchers(HttpMethod.POST, "/api/user/**").hasAnyRole("ADMIN", "DEALER")
+                        .pathMatchers(HttpMethod.PUT, "/api/user/**").hasAnyRole("ADMIN", "DEALER", "CUSTOMER")
                         .pathMatchers(HttpMethod.DELETE, "/api/user/**").hasAnyRole("ADMIN")
-                        .pathMatchers(HttpMethod.GET, "/api/user/**").hasAnyRole("ADMIN", "RESELLER", "CUSTOMER")
+                        .pathMatchers(HttpMethod.GET, "/api/user/**").hasAnyRole("ADMIN", "DEALER", "CUSTOMER")
                         
-                        // Warranty Service - ADMIN and RESELLER can manage, CUSTOMER can view their own
-                        .pathMatchers(HttpMethod.GET, "/api/warranty/**").hasAnyRole("ADMIN", "RESELLER", "CUSTOMER")
-                        .pathMatchers(HttpMethod.POST, "/api/warranty/**").hasAnyRole("ADMIN", "RESELLER")
-                        .pathMatchers(HttpMethod.PUT, "/api/warranty/**").hasAnyRole("ADMIN", "RESELLER")
+                        // Warranty Service - ADMIN and DEALER can manage, CUSTOMER can view their own
+                        .pathMatchers(HttpMethod.GET, "/api/warranty/**").hasAnyRole("ADMIN", "DEALER", "CUSTOMER")
+                        .pathMatchers(HttpMethod.POST, "/api/warranty/**").hasAnyRole("ADMIN", "DEALER")
+                        .pathMatchers(HttpMethod.PUT, "/api/warranty/**").hasAnyRole("ADMIN", "DEALER")
                         .pathMatchers(HttpMethod.DELETE, "/api/warranty/**").hasAnyRole("ADMIN")
                         
-                        // Notification Service - Internal use, authenticated users only
-                        .pathMatchers("/api/notification/**").hasAnyRole("ADMIN", "RESELLER", "CUSTOMER")
+                        // WebSocket endpoints - permitAll for initial connection, auth checked in STOMP handshake (MUST BE FIRST)
+                        .pathMatchers("/api/notification/ws/**").permitAll()
                         
-                        .anyExchange().permitAll())
+                        // Notification Service - Internal use, authenticated users only  
+                        .pathMatchers("/api/notification/**").authenticated()
+                        
+                        .anyExchange().denyAll())
                 .build();
     }
 
@@ -95,6 +98,7 @@ public class SecurityConfig {
         corsConfig.addAllowedOrigin("http://localhost:3000");
         corsConfig.addAllowedOrigin("http://localhost:9000");
         corsConfig.addAllowedOrigin("http://localhost:5173");
+        corsConfig.addAllowedOrigin("http://127.0.0.1:5500");
         corsConfig.addAllowedMethod("*");
         corsConfig.addAllowedHeader("*");
         corsConfig.setAllowCredentials(true);

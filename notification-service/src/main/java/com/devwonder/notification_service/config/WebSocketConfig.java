@@ -38,7 +38,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(@NonNull StompEndpointRegistry registry) {
         registry.addEndpoint("/ws/notifications")
-                .setAllowedOriginPatterns("*")
                 .withSockJS();
     }
 
@@ -51,8 +50,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
                 
                 if (accessor != null && StompCommand.CONNECT.equals(accessor.getCommand())) {
+                    log.info("WebSocket CONNECT attempt - checking authentication");
+                    
                     // Get JWT token from Authorization header (forwarded from API Gateway)
                     String authHeader = accessor.getFirstNativeHeader("Authorization");
+                    log.info("Authorization header: {}", authHeader != null ? "Bearer ***" : "null");
                     
                     if (authHeader != null && authHeader.startsWith("Bearer ")) {
                         String token = authHeader.substring(7);
@@ -60,15 +62,27 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                         // Check if token is expired
                         if (JwtUtil.isTokenExpired(token)) {
                             log.warn("JWT token is expired");
-                            return message; // Reject connection
+                            return null; // Reject connection
                         }
                         
                         // Extract username from JWT token
                         String username = JwtUtil.extractUsername(token);
                         String userType = JwtUtil.extractUserType(token);
                         
+                        log.info("Extracted user info - username: {}, userType: {}", username, userType);
+                        
                         if (username != null && !username.isEmpty()) {
-                            log.info("WebSocket authentication successful for user: {} ({})", username, userType);
+                            // Extract and log user roles
+                            java.util.List<String> userRoles = JwtUtil.extractRoles(token);
+                            log.info("User roles from JWT: {}", userRoles);
+                            
+                            // Check if user has ADMIN role for WebSocket access
+                            if (!JwtUtil.hasAnyRole(token, new String[]{"ADMIN"})) {
+                                log.warn("WebSocket access denied for user: {} - ADMIN role required. User roles: {}", username, userRoles);
+                                return null; // Reject connection
+                            }
+                            
+                            log.info("WebSocket authentication successful for ADMIN user: {} ({})", username, userType);
                             
                             // Store JWT token in session for authorization checks
                             Map<String, Object> sessionAttributes = accessor.getSessionAttributes();
@@ -83,15 +97,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                             accessor.setUser(principal);
                         } else {
                             log.warn("Failed to extract username from JWT token");
+                            return null; // Reject connection
                         }
                     } else {
-                        // Fallback: use username header for testing
-                        String username = accessor.getFirstNativeHeader("username");
-                        if (username != null && !username.isEmpty()) {
-                            log.info("WebSocket fallback authentication for user: {}", username);
-                            Principal principal = new UsernamePasswordAuthenticationToken(username, null, new ArrayList<>());
-                            accessor.setUser(principal);
-                        }
+                        log.warn("No valid JWT token provided for WebSocket connection");
+                        return null; // Reject connection - JWT token required
                     }
                 }
                 

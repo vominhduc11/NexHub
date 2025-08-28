@@ -31,15 +31,6 @@ public class EmailNotificationConsumer {
                     event.getMessage()
                 );
                 
-                // Send WebSocket notification for dealer registration
-                if (event.getSubject() != null && event.getSubject().contains("Reseller Account Created")) {
-                    webSocketController.broadcastDealerRegistration(
-                        event.getUsername(),
-                        event.getName(),
-                        event.getEmail()
-                    );
-                }
-                
                 log.info("Email notification processed for account ID: {}", event.getAccountId());
             } else {
                 log.warn("Unknown event type: {}, skipping", event.getEventType());
@@ -47,6 +38,33 @@ public class EmailNotificationConsumer {
             
         } catch (Exception e) {
             log.error("Failed to process email notification for account ID: {}", 
+                     event.getAccountId(), e);
+        }
+    }
+    
+    @KafkaListener(
+        topics = "${kafka.topic.websocket:websocket-notifications}",
+        containerFactory = "websocketNotificationKafkaListenerContainerFactory"
+    )
+    public void consumeWebSocketNotification(NotificationEvent event) {
+        try {
+            log.info("Received WebSocket notification event: {} for account ID: {}", 
+                    event.getEventType(), event.getAccountId());
+            
+            if ("WEBSOCKET_DEALER_REGISTRATION".equals(event.getEventType())) {
+                // Send private notification to the specific user
+                webSocketController.sendPrivateNotification(
+                    event.getUsername(),
+                    "DEALER_REGISTRATION_CONFIRMATION",
+                    "Your dealer registration has been completed successfully. Welcome to NexHub!"
+                );
+                log.info("Private WebSocket dealer registration notification sent to user: {}", event.getUsername());
+            } else {
+                log.warn("Unknown WebSocket event type: {}, skipping", event.getEventType());
+            }
+            
+        } catch (Exception e) {
+            log.error("Failed to process WebSocket notification for account ID: {}", 
                      event.getAccountId(), e);
         }
     }

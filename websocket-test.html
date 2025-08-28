@@ -3,7 +3,7 @@
 <head>
     <title>WebSocket Dealer Registration Test</title>
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/stompjs@7.0.0/lib/stomp.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
         #notifications { border: 1px solid #ccc; height: 400px; overflow-y: scroll; padding: 10px; margin: 20px 0; }
@@ -19,16 +19,34 @@
     
     <div>
         Status: <span id="status" class="disconnected">Disconnected</span>
+        | Token Status: <span id="tokenStatus">No Token</span>
     </div>
     
-    <div>
-        <input type="text" id="username" placeholder="Enter username" value="admin">
-        <input type="text" id="jwtToken" placeholder="Enter JWT token (optional)" style="width: 300px;">
-        <br><br>
-        <button onclick="connect()">Connect</button>
-        <button onclick="disconnect()">Disconnect</button>
-        <button onclick="clearNotifications()">Clear Notifications</button>
-        <button onclick="testDealerRegistration()">Test Dealer Registration</button>
+    <!-- Login Section -->
+    <div id="loginSection" style="border: 1px solid #ccc; padding: 15px; margin: 10px 0; background-color: #f9f9f9;">
+        <h3>Login First</h3>
+        <div>
+            <input type="text" id="loginUsername" placeholder="Username" value="admin">
+            <input type="password" id="loginPassword" placeholder="Password" value="admin123">
+            <select id="userType">
+                <option value="ADMIN">ADMIN</option>
+                <option value="DEALER">DEALER</option>
+                <option value="CUSTOMER">CUSTOMER</option>
+            </select>
+            <button onclick="login()">Login</button>
+            <button onclick="logout()">Logout</button>
+        </div>
+    </div>
+    
+    <!-- WebSocket Section -->
+    <div id="websocketSection" style="border: 1px solid #ccc; padding: 15px; margin: 10px 0;">
+        <h3>WebSocket Connection</h3>
+        <div>
+            <button onclick="connectWebSocket()">Connect WebSocket</button>
+            <button onclick="disconnect()">Disconnect</button>
+            <button onclick="clearNotifications()">Clear Notifications</button>
+            <button onclick="testDealerRegistration()">Test Dealer Registration</button>
+        </div>
     </div>
     
     <h2>Notifications:</h2>
@@ -37,64 +55,139 @@
     <script>
         let stompClient = null;
 
-        function connect() {
-            const username = document.getElementById('username').value;
-            if (!username.trim()) {
-                alert('Please enter a username');
+        // Login function to get JWT token
+        function login() {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            const userType = document.getElementById('userType').value;
+            
+            if (!username.trim() || !password.trim()) {
+                alert('Please enter username and password');
                 return;
             }
             
-            const jwtToken = document.getElementById('jwtToken').value;
+            const loginData = {
+                username: username,
+                password: password,
+                userType: userType
+            };
+            
+            fetch('http://localhost:8080/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(loginData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.data.token) {
+                    // Save token to localStorage
+                    localStorage.setItem('jwtToken', data.data.token);
+                    localStorage.setItem('username', data.data.user.username);
+                    localStorage.setItem('userType', data.data.user.userType);
+                    
+                    document.getElementById('tokenStatus').textContent = `Logged in as ${data.data.user.username} (${data.data.user.userType})`;
+                    document.getElementById('tokenStatus').style.color = 'green';
+                    
+                    alert(`Login successful! Welcome ${data.data.user.username}`);
+                    console.log('Login successful, token saved to localStorage');
+                } else {
+                    alert(`Login failed: ${data.message}`);
+                }
+            })
+            .catch(error => {
+                console.error('Login error:', error);
+                alert('Login request failed');
+            });
+        }
+        
+        // Logout function
+        function logout() {
+            localStorage.removeItem('jwtToken');
+            localStorage.removeItem('username');
+            localStorage.removeItem('userType');
+            
+            document.getElementById('tokenStatus').textContent = 'No Token';
+            document.getElementById('tokenStatus').style.color = 'black';
+            
+            if (stompClient !== null) {
+                disconnect();
+            }
+            
+            alert('Logged out successfully');
+        }
+
+        // WebSocket connection function
+        function connectWebSocket() {
+            const jwtToken = localStorage.getItem('jwtToken');
+            const username = localStorage.getItem('username');
+            
+            if (!jwtToken) {
+                alert('Please login first to get JWT token');
+                return;
+            }
+            
+            console.log('Connecting with JWT token:', jwtToken.substring(0, 50) + '...');
+            console.log('Username:', username);
+            
             const socket = new SockJS('http://localhost:8080/api/notification/ws/notifications');
             stompClient = Stomp.over(socket);
             
             // Add headers for authentication
             const headers = {
+                'Authorization': 'Bearer ' + jwtToken,
                 'username': username
             };
             
-            // Add JWT token if provided (from API Gateway authentication)
-            if (jwtToken && jwtToken.trim()) {
-                headers['Authorization'] = 'Bearer ' + jwtToken.trim();
-            }
+            console.log('STOMP headers:', headers);
             
             stompClient.connect(headers, function (frame) {
                 console.log('Connected: ' + frame);
                 document.getElementById('status').textContent = `Connected as: ${username}`;
                 document.getElementById('status').className = 'connected';
                 
-                // Subscribe to public broadcasts
+                // Subscribe to dealer registrations (ADMIN only now)
                 stompClient.subscribe('/topic/dealer-registrations', function (message) {
                     const notification = JSON.parse(message.body);
-                    showNotification(notification, 'PUBLIC - Dealer Registrations');
+                    showNotification(notification, 'DEALER REGISTRATIONS (ADMIN)');
+                }, function(error) {
+                    console.log('Failed to subscribe to dealer registrations (ADMIN only)');
+                    showError('Failed to subscribe to dealer registrations - ADMIN role required');
                 });
                 
-                // Subscribe to admin notifications (will fail if not admin)
+                // Subscribe to admin notifications (ADMIN only)
                 stompClient.subscribe('/topic/admin-notifications', function (message) {
                     const notification = JSON.parse(message.body);
-                    showNotification(notification, 'ADMIN ONLY');
+                    showNotification(notification, 'ADMIN NOTIFICATIONS');
                 }, function(error) {
-                    console.log('Failed to subscribe to admin notifications (insufficient privileges)');
+                    console.log('Failed to subscribe to admin notifications (ADMIN only)');
+                    showError('Failed to subscribe to admin notifications - ADMIN role required');
                 });
                 
-                // Subscribe to dealer updates (dealers and admins)
+                // Subscribe to dealer updates (ADMIN only now)
                 stompClient.subscribe('/topic/dealer-updates', function (message) {
                     const notification = JSON.parse(message.body);
-                    showNotification(notification, 'DEALER/ADMIN');
+                    showNotification(notification, 'DEALER UPDATES (ADMIN)');
                 }, function(error) {
-                    console.log('Failed to subscribe to dealer updates (insufficient privileges)');
+                    console.log('Failed to subscribe to dealer updates (ADMIN only)');
+                    showError('Failed to subscribe to dealer updates - ADMIN role required');
                 });
                 
-                // Subscribe to private messages
+                // Subscribe to private messages (ADMIN only now)
                 stompClient.subscribe('/user/queue/notifications', function (message) {
                     const notification = JSON.parse(message.body);
-                    showNotification(notification, 'PRIVATE');
+                    showNotification(notification, 'PRIVATE (ADMIN)');
+                }, function(error) {
+                    console.log('Failed to subscribe to private notifications (ADMIN only)');
+                    showError('Failed to subscribe to private notifications - ADMIN role required');
                 });
                 
             }, function (error) {
                 console.log('Connection error: ' + error);
-                document.getElementById('status').textContent = 'Connection Failed';
+                document.getElementById('status').textContent = 'Connection Failed - Check if you have ADMIN role';
                 document.getElementById('status').className = 'disconnected';
+                showError('WebSocket connection failed - ADMIN role required');
             });
         }
 
@@ -112,10 +205,13 @@
             const notificationElement = document.createElement('div');
             notificationElement.className = 'notification';
             
-            // Different styling for private messages
-            if (messageType === 'PRIVATE') {
+            // Different styling for different message types
+            if (messageType.includes('PRIVATE')) {
                 notificationElement.style.backgroundColor = '#ffe6f0';
                 notificationElement.style.borderLeft = '4px solid #ff69b4';
+            } else if (messageType.includes('ADMIN')) {
+                notificationElement.style.backgroundColor = '#fff3cd';
+                notificationElement.style.borderLeft = '4px solid #ffc107';
             }
             
             const timestamp = new Date(notification.timestamp).toLocaleString();
@@ -131,6 +227,35 @@
             
             notificationsDiv.insertBefore(notificationElement, notificationsDiv.firstChild);
         }
+        
+        function showError(message) {
+            const notificationsDiv = document.getElementById('notifications');
+            const errorElement = document.createElement('div');
+            errorElement.className = 'notification';
+            errorElement.style.backgroundColor = '#f8d7da';
+            errorElement.style.borderLeft = '4px solid #dc3545';
+            errorElement.style.color = '#721c24';
+            
+            errorElement.innerHTML = `
+                <strong>❌ ERROR</strong><br>
+                ${message}<br>
+                <span class="timestamp">Time: ${new Date().toLocaleString()}</span>
+            `;
+            
+            notificationsDiv.insertBefore(errorElement, notificationsDiv.firstChild);
+        }
+        
+        // Check if user is already logged in on page load
+        window.onload = function() {
+            const token = localStorage.getItem('jwtToken');
+            const username = localStorage.getItem('username');
+            const userType = localStorage.getItem('userType');
+            
+            if (token && username) {
+                document.getElementById('tokenStatus').textContent = `Logged in as ${username} (${userType})`;
+                document.getElementById('tokenStatus').style.color = 'green';
+            }
+        };
 
         function clearNotifications() {
             document.getElementById('notifications').innerHTML = '';

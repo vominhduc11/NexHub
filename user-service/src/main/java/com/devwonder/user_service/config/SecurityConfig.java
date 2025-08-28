@@ -27,7 +27,7 @@ public class SecurityConfig {
                 
                 // Inter-service communication - ONLY allow calls from auth-service with valid API key
                 .requestMatchers("/user/reseller", "/user/reseller/**").access(new WebExpressionAuthorizationManager(
-                    "request.getHeader('X-API-Key') == 'AUTH_SERVICE_SECRET_2024_NEXHUB'"
+                    "request.getHeader('X-API-Key') == 'AUTH_TO_USER_SERVICE_KEY'"
                 ))
                 
                 // Validation endpoints for cross-service calls (warranty-service)

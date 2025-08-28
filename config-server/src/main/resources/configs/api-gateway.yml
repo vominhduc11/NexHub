@@ -409,16 +409,6 @@ spring:
       # ===================================================================================
       # GLOBAL CONFIGURATIONS
       # ===================================================================================
-      globals:
-        # CORS Configuration - Cross-Origin Resource Sharing
-        # Allows frontend applications to access the API Gateway from different domains
-        corsConfigurations:
-          '[/**]':
-            allowedOrigins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:9000,http://localhost:5173}
-            allowedOriginPatterns: "*"
-            allowedMethods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS}
-            allowedHeaders: ${CORS_ALLOWED_HEADERS:Content-Type,Authorization,X-Requested-With,Accept,Origin,Access-Control-Request-Method,Access-Control-Request-Headers}
-            allowCredentials: ${CORS_ALLOW_CREDENTIALS:true}
 
 # ===================================================================================
 # SPRINGDOC OPENAPI CONFIGURATION

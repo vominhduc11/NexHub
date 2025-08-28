@@ -81,7 +81,7 @@ public class ResellerService {
                 );
                 
                 log.info("Calling user-service to create reseller profile for account ID: {}", savedAccount.getId());
-                userServiceClient.createReseller(createResellerRequest, "AUTH_SERVICE_SECRET_2024_NEXHUB");
+                userServiceClient.createReseller(createResellerRequest, "AUTH_TO_USER_SERVICE_KEY");
                 log.info("Successfully created reseller profile in user-service");
                 
             } catch (Exception e) {
@@ -103,6 +103,19 @@ public class ResellerService {
                 LocalDateTime.now()
             );
             notificationService.sendNotificationEvent(event);
+            
+            // Send WebSocket notification for dealer registration
+            NotificationEvent webSocketEvent = new NotificationEvent(
+                "WEBSOCKET_DEALER_REGISTRATION",
+                savedAccount.getId(),
+                savedAccount.getUsername(),
+                request.getEmail(),
+                request.getName(),
+                "New Dealer Registration",
+                "A new dealer has been registered: " + request.getName() + " (" + savedAccount.getUsername() + ")",
+                LocalDateTime.now()
+            );
+            notificationService.sendNotificationEvent(webSocketEvent);
             
             return new ResellerRegistrationResponse(
                 savedAccount.getId(), 

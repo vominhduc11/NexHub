@@ -21,14 +21,10 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
     private static final Map<String, String[]> TOPIC_PERMISSIONS = new HashMap<>();
     
     static {
-        // Public topics - accessible to all authenticated users
-        TOPIC_PERMISSIONS.put("/topic/dealer-registrations", new String[]{"ADMIN", "DEALER", "CUSTOMER"});
-        
-        // Admin-only topics
+        // Admin-only topics - all topics now restricted to ADMIN
+        TOPIC_PERMISSIONS.put("/topic/dealer-registrations", new String[]{"ADMIN"});
         TOPIC_PERMISSIONS.put("/topic/admin-notifications", new String[]{"ADMIN"});
-        
-        // Dealer-specific topics  
-        TOPIC_PERMISSIONS.put("/topic/dealer-updates", new String[]{"ADMIN", "DEALER"});
+        TOPIC_PERMISSIONS.put("/topic/dealer-updates", new String[]{"ADMIN"});
         
         // Private queues are handled separately by user principal
     }
@@ -58,10 +54,13 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
     }
     
     private boolean isAuthorizedForTopic(String destination, Principal user, StompHeaderAccessor accessor) {
-        // Handle private queues - users can only subscribe to their own queue
+        // Handle private queues - only ADMIN can subscribe to any private queue
         if (destination.startsWith("/user/queue/")) {
-            String expectedDestination = "/user/" + user.getName() + "/queue/notifications";
-            return destination.equals("/user/queue/notifications"); // User can subscribe to their own queue
+            String token = getJwtTokenFromSession(accessor);
+            if (token == null) {
+                return false; // No token, deny access
+            }
+            return JwtUtil.hasAnyRole(token, new String[]{"ADMIN"});
         }
         
         // Handle public topics with role-based access
