@@ -40,10 +40,11 @@ The platform consists of infrastructure services (Config Server, Discovery Servi
 
 ### Authentication & Authorization
 - **JWT Tokens**: RSA-256 signatures with JWKS endpoint (`/auth/.well-known/jwks.json`)
-- **Role-Based Access Control**: Admin, Customer, Reseller with appropriate permissions
-- **Gateway Security**: JWT forwarding filter with automatic claim extraction
-- **Session Management**: Redis-based session storage
-- **CORS Support**: Multi-origin support for frontend applications
+- **Role-Based Access Control**: ADMIN, DEALER, CUSTOMER with granular permissions (USER_*, PRODUCT_*, BLOG_*, WARRANTY_*, NOTIFICATION_ACCESS)
+- **Gateway Security**: JWT validation with ROLE-based authorization and automatic claim extraction
+- **WebSocket Security**: ADMIN-only access with JWT authentication at connection and subscription levels
+- **Permission System**: 15 granular permissions across all business domains
+- **Session Management**: JWT-based stateless authentication (Redis available for caching)
 
 ### Security Flow
 ```
@@ -69,8 +70,9 @@ nexhub_notification → Email and notification history
 ### Key Entity Features
 
 **Authentication (nexhub_auth)**
-- Account management with role-based permissions
-- BCrypt password hashing and JWT token support
+- Account management with 3 roles (ADMIN, DEALER, CUSTOMER) and 15 granular permissions
+- BCrypt password hashing and RSA-256 JWT token support
+- Role-Permission mapping through junction table for flexible RBAC
 
 **User Management (nexhub_user)**  
 - Customer and Reseller profiles with soft delete support
@@ -147,8 +149,11 @@ Host:Container Ports
 
 ### WebSocket Features
 **Real-time Messaging**: STOMP protocol with SockJS fallback at `/api/notification/ws/notifications`
-**Security**: JWT-based authentication with role-based subscription authorization
-**Channels**: Public broadcasts, role-specific channels, and private messaging
+**Security**: ADMIN-only access with JWT signature validation at both Gateway and Application levels
+**Authentication Flow**: 
+- Gateway level: Requires valid JWT with ROLE_ADMIN authority
+- Application level: JWT signature validation + ADMIN role verification + per-subscription authorization
+**Architecture**: Separated authentication (CONNECT) and authorization (SUBSCRIBE) interceptors
 **Testing**: HTML WebSocket client included (`websocket-test.html`)
 
 ### Redis Caching Strategy
@@ -213,8 +218,10 @@ Host:Container Ports
 - Statistics and expiration monitoring
 
 **WebSocket Communication**
-- Real-time messaging via `/api/notification/ws/notifications`
-- Role-based channel subscriptions
+- Real-time messaging via `/api/notification/ws/notifications` (ADMIN-only)
+- Dual-layer security: Gateway JWT validation + Application-level authentication
+- Clean architecture: Separated WebSocketAuthenticationInterceptor and WebSocketAuthorizationInterceptor
+- JWT signature validation with shared secret synchronization
 - Testing client available at `websocket-test.html`
 
 ## 🚦 Getting Started
@@ -249,19 +256,28 @@ cd config-server && mvn spring-boot:run
 All services are fully implemented with comprehensive testing and documentation:
 
 **Infrastructure:** Config Server, Discovery Service, API Gateway with JWT forwarding
-**Authentication:** RSA-256 JWT with JWKS endpoint and role-based access control  
+**Authentication:** RSA-256 JWT with JWKS endpoint, 3-role RBAC system (ADMIN/DEALER/CUSTOMER), and 15 granular permissions  
 **Business Logic:** User, Product, Warranty, Blog, and Notification services
-**Real-time:** WebSocket communication with role-based subscriptions
+**Real-time:** WebSocket communication with ADMIN-only access and dual-layer security architecture
 **Performance:** Redis caching across Product, User, and Warranty services
 **Messaging:** Kafka-based email notifications and event processing
 
 ### Key Achievements
 - **6 Database Architecture**: Proper service isolation with dedicated schemas
-- **Security Implementation**: Complete JWT ecosystem with gateway integration
-- **WebSocket Integration**: Real-time communication with authentication
+- **Security Implementation**: Complete JWT ecosystem with RSA-256 signatures, RBAC, and gateway integration
+- **WebSocket Integration**: Real-time communication with ADMIN-only access and comprehensive security layers
+- **Clean Architecture**: Refactored WebSocket interceptors, JWT utilities, and eliminated code duplication
+- **Permission System**: Comprehensive RBAC with 15 granular permissions aligned across all services
 - **Redis Caching**: Distributed caching for improved performance  
 - **Docker Architecture**: Production-ready containerization with health checks
 - **API Documentation**: Centralized Swagger UI with comprehensive endpoints
+
+### Recent Enhancements (August 2025)
+- **JWT Security Improvements**: Enhanced signature validation and type safety across all services
+- **WebSocket Architecture Refactor**: Separated authentication and authorization interceptors for better maintainability
+- **Permission System Alignment**: Synchronized API Gateway permissions with database permissions for consistent authorization
+- **Code Quality**: Eliminated code duplication in JWT utilities, improved error handling and null safety
+- **RBAC Enhancement**: Simplified from 4 roles to 3 roles (ADMIN/DEALER/CUSTOMER) with clearer permission boundaries
 
 ### Known Limitations
 - **Blog Service**: Author and Tag management controllers not implemented

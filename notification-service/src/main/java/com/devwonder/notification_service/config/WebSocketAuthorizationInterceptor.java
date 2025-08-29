@@ -11,23 +11,12 @@ import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 
 import java.security.Principal;
-import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
 public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
 
-    // Define topic permissions
-    private static final Map<String, String[]> TOPIC_PERMISSIONS = new HashMap<>();
-    
-    static {
-        // Admin-only topics - all topics now restricted to ADMIN
-        TOPIC_PERMISSIONS.put("/topic/dealer-registrations", new String[]{"ADMIN"});
-        TOPIC_PERMISSIONS.put("/topic/admin-notifications", new String[]{"ADMIN"});
-        TOPIC_PERMISSIONS.put("/topic/dealer-updates", new String[]{"ADMIN"});
-        
-        // Private queues are handled separately by user principal
-    }
+    private static final String REQUIRED_ROLE = "ADMIN";
     
     @Override
     public Message<?> preSend(@NonNull Message<?> message, @NonNull MessageChannel channel) {
@@ -63,15 +52,20 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
             return false;
         }
         
-        // Check if token is expired
-        if (JwtUtil.isTokenExpired(token)) {
-            log.warn("Expired JWT token used for subscription to: {}", destination);
+        // Validate JWT token (signature + expiration)
+        if (!JwtUtil.validateToken(token, "your-secret-key-here")) {
+            log.warn("Invalid JWT token used for subscription to: {}", destination);
             return false;
         }
         
-        // For simplified authentication - any valid token can access topics
-        // No role-based authorization required anymore
-        log.debug("Valid token found - allowing access to: {}", destination);
+        // Check if user has required role
+        String userType = JwtUtil.extractUserType(token);
+        if (!REQUIRED_ROLE.equals(userType)) {
+            log.warn("User {} with role {} denied access to {} - {} required", user.getName(), userType, destination, REQUIRED_ROLE);
+            return false;
+        }
+        
+        log.debug("{} user found - allowing access to: {}", REQUIRED_ROLE, destination);
         return true;
     }
     

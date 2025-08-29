@@ -47,46 +47,56 @@ public class SecurityConfig {
                                 "/auth/swagger-ui.html",
                                 "/auth/swagger-ui/**",
                                 "/auth/webjars/**",
-                                "/auth/v3/api-docs")
-                        .permitAll()
+                                "/auth/v3/api-docs").permitAll()
 
                         // Auth Service - public access
                         .pathMatchers("/api/auth/**").permitAll()
 
-                        // Product Service - GET public, POST/PUT/DELETE require ADMIN or specific permissions
+                        // Product Service - GET public, POST/PUT/DELETE require ADMIN or specific
+                        // permissions
                         .pathMatchers(HttpMethod.GET, "/api/product/**").permitAll()
                         .pathMatchers("/api/product-serials/*/exists").permitAll() // For validation
-                        .pathMatchers(HttpMethod.POST, "/api/product/**").hasAnyAuthority("ROLE_ADMIN", "PERM_PRODUCT_CREATE")
-                        .pathMatchers(HttpMethod.PUT, "/api/product/**").hasAnyAuthority("ROLE_ADMIN", "PERM_PRODUCT_UPDATE")
-                        .pathMatchers(HttpMethod.DELETE, "/api/product/**").hasAnyAuthority("ROLE_ADMIN", "PERM_PRODUCT_DELETE")
+                        .pathMatchers(HttpMethod.POST, "/api/product/**")
+                        .hasAnyAuthority("ROLE_ADMIN", "PERM_PRODUCT_CREATE")
+                        .pathMatchers(HttpMethod.PUT, "/api/product/**")
+                        .hasAnyAuthority("ROLE_ADMIN", "PERM_PRODUCT_UPDATE")
+                        .pathMatchers(HttpMethod.DELETE, "/api/product/**")
+                        .hasAnyAuthority("ROLE_ADMIN", "PERM_PRODUCT_DELETE")
 
-                        // Blog Service - GET public, POST/PUT/DELETE require ADMIN or specific permissions
+                        // Blog Service - GET public, POST/PUT/DELETE require ADMIN or specific
+                        // permissions
                         .pathMatchers(HttpMethod.GET, "/api/blog/**").permitAll()
-                        .pathMatchers(HttpMethod.POST, "/api/blog/comments/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_CUSTOMER", "PERM_COMMENT_CREATE")
+                        .pathMatchers(HttpMethod.POST, "/api/blog/comments/**")
+                        .hasAnyAuthority("ROLE_ADMIN", "ROLE_CUSTOMER", "PERM_COMMENT_CREATE")
                         .pathMatchers(HttpMethod.POST, "/api/blog/**").hasAnyAuthority("ROLE_ADMIN", "PERM_BLOG_CREATE")
                         .pathMatchers(HttpMethod.PUT, "/api/blog/**").hasAnyAuthority("ROLE_ADMIN", "PERM_BLOG_UPDATE")
-                        .pathMatchers(HttpMethod.DELETE, "/api/blog/**").hasAnyAuthority("ROLE_ADMIN", "PERM_BLOG_DELETE")
+                        .pathMatchers(HttpMethod.DELETE, "/api/blog/**")
+                        .hasAnyAuthority("ROLE_ADMIN", "PERM_BLOG_DELETE")
 
                         // User Service - ADMIN can manage all, users can access their own data
                         .pathMatchers("/api/user/reseller/*/exists").permitAll() // For validation
                         .pathMatchers("/api/customers/*/exists").permitAll() // For validation
-                        .pathMatchers(HttpMethod.POST, "/api/user/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_DEALER", "PERM_USER_CREATE")
-                        .pathMatchers(HttpMethod.PUT, "/api/user/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_DEALER", "ROLE_CUSTOMER", "PERM_USER_UPDATE")
-                        .pathMatchers(HttpMethod.DELETE, "/api/user/**").hasAnyAuthority("ROLE_ADMIN", "PERM_USER_DELETE")
-                        .pathMatchers(HttpMethod.GET, "/api/user/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_DEALER", "ROLE_CUSTOMER", "PERM_USER_READ")
+                        .pathMatchers(HttpMethod.POST, "/api/user/**")
+                        .hasAnyAuthority("ROLE_ADMIN", "ROLE_DEALER", "PERM_USER_CREATE")
+                        .pathMatchers(HttpMethod.PUT, "/api/user/**")
+                        .hasAnyAuthority("ROLE_ADMIN", "ROLE_DEALER", "ROLE_CUSTOMER", "PERM_USER_UPDATE")
+                        .pathMatchers(HttpMethod.DELETE, "/api/user/**")
+                        .hasAnyAuthority("ROLE_ADMIN", "PERM_USER_DELETE")
+                        .pathMatchers(HttpMethod.GET, "/api/user/**")
+                        .hasAnyAuthority("ROLE_ADMIN", "ROLE_DEALER", "ROLE_CUSTOMER", "PERM_USER_READ")
 
                         // Warranty Service - ADMIN and DEALER can manage, CUSTOMER can view their own
-                        .pathMatchers(HttpMethod.GET, "/api/warranty/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_DEALER", "ROLE_CUSTOMER", "PERM_WARRANTY_READ")
-                        .pathMatchers(HttpMethod.POST, "/api/warranty/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_DEALER", "PERM_WARRANTY_CREATE")
-                        .pathMatchers(HttpMethod.PUT, "/api/warranty/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_DEALER", "PERM_WARRANTY_UPDATE")
-                        .pathMatchers(HttpMethod.DELETE, "/api/warranty/**").hasAnyAuthority("ROLE_ADMIN", "PERM_WARRANTY_DELETE")
+                        .pathMatchers(HttpMethod.GET, "/api/warranty/**")
+                        .hasAnyAuthority("ROLE_ADMIN", "ROLE_DEALER", "ROLE_CUSTOMER", "PERM_WARRANTY_READ")
+                        .pathMatchers(HttpMethod.POST, "/api/warranty/**")
+                        .hasAnyAuthority("ROLE_ADMIN", "ROLE_DEALER", "PERM_WARRANTY_CREATE")
+                        .pathMatchers(HttpMethod.PUT, "/api/warranty/**")
+                        .hasAnyAuthority("ROLE_ADMIN", "ROLE_DEALER", "PERM_WARRANTY_UPDATE")
+                        .pathMatchers(HttpMethod.DELETE, "/api/warranty/**")
+                        .hasAnyAuthority("ROLE_ADMIN", "PERM_WARRANTY_DELETE")
 
-                        // WebSocket endpoints - permitAll for initial connection, auth checked in STOMP
-                        // handshake (MUST BE FIRST)
-                        .pathMatchers("/api/notification/ws/**").permitAll()
-
-                        // Notification Service - Internal use, authenticated users only
-                        .pathMatchers("/api/notification/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_DEALER", "ROLE_CUSTOMER", "PERM_NOTIFICATION_ACCESS")
+                        // WebSocket endpoints - require ADMIN role
+                        .pathMatchers("/api/notification/ws/**").hasAuthority("ROLE_ADMIN")
 
                         .anyExchange().denyAll())
                 .build();
@@ -97,30 +107,30 @@ public class SecurityConfig {
         JwtAuthenticationConverter jwtConverter = new JwtAuthenticationConverter();
         jwtConverter.setJwtGrantedAuthoritiesConverter(jwt -> {
             Set<SimpleGrantedAuthority> authorities = new HashSet<>();
-            
+
             // Extract roles
             Object rolesObj = jwt.getClaim("roles");
             if (rolesObj instanceof java.util.List) {
                 @SuppressWarnings("unchecked")
                 java.util.List<String> rolesList = (java.util.List<String>) rolesObj;
                 rolesList.stream()
-                    .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
-                    .forEach(authorities::add);
+                        .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+                        .forEach(authorities::add);
             }
-            
+
             // Extract permissions
             Object permsObj = jwt.getClaim("permissions");
             if (permsObj instanceof java.util.List) {
                 @SuppressWarnings("unchecked")
                 java.util.List<String> permsList = (java.util.List<String>) permsObj;
                 permsList.stream()
-                    .map(perm -> new SimpleGrantedAuthority("PERM_" + perm))
-                    .forEach(authorities::add);
+                        .map(perm -> new SimpleGrantedAuthority("PERM_" + perm))
+                        .forEach(authorities::add);
             }
-            
-            return authorities.isEmpty() 
-                ? Collections.singletonList(new SimpleGrantedAuthority("ROLE_CUSTOMER"))
-                : new ArrayList<>(authorities);
+
+            return authorities.isEmpty()
+                    ? Collections.singletonList(new SimpleGrantedAuthority("ROLE_CUSTOMER"))
+                    : new ArrayList<>(authorities);
         });
         return new ReactiveJwtAuthenticationConverterAdapter(jwtConverter);
     }

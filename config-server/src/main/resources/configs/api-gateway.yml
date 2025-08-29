@@ -65,6 +65,15 @@ spring:
             connect-timeout: 20000
           order: 100
             
+        - id: auth-service-swagger-index
+          uri: ${AUTH_SERVICE_URI}
+          predicates:
+            - Path=/api/auth/swagger-ui/index.html
+          filters:
+            - SetPath=/swagger-ui.html
+            - AddRequestHeader=X-Gateway-Request, true
+          order: 90
+            
         - id: auth-service-swagger-resources
           uri: ${AUTH_SERVICE_URI}
           predicates:
