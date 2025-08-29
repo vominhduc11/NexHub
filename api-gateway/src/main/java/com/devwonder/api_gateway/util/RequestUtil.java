@@ -19,7 +19,7 @@ public final class RequestUtil {
         }
         
         var remoteAddress = request.getRemoteAddress();
-        return remoteAddress != null ? 
+        return remoteAddress != null ?
             remoteAddress.getAddress().getHostAddress() : "unknown";
     }
 }

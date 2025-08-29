@@ -1,6 +1,8 @@
 services:
   config-server:
-    build: ./config-server
+    build:
+      context: .
+      dockerfile: config-server/Dockerfile
     container_name: nexhub-config-server
     ports:
       - "8888:8888"
@@ -22,7 +24,9 @@ services:
       start_period: 40s
 
   discovery-service:
-    build: ./discovery-service
+    build:
+      context: .
+      dockerfile: discovery-service/Dockerfile
     container_name: nexhub-discovery-service
     ports:
       - "8761:8761"
@@ -52,7 +56,9 @@ services:
       start_period: 40s
 
   api-gateway:
-    build: ./api-gateway
+    build:
+      context: .
+      dockerfile: api-gateway/Dockerfile
     container_name: nexhub-api-gateway
     ports:
       - "8080:8080"
@@ -93,7 +99,9 @@ services:
       start_period: 60s
 
   auth-service:
-    build: ./auth-service
+    build:
+      context: .
+      dockerfile: auth-service/Dockerfile
     container_name: nexhub-auth-service
     ports:
       - "8081:8081"
@@ -143,7 +151,9 @@ services:
       start_period: 60s
 
   user-service:
-    build: ./user-service
+    build:
+      context: .
+      dockerfile: user-service/Dockerfile
     container_name: nexhub-user-service
     ports:
       - "8082:8082"
@@ -185,7 +195,9 @@ services:
       start_period: 60s
 
   notification-service:
-    build: ./notification-service
+    build:
+      context: .
+      dockerfile: notification-service/Dockerfile
     container_name: nexhub-notification-service
     ports:
       - "8083:8083"
@@ -231,7 +243,9 @@ services:
       start_period: 60s
 
   warranty-service:
-    build: ./warranty-service
+    build:
+      context: .
+      dockerfile: warranty-service/Dockerfile
     container_name: nexhub-warranty-service
     ports:
       - "8085:8085"
@@ -275,7 +289,9 @@ services:
       start_period: 60s
 
   product-service:
-    build: ./product-service
+    build:
+      context: .
+      dockerfile: product-service/Dockerfile
     container_name: nexhub-product-service
     ports:
       - "8084:8080"
@@ -314,7 +330,9 @@ services:
       start_period: 60s
 
   blog-service:
-    build: ./blog-service
+    build:
+      context: .
+      dockerfile: blog-service/Dockerfile
     container_name: nexhub-blog-service
     ports:
       - "8087:8080"

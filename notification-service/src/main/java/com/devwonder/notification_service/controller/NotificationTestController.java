@@ -1,6 +1,6 @@
 package com.devwonder.notification_service.controller;
 
-import com.devwonder.notification_service.dto.BaseResponse;
+import com.devwonder.common.dto.BaseResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

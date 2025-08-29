@@ -1,6 +1,6 @@
 package com.devwonder.blog_service.controller;
 
-import com.devwonder.blog_service.dto.BaseResponse;
+import com.devwonder.common.dto.BaseResponse;
 import com.devwonder.blog_service.dto.BlogPostRequest;
 import com.devwonder.blog_service.dto.BlogPostResponse;
 import com.devwonder.blog_service.service.BlogPostService;

@@ -4,12 +4,17 @@ FROM maven:3.9-eclipse-temurin-17 AS builder
 # Set working directory
 WORKDIR /app
 
+# First, build nexhub-common library
+COPY nexhub-common/pom.xml nexhub-common/
+COPY nexhub-common/src nexhub-common/src/
+RUN cd nexhub-common && mvn clean install -DskipTests
+
 # Copy pom.xml and download dependencies (for better caching)
-COPY pom.xml .
+COPY blog-service/pom.xml .
 RUN mvn dependency:resolve
 
 # Copy source code
-COPY src ./src
+COPY blog-service/src ./src
 
 # Build the application
 RUN mvn clean package -DskipTests

@@ -1,4 +1,4 @@
-package com.devwonder.product_service.dto;
+package com.devwonder.common.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -45,6 +45,12 @@ public class BaseResponse<T> {
 
     public static <T> BaseResponse<T> error(String message, String errorCode, Object details) {
         ApiError apiError = new ApiError(errorCode, details);
+        return error(message, apiError);
+    }
+
+    // Additional constructor for backward compatibility with simple error codes
+    public static <T> BaseResponse<T> errorWithCode(String message, String errorCode) {
+        ApiError apiError = new ApiError(errorCode, null);
         return error(message, apiError);
     }
 }

@@ -4,14 +4,19 @@ FROM maven:3.9-eclipse-temurin-17 AS build
 # Set working directory
 WORKDIR /app
 
+# First, build nexhub-common library
+COPY nexhub-common/pom.xml nexhub-common/
+COPY nexhub-common/src nexhub-common/src/
+RUN cd nexhub-common && mvn clean install -DskipTests
+
 # Copy pom.xml for dependency resolution
-COPY pom.xml .
+COPY warranty-service/pom.xml .
 
 # Download dependencies (better caching)
 RUN mvn dependency:go-offline -B
 
 # Copy source code
-COPY src ./src
+COPY warranty-service/src ./src
 
 # Build the application
 RUN mvn clean package -DskipTests

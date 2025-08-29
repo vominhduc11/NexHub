@@ -1,16 +1,15 @@
 package com.devwonder.product_service.controller;
 
-import com.devwonder.product_service.dto.BaseResponse;
+import com.devwonder.common.annotation.RequireAdminRole;
+import com.devwonder.common.dto.BaseResponse;
 import com.devwonder.product_service.dto.ProductImageRequest;
 import com.devwonder.product_service.dto.ProductImageResponse;
 import com.devwonder.product_service.service.ProductImageService;
-import com.devwonder.product_service.util.SecurityUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -59,6 +58,7 @@ public class ProductImageController {
     }
 
     @PostMapping
+    @RequireAdminRole
     @Operation(summary = "Add product image", description = "Add an image to a specific product. Requires ADMIN role.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "201", description = "Image added successfully"),
@@ -68,17 +68,9 @@ public class ProductImageController {
     })
     public ResponseEntity<BaseResponse<ProductImageResponse>> addProductImage(
             @Parameter(description = "Product ID", example = "1") @PathVariable Long productId,
-            @Valid @RequestBody ProductImageRequest imageRequest,
-            HttpServletRequest request) {
+            @Valid @RequestBody ProductImageRequest imageRequest) {
         
         log.info("POST /products/{}/images - Adding product image", productId);
-        
-        // Check for ADMIN role
-        if (!SecurityUtil.hasAdminRole(request)) {
-            log.warn("Access denied - ADMIN role required for adding product images");
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(BaseResponse.error("Access denied - ADMIN role required", "ACCESS_DENIED"));
-        }
         
         try {
             ProductImageResponse addedImage = productImageService.addProductImage(productId, imageRequest);
@@ -99,6 +91,7 @@ public class ProductImageController {
     }
 
     @PutMapping("/{imageId}")
+    @RequireAdminRole
     @Operation(summary = "Update product image", description = "Update a specific product image. Requires ADMIN role.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Image updated successfully"),
@@ -109,17 +102,9 @@ public class ProductImageController {
     public ResponseEntity<BaseResponse<ProductImageResponse>> updateProductImage(
             @Parameter(description = "Product ID", example = "1") @PathVariable Long productId,
             @Parameter(description = "Image ID", example = "1") @PathVariable Long imageId,
-            @Valid @RequestBody ProductImageRequest imageRequest,
-            HttpServletRequest request) {
+            @Valid @RequestBody ProductImageRequest imageRequest) {
         
         log.info("PUT /products/{}/images/{} - Updating product image", productId, imageId);
-        
-        // Check for ADMIN role
-        if (!SecurityUtil.hasAdminRole(request)) {
-            log.warn("Access denied - ADMIN role required for updating product images");
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(BaseResponse.error("Access denied - ADMIN role required", "ACCESS_DENIED"));
-        }
         
         try {
             ProductImageResponse updatedImage = productImageService.updateProductImage(productId, imageId, imageRequest);
@@ -139,6 +124,7 @@ public class ProductImageController {
     }
 
     @DeleteMapping("/{imageId}")
+    @RequireAdminRole
     @Operation(summary = "Delete product image", description = "Delete a specific product image. Requires ADMIN role.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Image deleted successfully"),
@@ -147,17 +133,9 @@ public class ProductImageController {
     })
     public ResponseEntity<BaseResponse<Void>> deleteProductImage(
             @Parameter(description = "Product ID", example = "1") @PathVariable Long productId,
-            @Parameter(description = "Image ID", example = "1") @PathVariable Long imageId,
-            HttpServletRequest request) {
+            @Parameter(description = "Image ID", example = "1") @PathVariable Long imageId) {
         
         log.info("DELETE /products/{}/images/{} - Deleting product image", productId, imageId);
-        
-        // Check for ADMIN role
-        if (!SecurityUtil.hasAdminRole(request)) {
-            log.warn("Access denied - ADMIN role required for deleting product images");
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(BaseResponse.error("Access denied - ADMIN role required", "ACCESS_DENIED"));
-        }
         
         try {
             productImageService.deleteProductImage(productId, imageId);

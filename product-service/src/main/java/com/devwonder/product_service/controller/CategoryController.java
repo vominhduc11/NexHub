@@ -1,9 +1,9 @@
 package com.devwonder.product_service.controller;
 
-import com.devwonder.product_service.dto.BaseResponse;
+import com.devwonder.common.annotation.RequireAdminRole;
+import com.devwonder.common.dto.BaseResponse;
 import com.devwonder.product_service.entity.Category;
 import com.devwonder.product_service.service.CategoryService;
-import com.devwonder.product_service.util.SecurityUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -16,7 +16,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @RestController
@@ -29,18 +28,14 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @PostMapping
+    @RequireAdminRole
     @Operation(summary = "Create new category", description = "Create a new product category. Requires ADMIN role.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "201", description = "Category created successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid category data"),
         @ApiResponse(responseCode = "403", description = "Access denied - ADMIN role required")
     })
-    public ResponseEntity<BaseResponse<Category>> createCategory(@RequestBody Category category, HttpServletRequest request) {
-        if (!SecurityUtil.hasAdminRole(request)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(BaseResponse.error("Admin access required to create categories", "ACCESS_DENIED"));
-        }
-        
+    public ResponseEntity<BaseResponse<Category>> createCategory(@RequestBody Category category) {
         try {
             Category savedCategory = categoryService.createCategory(category);
             return ResponseEntity.status(HttpStatus.CREATED)
@@ -73,6 +68,7 @@ public class CategoryController {
     }
 
     @PutMapping("/{id}")
+    @RequireAdminRole
     @Operation(summary = "Update category", description = "Update an existing category. Requires ADMIN role.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Category updated successfully"),
@@ -82,13 +78,7 @@ public class CategoryController {
     })
     public ResponseEntity<BaseResponse<Category>> updateCategory(
             @Parameter(description = "Category ID", example = "1") @PathVariable Long id, 
-            @RequestBody Category category, 
-            HttpServletRequest request) {
-        if (!SecurityUtil.hasAdminRole(request)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(BaseResponse.error("Admin access required to update categories", "ACCESS_DENIED"));
-        }
-        
+            @RequestBody Category category) {
         try {
             Category updatedCategory = categoryService.updateCategory(id, category);
             return ResponseEntity.ok(BaseResponse.success(updatedCategory, "Category updated successfully"));
@@ -107,6 +97,7 @@ public class CategoryController {
     }
 
     @DeleteMapping("/{id}")
+    @RequireAdminRole
     @Operation(summary = "Soft delete category", description = "Soft delete a category. Requires ADMIN role.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Category soft deleted successfully"),
@@ -115,13 +106,7 @@ public class CategoryController {
         @ApiResponse(responseCode = "400", description = "Category already deleted")
     })
     public ResponseEntity<BaseResponse<Void>> softDeleteCategory(
-            @Parameter(description = "Category ID", example = "1") @PathVariable Long id, 
-            HttpServletRequest request) {
-        if (!SecurityUtil.hasAdminRole(request)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(BaseResponse.error("Admin access required to delete categories", "ACCESS_DENIED"));
-        }
-        
+            @Parameter(description = "Category ID", example = "1") @PathVariable Long id) {
         try {
             categoryService.softDeleteCategory(id);
             return ResponseEntity.ok(BaseResponse.success("Category soft deleted successfully"));
@@ -144,6 +129,7 @@ public class CategoryController {
     }
 
     @DeleteMapping("/{id}/hard")
+    @RequireAdminRole
     @Operation(summary = "Hard delete category", description = "Permanently delete a category. Requires ADMIN role.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Category hard deleted successfully"),
@@ -151,13 +137,7 @@ public class CategoryController {
         @ApiResponse(responseCode = "404", description = "Category not found")
     })
     public ResponseEntity<BaseResponse<Void>> hardDeleteCategory(
-            @Parameter(description = "Category ID", example = "1") @PathVariable Long id, 
-            HttpServletRequest request) {
-        if (!SecurityUtil.hasAdminRole(request)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(BaseResponse.error("Admin access required to hard delete categories", "ACCESS_DENIED"));
-        }
-        
+            @Parameter(description = "Category ID", example = "1") @PathVariable Long id) {
         try {
             categoryService.deleteCategory(id);
             return ResponseEntity.ok(BaseResponse.success("Category hard deleted successfully"));
@@ -176,6 +156,7 @@ public class CategoryController {
     }
 
     @PostMapping("/{id}/restore")
+    @RequireAdminRole
     @Operation(summary = "Restore category", description = "Restore a soft deleted category. Requires ADMIN role.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Category restored successfully"),
@@ -184,13 +165,7 @@ public class CategoryController {
         @ApiResponse(responseCode = "400", description = "Category is not deleted")
     })
     public ResponseEntity<BaseResponse<Void>> restoreCategory(
-            @Parameter(description = "Category ID", example = "1") @PathVariable Long id, 
-            HttpServletRequest request) {
-        if (!SecurityUtil.hasAdminRole(request)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(BaseResponse.error("Admin access required to restore categories", "ACCESS_DENIED"));
-        }
-        
+            @Parameter(description = "Category ID", example = "1") @PathVariable Long id) {
         try {
             categoryService.restoreCategory(id);
             return ResponseEntity.ok(BaseResponse.success("Category restored successfully"));

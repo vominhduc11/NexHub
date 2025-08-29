@@ -1,6 +1,6 @@
 package com.devwonder.auth_service.controller;
 
-import com.devwonder.auth_service.dto.BaseResponse;
+import com.devwonder.common.dto.BaseResponse;
 import com.devwonder.auth_service.dto.LoginRequest;
 import com.devwonder.auth_service.dto.LoginResponse;
 import com.devwonder.auth_service.service.AuthenticationService;

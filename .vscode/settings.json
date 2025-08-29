@@ -1,5 +1,13 @@
 {
     "java.compile.nullAnalysis.mode": "automatic",
     "java.configuration.updateBuildConfiguration": "interactive",
-    "claudeCodeChat.permissions.yoloMode": true
+    "claudeCodeChat.permissions.yoloMode": true,
+    "cSpell.words": [
+        "Configurer",
+        "devwonder",
+        "globalcors",
+        "nexhub",
+        "springdoc",
+        "webjars"
+    ]
 }

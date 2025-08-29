@@ -1,16 +1,15 @@
 package com.devwonder.product_service.controller;
 
-import com.devwonder.product_service.dto.BaseResponse;
+import com.devwonder.common.annotation.RequireAdminRole;
+import com.devwonder.common.dto.BaseResponse;
 import com.devwonder.product_service.dto.ProductVideoRequest;
 import com.devwonder.product_service.dto.ProductVideoResponse;
 import com.devwonder.product_service.service.ProductVideoService;
-import com.devwonder.product_service.util.SecurityUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -59,6 +58,7 @@ public class ProductVideoController {
     }
 
     @PostMapping
+    @RequireAdminRole
     @Operation(summary = "Add product video", description = "Add a video to a specific product. Requires ADMIN role.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "201", description = "Video added successfully"),
@@ -68,17 +68,9 @@ public class ProductVideoController {
     })
     public ResponseEntity<BaseResponse<ProductVideoResponse>> addProductVideo(
             @Parameter(description = "Product ID", example = "1") @PathVariable Long productId,
-            @Valid @RequestBody ProductVideoRequest videoRequest,
-            HttpServletRequest request) {
+            @Valid @RequestBody ProductVideoRequest videoRequest) {
         
         log.info("POST /products/{}/videos - Adding product video", productId);
-        
-        // Check for ADMIN role
-        if (!SecurityUtil.hasAdminRole(request)) {
-            log.warn("Access denied - ADMIN role required for adding product videos");
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(BaseResponse.error("Access denied - ADMIN role required", "ACCESS_DENIED"));
-        }
         
         try {
             ProductVideoResponse addedVideo = productVideoService.addProductVideo(productId, videoRequest);
@@ -99,6 +91,7 @@ public class ProductVideoController {
     }
 
     @PutMapping("/{videoId}")
+    @RequireAdminRole
     @Operation(summary = "Update product video", description = "Update a specific product video. Requires ADMIN role.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Video updated successfully"),
@@ -109,17 +102,9 @@ public class ProductVideoController {
     public ResponseEntity<BaseResponse<ProductVideoResponse>> updateProductVideo(
             @Parameter(description = "Product ID", example = "1") @PathVariable Long productId,
             @Parameter(description = "Video ID", example = "1") @PathVariable Long videoId,
-            @Valid @RequestBody ProductVideoRequest videoRequest,
-            HttpServletRequest request) {
+            @Valid @RequestBody ProductVideoRequest videoRequest) {
         
         log.info("PUT /products/{}/videos/{} - Updating product video", productId, videoId);
-        
-        // Check for ADMIN role
-        if (!SecurityUtil.hasAdminRole(request)) {
-            log.warn("Access denied - ADMIN role required for updating product videos");
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(BaseResponse.error("Access denied - ADMIN role required", "ACCESS_DENIED"));
-        }
         
         try {
             ProductVideoResponse updatedVideo = productVideoService.updateProductVideo(productId, videoId, videoRequest);
@@ -139,6 +124,7 @@ public class ProductVideoController {
     }
 
     @DeleteMapping("/{videoId}")
+    @RequireAdminRole
     @Operation(summary = "Delete product video", description = "Delete a specific product video. Requires ADMIN role.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Video deleted successfully"),
@@ -147,17 +133,9 @@ public class ProductVideoController {
     })
     public ResponseEntity<BaseResponse<Void>> deleteProductVideo(
             @Parameter(description = "Product ID", example = "1") @PathVariable Long productId,
-            @Parameter(description = "Video ID", example = "1") @PathVariable Long videoId,
-            HttpServletRequest request) {
+            @Parameter(description = "Video ID", example = "1") @PathVariable Long videoId) {
         
         log.info("DELETE /products/{}/videos/{} - Deleting product video", productId, videoId);
-        
-        // Check for ADMIN role
-        if (!SecurityUtil.hasAdminRole(request)) {
-            log.warn("Access denied - ADMIN role required for deleting product videos");
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(BaseResponse.error("Access denied - ADMIN role required", "ACCESS_DENIED"));
-        }
         
         try {
             productVideoService.deleteProductVideo(productId, videoId);

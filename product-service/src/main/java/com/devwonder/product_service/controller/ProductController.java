@@ -1,16 +1,15 @@
 package com.devwonder.product_service.controller;
 
-import com.devwonder.product_service.dto.BaseResponse;
+import com.devwonder.common.dto.BaseResponse;
+import com.devwonder.common.annotation.RequireAdminRole;
 import com.devwonder.product_service.dto.ProductRequest;
 import com.devwonder.product_service.dto.ProductResponse;
 import com.devwonder.product_service.service.ProductService;
-import com.devwonder.product_service.util.SecurityUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -110,6 +109,7 @@ public class ProductController {
     }
 
     @PostMapping
+    @RequireAdminRole
     @Operation(summary = "Create new product", description = "Create a new product. Requires ADMIN role.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "201", description = "Product created successfully"),
@@ -118,17 +118,9 @@ public class ProductController {
         @ApiResponse(responseCode = "409", description = "Product with SKU already exists")
     })
     public ResponseEntity<BaseResponse<ProductResponse>> createProduct(
-            @Valid @RequestBody ProductRequest productRequest,
-            HttpServletRequest request) {
+            @Valid @RequestBody ProductRequest productRequest) {
         
         log.info("POST /products - Creating product: {}", productRequest.getName());
-        
-        // Check for ADMIN role
-        if (!SecurityUtil.hasAdminRole(request)) {
-            log.warn("Access denied - ADMIN role required for creating products");
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(BaseResponse.error("Access denied - ADMIN role required", "ACCESS_DENIED"));
-        }
         
         try {
             ProductResponse createdProduct = productService.createProduct(productRequest);
@@ -146,6 +138,7 @@ public class ProductController {
     }
 
     @PutMapping("/{id}")
+    @RequireAdminRole
     @Operation(summary = "Update product", description = "Update all fields of an existing product. Requires ADMIN role.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Product updated successfully"),
@@ -155,17 +148,9 @@ public class ProductController {
     })
     public ResponseEntity<BaseResponse<ProductResponse>> updateProduct(
             @Parameter(description = "Product ID", example = "1") @PathVariable Long id,
-            @Valid @RequestBody ProductRequest productRequest,
-            HttpServletRequest request) {
+            @Valid @RequestBody ProductRequest productRequest) {
         
         log.info("PUT /products/{} - Updating product", id);
-        
-        // Check for ADMIN role
-        if (!SecurityUtil.hasAdminRole(request)) {
-            log.warn("Access denied - ADMIN role required for updating products");
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(BaseResponse.error("Access denied - ADMIN role required", "ACCESS_DENIED"));
-        }
         
         try {
             ProductResponse updatedProduct = productService.updateProduct(id, productRequest);
@@ -185,6 +170,7 @@ public class ProductController {
     }
 
     @PatchMapping("/{id}")
+    @RequireAdminRole
     @Operation(summary = "Partially update product", description = "Update specific fields of an existing product. Requires ADMIN role.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Product partially updated successfully"),
@@ -194,17 +180,9 @@ public class ProductController {
     })
     public ResponseEntity<BaseResponse<ProductResponse>> patchProduct(
             @Parameter(description = "Product ID", example = "1") @PathVariable Long id,
-            @RequestBody ProductRequest productRequest,
-            HttpServletRequest request) {
+            @RequestBody ProductRequest productRequest) {
         
         log.info("PATCH /products/{} - Partially updating product", id);
-        
-        // Check for ADMIN role
-        if (!SecurityUtil.hasAdminRole(request)) {
-            log.warn("Access denied - ADMIN role required for updating products");
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(BaseResponse.error("Access denied - ADMIN role required", "ACCESS_DENIED"));
-        }
         
         try {
             ProductResponse updatedProduct = productService.patchProduct(id, productRequest);
@@ -224,6 +202,7 @@ public class ProductController {
     }
 
     @DeleteMapping("/{id}")
+    @RequireAdminRole
     @Operation(summary = "Soft delete product", description = "Soft delete a product by ID. Requires ADMIN role.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Product soft deleted successfully"),
@@ -232,17 +211,9 @@ public class ProductController {
         @ApiResponse(responseCode = "400", description = "Product already deleted")
     })
     public ResponseEntity<BaseResponse<Void>> softDeleteProduct(
-            @Parameter(description = "Product ID", example = "1") @PathVariable Long id,
-            HttpServletRequest request) {
+            @Parameter(description = "Product ID", example = "1") @PathVariable Long id) {
         
         log.info("DELETE /products/{} - Soft deleting product", id);
-        
-        // Check for ADMIN role
-        if (!SecurityUtil.hasAdminRole(request)) {
-            log.warn("Access denied - ADMIN role required for deleting products");
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(BaseResponse.error("Access denied - ADMIN role required", "ACCESS_DENIED"));
-        }
         
         try {
             productService.softDeleteProduct(id);
@@ -266,6 +237,7 @@ public class ProductController {
     }
 
     @DeleteMapping("/{id}/hard")
+    @RequireAdminRole
     @Operation(summary = "Hard delete product", description = "Permanently delete a product by ID. Requires ADMIN role.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Product hard deleted successfully"),
@@ -273,17 +245,9 @@ public class ProductController {
         @ApiResponse(responseCode = "404", description = "Product not found")
     })
     public ResponseEntity<BaseResponse<Void>> hardDeleteProduct(
-            @Parameter(description = "Product ID", example = "1") @PathVariable Long id,
-            HttpServletRequest request) {
+            @Parameter(description = "Product ID", example = "1") @PathVariable Long id) {
         
         log.info("DELETE /products/{}/hard - Hard deleting product", id);
-        
-        // Check for ADMIN role
-        if (!SecurityUtil.hasAdminRole(request)) {
-            log.warn("Access denied - ADMIN role required for hard deleting products");
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(BaseResponse.error("Access denied - ADMIN role required", "ACCESS_DENIED"));
-        }
         
         try {
             productService.deleteProduct(id);
@@ -303,6 +267,7 @@ public class ProductController {
     }
 
     @PostMapping("/{id}/restore")
+    @RequireAdminRole
     @Operation(summary = "Restore product", description = "Restore a soft deleted product by ID. Requires ADMIN role.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Product restored successfully"),
@@ -311,17 +276,9 @@ public class ProductController {
         @ApiResponse(responseCode = "400", description = "Product is not deleted")
     })
     public ResponseEntity<BaseResponse<Void>> restoreProduct(
-            @Parameter(description = "Product ID", example = "1") @PathVariable Long id,
-            HttpServletRequest request) {
+            @Parameter(description = "Product ID", example = "1") @PathVariable Long id) {
         
         log.info("POST /products/{}/restore - Restoring product", id);
-        
-        // Check for ADMIN role
-        if (!SecurityUtil.hasAdminRole(request)) {
-            log.warn("Access denied - ADMIN role required for restoring products");
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(BaseResponse.error("Access denied - ADMIN role required", "ACCESS_DENIED"));
-        }
         
         try {
             productService.restoreProduct(id);

@@ -1,6 +1,6 @@
 package com.devwonder.warranty_service.controller;
 
-import com.devwonder.warranty_service.dto.BaseResponse;
+import com.devwonder.common.dto.BaseResponse;
 import com.devwonder.warranty_service.dto.PurchasedProductRequest;
 import com.devwonder.warranty_service.dto.PurchasedProductResponse;
 import com.devwonder.warranty_service.service.PurchasedProductService;
