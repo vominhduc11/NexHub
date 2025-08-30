@@ -26,7 +26,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(@NonNull StompEndpointRegistry registry) {
         registry.addEndpoint("/ws/notifications")
-                // No CORS config - trust API Gateway CORS handling
+                // Disable CORS - Let API Gateway handle CORS globally
+                .setAllowedOriginPatterns("*")
                 .withSockJS();
     }
 

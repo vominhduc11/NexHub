@@ -198,7 +198,7 @@ spring:
             - StripPrefix=1                   # /api/product/** → /product/**
             - AddRequestHeader=X-Gateway-Request, true
 
-        # WebSocket Service Routes - Proxied with JWT validation
+        # WebSocket Service Routes - Allow WebSocket handshake without JWT validation
         - id: websocket-notifications
           uri: ${NOTIFICATION_SERVICE_URI}
           order: 100
@@ -207,6 +207,8 @@ spring:
           filters:
             - AddRequestHeader=X-Gateway-Request, true
             - AddRequestHeader=X-Forwarded-Proto, ${X_FORWARDED_PROTO:http}
+            - RemoveRequestHeader=Authorization
+            - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_FIRST
 
       # ===================================================================================
       # GLOBAL CONFIGURATIONS
