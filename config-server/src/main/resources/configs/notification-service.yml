@@ -35,6 +35,23 @@ kafka:
   topic:
     email: ${KAFKA_TOPIC_EMAIL:email-notifications}
 
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:mySecretKey}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+# WebSocket Security Configuration
+websocket:
+  security:
+    required-role: ${WEBSOCKET_REQUIRED_ROLE:ADMIN}
+
+# Logging configuration
+logging:
+  level:
+    com.devwonder.notification_service.config: DEBUG
+    org.springframework.messaging: DEBUG
+    org.springframework.web.socket: DEBUG
+
 # SpringDoc OpenAPI Configuration
 springdoc:
   api-docs:

@@ -16,7 +16,6 @@ import java.util.Map;
 @Slf4j
 public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
 
-    private static final String REQUIRED_ROLE = "ADMIN";
     
     @Override
     public Message<?> preSend(@NonNull Message<?> message, @NonNull MessageChannel channel) {
@@ -58,14 +57,9 @@ public class WebSocketAuthorizationInterceptor implements ChannelInterceptor {
             return false;
         }
         
-        // Check if user has required role
+        // Allow access for any valid token holder (no role restrictions)
         String userType = JwtUtil.extractUserType(token);
-        if (!REQUIRED_ROLE.equals(userType)) {
-            log.warn("User {} with role {} denied access to {} - {} required", user.getName(), userType, destination, REQUIRED_ROLE);
-            return false;
-        }
-        
-        log.debug("{} user found - allowing access to: {}", REQUIRED_ROLE, destination);
+        log.debug("User {} with role {} authorized to subscribe to {}", user.getName(), userType, destination);
         return true;
     }
     

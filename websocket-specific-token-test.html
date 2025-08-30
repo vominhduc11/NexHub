@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Specific Token Test - NexHub</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7/bundles/stomp.umd.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .section { margin: 20px 0; padding: 20px; border: 1px solid #ccc; border-radius: 5px; }
+        button { padding: 10px; background: #007cba; color: white; border: none; cursor: pointer; border-radius: 3px; margin: 5px; }
+        button:hover { background: #005a87; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 3px; }
+        .status.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .status.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .status.info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .messages { height: 400px; overflow-y: auto; background: #f8f9fa; padding: 10px; border: 1px solid #dee2e6; border-radius: 3px; }
+        .message { margin: 5px 0; padding: 5px; }
+        .message.system { background: #f8f9fa; font-style: italic; }
+        .message.received { background: #e2f3ff; }
+        .message.sent { background: #fff3cd; }
+        .token-info { background: #f8f9fa; padding: 10px; border-radius: 3px; font-family: monospace; font-size: 12px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 WebSocket Specific Token Test</h1>
+        
+        <div class="section">
+            <h3>🎫 Token Information</h3>
+            <div class="token-info">
+                <strong>Token (Updated from login):</strong><br>
+                eyJraWQiOiIyNmNiNGZjZi1hZTI5LTRkODYtYTIzOS1kYTNkYjg1OTU2YTMiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxOSIsInVzZXJuYW1lIjoiYWRtaW4iLCJ1c2VyVHlwZSI6IkFETUlOIiwicm9sZXMiOlsiQURNSU4iXSwicGVybWlzc2lvbnMiOlsiREVMRVRFX1VTRVJTIiwiUkVBRF9PUkRFUlMiLCJSRUFEX1VTRVJTIiwiV1JJVEVfUFJPRFVDVFMiLCJSRUFEX1BST0RVQ1RTIiwiTUFOQUdFX1NZU1RFTSIsIldSSVRFX09SREVSUyIsIldSSVRFX1VTRVJTIiwiREVMRVRFX1BST0RVQ1RTIiwiREVMRVRFX09SREVSUyJdLCJpYXQiOjE3NTY1MjgzNDQsImV4cCI6MTc1NjYxNDc0NCwiaXNzIjoiYXV0aC1zZXJ2aWNlIiwiYXVkIjoibmV4aHViLXNlcnZpY2VzIn0.RxuM9DSMU_kG66UV7YxHM01BNuvhR-dv6IrsBeDY-1a-yM1-v_aqWzdJ-ZqEt5v9gaz3eTrw6eDVASvcf82K-UIOYgdt7N5ekple7tnMcs-yLstXqCo_0PYyHNSmQRBTki4hGcKBWTxgRo6gn3H_wg4gs7RrvuK3Vd5NFGqgJstR4-cnHzm-MuW3YI-OUNHWSH-f2MjqgCpGSc40PLDx9J1L-7kMtc4sbJOzRbQi4BhzwGuKWmeJWmKhCnlgnKejvqp8G1lKwl3W4Z_82OXSun5FoVS0gNRzltDNEszaConC7-6Hk3gknKk5l02KSiAUT6uuZqWxrxvTTqunLwe9QQ
+            </div>
+            <div id="tokenDetails" class="token-info"></div>
+        </div>
+        
+        <div class="section">
+            <h3>🔌 WebSocket Connection Test</h3>
+            <button onclick="testConnection()">Test Connection</button>
+            <button id="disconnectBtn" onclick="disconnect()" disabled>Disconnect</button>
+            <button id="sendBtn" onclick="sendTestMessage()" disabled>Send Test Message</button>
+            <div id="status" class="status" style="display: none;"></div>
+        </div>
+
+        <div class="section">
+            <h3>📋 Test Results</h3>
+            <div id="messages" class="messages"></div>
+            <button onclick="clearMessages()">Clear Messages</button>
+        </div>
+    </div>
+
+    <script>
+        const testToken = 'eyJraWQiOiIyNmNiNGZjZi1hZTI5LTRkODYtYTIzOS1kYTNkYjg1OTU2YTMiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxOSIsInVzZXJuYW1lIjoiYWRtaW4iLCJ1c2VyVHlwZSI6IkFETUlOIiwicm9sZXMiOlsiQURNSU4iXSwicGVybWlzc2lvbnMiOlsiREVMRVRFX1VTRVJTIiwiUkVBRF9PUkRFUlMiLCJSRUFEX1VTRVJTIiwiV1JJVEVfUFJPRFVDVFMiLCJSRUFEX1BST0RVQ1RTIiwiTUFOQUdFX1NZU1RFTSIsIldSSVRFX09SREVSUyIsIldSSVRFX1VTRVJTIiwiREVMRVRFX1BST0RVQ1RTIiwiREVMRVRFX09SREVSUyJdLCJpYXQiOjE3NTY1MjgzNDQsImV4cCI6MTc1NjYxNDc0NCwiaXNzIjoiYXV0aC1zZXJ2aWNlIiwiYXVkIjoibmV4aHViLXNlcnZpY2VzIn0.RxuM9DSMU_kG66UV7YxHM01BNuvhR-dv6IrsBeDY-1a-yM1-v_aqWzdJ-ZqEt5v9gaz3eTrw6eDVASvcf82K-UIOYgdt7N5ekple7tnMcs-yLstXqCo_0PYyHNSmQRBTki4hGcKBWTxgRo6gn3H_wg4gs7RrvuK3Vd5NFGqgJstR4-cnHzm-MuW3YI-OUNHWSH-f2MjqgCpGSc40PLDx9J1L-7kMtc4sbJOzRbQi4BhzwGuKWmeJWmKhCnlgnKejvqp8G1lKwl3W4Z_82OXSun5FoVS0gNRzltDNEszaConC7-6Hk3gknKk5l02KSiAUT6uuZqWxrxvTTqunLwe9QQ';
+        let stompClient = null;
+
+        // Decode and display token info on load
+        window.onload = function() {
+            try {
+                const payload = JSON.parse(atob(testToken.split('.')[1]));
+                const tokenDetailsDiv = document.getElementById('tokenDetails');
+                
+                const expDate = new Date(payload.exp * 1000);
+                const iatDate = new Date(payload.iat * 1000);
+                const now = new Date();
+                const isExpired = now > expDate;
+                
+                tokenDetailsDiv.innerHTML = `
+                    <strong>Decoded Payload:</strong><br>
+                    • Username: ${payload.username}<br>
+                    • User Type: ${payload.userType}<br>
+                    • Roles: ${JSON.stringify(payload.roles)}<br>
+                    • Issued At: ${iatDate.toLocaleString()}<br>
+                    • Expires At: ${expDate.toLocaleString()}<br>
+                    • Is Expired: ${isExpired ? '❌ YES' : '✅ NO'}<br>
+                    • Issuer: ${payload.iss}<br>
+                    • Audience: ${payload.aud}
+                `;
+                
+                addMessage(`🎫 Token analyzed: username=${payload.username}, userType=${payload.userType}, expired=${isExpired}`);
+            } catch (error) {
+                addMessage('❌ Failed to decode token: ' + error.message);
+            }
+        };
+
+        function testConnection() {
+            if (stompClient !== null) {
+                disconnect();
+            }
+
+            const statusDiv = document.getElementById('status');
+            showStatus(statusDiv, '🔄 Testing connection with provided token...', 'info');
+            addMessage('🧪 Starting WebSocket connection test...');
+
+            const socket = new SockJS('http://localhost:8080/ws/notifications');
+            stompClient = new StompJs.Client({
+                webSocketFactory: () => socket,
+                connectHeaders: {
+                    'Authorization': 'Bearer ' + testToken
+                },
+                debug: (str) => {
+                    console.log('STOMP Debug: ' + str);
+                    addMessage('🔧 STOMP Debug: ' + str);
+                },
+                onConnect: (frame) => {
+                    showStatus(statusDiv, '✅ Connection SUCCESS!', 'success');
+                    addMessage('✅ WebSocket connected successfully!');
+                    addMessage('📋 Connection frame: ' + JSON.stringify(frame));
+                    
+                    document.getElementById('disconnectBtn').disabled = false;
+                    document.getElementById('sendBtn').disabled = false;
+                    
+                    // Subscribe to topics
+                    try {
+                        stompClient.subscribe('/topic/notifications', (message) => {
+                            addMessage('📬 Topic notification: ' + message.body, 'received');
+                        });
+                        addMessage('📡 Subscribed to /topic/notifications');
+
+                        stompClient.subscribe('/user/queue/notifications', (message) => {
+                            addMessage('👤 User notification: ' + message.body, 'received');
+                        });
+                        addMessage('📡 Subscribed to /user/queue/notifications');
+                        
+                    } catch (error) {
+                        addMessage('❌ Subscription error: ' + error.message);
+                    }
+                },
+                onStompError: (frame) => {
+                    showStatus(statusDiv, '❌ STOMP Error', 'error');
+                    addMessage('❌ STOMP Error: ' + frame.headers['message']);
+                    addMessage('📋 Error details: ' + JSON.stringify(frame.headers));
+                    console.error('STOMP Error Frame:', frame);
+                },
+                onWebSocketError: (error) => {
+                    showStatus(statusDiv, '❌ WebSocket Error', 'error');
+                    addMessage('❌ WebSocket Error: ' + error.message);
+                    console.error('WebSocket Error:', error);
+                },
+                onWebSocketClose: (event) => {
+                    showStatus(statusDiv, '🔌 Connection Closed', 'info');
+                    addMessage(`🔌 WebSocket closed - Code: ${event.code}, Reason: "${event.reason}"`);
+                    
+                    document.getElementById('disconnectBtn').disabled = true;
+                    document.getElementById('sendBtn').disabled = true;
+                },
+                onDisconnect: () => {
+                    addMessage('🔌 Disconnected from WebSocket');
+                    
+                    document.getElementById('disconnectBtn').disabled = true;
+                    document.getElementById('sendBtn').disabled = true;
+                }
+            });
+
+            addMessage('🚀 Activating STOMP client...');
+            stompClient.activate();
+        }
+
+        function disconnect() {
+            if (stompClient !== null) {
+                stompClient.deactivate();
+                stompClient = null;
+                addMessage('🔌 Manual disconnect requested');
+            }
+        }
+
+        function sendTestMessage() {
+            if (stompClient && stompClient.connected) {
+                const message = {
+                    content: 'Test message from specific token test',
+                    timestamp: new Date().toISOString(),
+                    sender: 'admin'
+                };
+                
+                stompClient.publish({
+                    destination: '/app/test',
+                    body: JSON.stringify(message)
+                });
+                
+                addMessage('📤 Test message sent: ' + JSON.stringify(message), 'sent');
+            } else {
+                addMessage('❌ Cannot send - not connected to WebSocket');
+            }
+        }
+
+        function showStatus(element, message, type) {
+            element.textContent = message;
+            element.className = 'status ' + type;
+            element.style.display = 'block';
+        }
+
+        function addMessage(message, type = 'system') {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ' + type;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            messageDiv.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
+            
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function clearMessages() {
+            document.getElementById('messages').innerHTML = '';
+        }
+
+        // Initial message
+        addMessage('🧪 Specific token test ready. Token will be analyzed automatically.');
+    </script>
+</body>
+</html>

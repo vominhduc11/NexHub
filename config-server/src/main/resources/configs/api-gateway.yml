@@ -19,20 +19,18 @@ spring:
     gateway:
       routes:
         # ===================================================================================
-        # MAIN SWAGGER UI HUB - Order 50 (High Priority)
-        # Central Swagger documentation hosted by auth-service
-        # Accessible at: http://localhost:8080/swagger-ui.html
+        # SWAGGER UI - Centralized Documentation Hub
         # ===================================================================================
-        - id: gateway-swagger-ui-main
+        - id: swagger-ui-main
           uri: ${AUTH_SERVICE_URI}
           order: 50
           predicates:
-            - Path=/swagger-ui.html
+            - Path=/swagger-ui/index.html
           filters:
-            - SetPath=/swagger-ui.html
+            - SetPath=/swagger-ui/index.html
             - AddRequestHeader=X-Gateway-Request, true
             
-        - id: gateway-swagger-ui-resources
+        - id: swagger-ui-resources
           uri: ${AUTH_SERVICE_URI}
           order: 50
           predicates:
@@ -40,59 +38,16 @@ spring:
           filters:
             - AddRequestHeader=X-Gateway-Request, true
             
-        - id: gateway-swagger-webjars
+        - id: swagger-webjars
           uri: ${AUTH_SERVICE_URI}
           order: 50
           predicates:
-            - Path=/webjars/swagger-ui/**
+            - Path=/webjars/**
           filters:
             - AddRequestHeader=X-Gateway-Request, true
 
-        # ===================================================================================
-        # AUTH-SERVICE SWAGGER ENDPOINTS - Order 100
-        # Individual Swagger documentation for Authentication Service
-        # Accessible at: http://localhost:8080/api/auth/swagger-ui.html
-        # ===================================================================================
-        - id: auth-service-swagger-ui
-          uri: ${AUTH_SERVICE_URI}
-          predicates:
-            - Path=/api/auth/swagger-ui.html
-          filters:
-            - SetPath=/swagger-ui.html
-            - AddRequestHeader=X-Gateway-Request, true
-          metadata:
-            response-timeout: 30000
-            connect-timeout: 20000
-          order: 100
-            
-        - id: auth-service-swagger-index
-          uri: ${AUTH_SERVICE_URI}
-          predicates:
-            - Path=/api/auth/swagger-ui/index.html
-          filters:
-            - SetPath=/swagger-ui.html
-            - AddRequestHeader=X-Gateway-Request, true
-          order: 90
-            
-        - id: auth-service-swagger-resources
-          uri: ${AUTH_SERVICE_URI}
-          predicates:
-            - Path=/api/auth/swagger-ui/**
-          filters:
-            - StripPrefix=2
-            - AddRequestHeader=X-Gateway-Request, true
-          order: 100
-            
-        - id: auth-service-webjars
-          uri: ${AUTH_SERVICE_URI}
-          predicates:
-            - Path=/api/auth/webjars/**
-          filters:
-            - StripPrefix=2
-            - AddRequestHeader=X-Gateway-Request, true
-          order: 100
-            
-        - id: auth-service-api-docs
+        # API Docs endpoints for each service
+        - id: auth-api-docs
           uri: ${AUTH_SERVICE_URI}
           predicates:
             - Path=/api/auth/v3/api-docs/**
@@ -101,10 +56,53 @@ spring:
             - AddRequestHeader=X-Gateway-Request, true
           order: 100
             
+        - id: user-api-docs
+          uri: ${USER_SERVICE_URI}
+          predicates:
+            - Path=/api/user/v3/api-docs/**
+          filters:
+            - StripPrefix=2
+            - AddRequestHeader=X-Gateway-Request, true
+          order: 100
+            
+        - id: notification-api-docs
+          uri: ${NOTIFICATION_SERVICE_URI}
+          predicates:
+            - Path=/api/notification/v3/api-docs/**
+          filters:
+            - StripPrefix=2
+            - AddRequestHeader=X-Gateway-Request, true
+          order: 100
+            
+        - id: warranty-api-docs
+          uri: ${WARRANTY_SERVICE_URI}
+          predicates:
+            - Path=/api/warranty/v3/api-docs/**
+          filters:
+            - StripPrefix=2
+            - AddRequestHeader=X-Gateway-Request, true
+          order: 100
+            
+        - id: blog-api-docs
+          uri: ${BLOG_SERVICE_URI}
+          predicates:
+            - Path=/api/blog/v3/api-docs/**
+          filters:
+            - StripPrefix=2
+            - AddRequestHeader=X-Gateway-Request, true
+          order: 100
+            
+        - id: product-api-docs
+          uri: ${PRODUCT_SERVICE_URI}
+          predicates:
+            - Path=/api/product/v3/api-docs/**
+          filters:
+            - StripPrefix=2
+            - AddRequestHeader=X-Gateway-Request, true
+          order: 100
+
         # ===================================================================================
-        # SECURITY & JWT ENDPOINTS - Order 50 (High Priority)
-        # JWKS endpoint for JWT public key distribution (required for token validation)
-        # Accessible at: http://localhost:8080/auth/.well-known/jwks.json
+        # JWT/JWKS ENDPOINT
         # ===================================================================================
         - id: auth-service-jwks
           uri: ${AUTH_SERVICE_URI}
@@ -113,211 +111,6 @@ spring:
           filters:
             - AddRequestHeader=X-Gateway-Request, true
           order: 50
-            
-        # ===================================================================================
-        # USER-SERVICE SWAGGER ENDPOINTS - Order 100
-        # Individual Swagger documentation for User Management Service
-        # Accessible at: http://localhost:8080/api/user/swagger-ui.html
-        # ===================================================================================
-        - id: user-service-swagger-ui
-          uri: ${USER_SERVICE_URI}
-          order: 100
-          predicates:
-            - Path=/api/user/swagger-ui.html
-          filters:
-            - SetPath=/swagger-ui.html
-            - AddRequestHeader=X-Gateway-Request, true
-            
-        - id: user-service-swagger-resources
-          uri: ${USER_SERVICE_URI}
-          order: 100
-          predicates:
-            - Path=/api/user/swagger-ui/**
-          filters:
-            - StripPrefix=2
-            - AddRequestHeader=X-Gateway-Request, true
-            
-        - id: user-service-webjars
-          uri: ${USER_SERVICE_URI}
-          order: 100
-          predicates:
-            - Path=/api/user/webjars/**
-          filters:
-            - StripPrefix=2
-            - AddRequestHeader=X-Gateway-Request, true
-            
-        - id: user-service-api-docs
-          uri: ${USER_SERVICE_URI}
-          order: 100
-          predicates:
-            - Path=/api/user/v3/api-docs/**
-          filters:
-            - StripPrefix=2
-            - AddRequestHeader=X-Gateway-Request, true
-            
-        # ===================================================================================
-        # NOTIFICATION-SERVICE SWAGGER ENDPOINTS - Order 100
-        # Individual Swagger documentation for Notification Service
-        # Accessible at: http://localhost:8080/api/notification/swagger-ui.html
-        # ===================================================================================
-        - id: notification-service-swagger-ui
-          uri: ${NOTIFICATION_SERVICE_URI}
-          order: 100
-          predicates:
-            - Path=/api/notification/swagger-ui.html
-          filters:
-            - SetPath=/swagger-ui.html
-            - AddRequestHeader=X-Gateway-Request, true
-            
-        - id: notification-service-swagger-resources
-          uri: ${NOTIFICATION_SERVICE_URI}
-          order: 100
-          predicates:
-            - Path=/api/notification/swagger-ui/**
-          filters:
-            - StripPrefix=2
-            - AddRequestHeader=X-Gateway-Request, true
-            
-        - id: notification-service-webjars
-          uri: ${NOTIFICATION_SERVICE_URI}
-          order: 100
-          predicates:
-            - Path=/api/notification/webjars/**
-          filters:
-            - StripPrefix=2
-            - AddRequestHeader=X-Gateway-Request, true
-            
-        - id: notification-service-api-docs
-          uri: ${NOTIFICATION_SERVICE_URI}
-          order: 100
-          predicates:
-            - Path=/api/notification/v3/api-docs/**
-          filters:
-            - StripPrefix=2
-            - AddRequestHeader=X-Gateway-Request, true
-            
-        # ===================================================================================
-        # WARRANTY-SERVICE SWAGGER ENDPOINTS - Order 100
-        # Individual Swagger documentation for Warranty Service
-        # Accessible at: http://localhost:8080/api/warranty/swagger-ui.html
-        # ===================================================================================
-        - id: warranty-service-swagger-ui
-          uri: ${WARRANTY_SERVICE_URI}
-          order: 100
-          predicates:
-            - Path=/api/warranty/swagger-ui.html
-          filters:
-            - SetPath=/swagger-ui.html
-            - AddRequestHeader=X-Gateway-Request, true
-            
-        - id: warranty-service-swagger-resources
-          uri: ${WARRANTY_SERVICE_URI}
-          order: 100
-          predicates:
-            - Path=/api/warranty/swagger-ui/**
-          filters:
-            - StripPrefix=2
-            - AddRequestHeader=X-Gateway-Request, true
-            
-        - id: warranty-service-webjars
-          uri: ${WARRANTY_SERVICE_URI}
-          order: 100
-          predicates:
-            - Path=/api/warranty/webjars/**
-          filters:
-            - StripPrefix=2
-            - AddRequestHeader=X-Gateway-Request, true
-            
-        - id: warranty-service-api-docs
-          uri: ${WARRANTY_SERVICE_URI}
-          order: 100
-          predicates:
-            - Path=/api/warranty/v3/api-docs/**
-          filters:
-            - StripPrefix=2
-            - AddRequestHeader=X-Gateway-Request, true
-            
-        # ===================================================================================
-        # BLOG-SERVICE SWAGGER ENDPOINTS - Order 100
-        # Individual Swagger documentation for Blog Service
-        # Accessible at: http://localhost:8080/api/blog/swagger-ui.html
-        # ===================================================================================
-        - id: blog-service-swagger-ui
-          uri: ${BLOG_SERVICE_URI}
-          order: 100
-          predicates:
-            - Path=/api/blog/swagger-ui.html
-          filters:
-            - SetPath=/swagger-ui.html
-            - AddRequestHeader=X-Gateway-Request, true
-            
-        - id: blog-service-swagger-resources
-          uri: ${BLOG_SERVICE_URI}
-          order: 100
-          predicates:
-            - Path=/api/blog/swagger-ui/**
-          filters:
-            - StripPrefix=2
-            - AddRequestHeader=X-Gateway-Request, true
-            
-        - id: blog-service-webjars
-          uri: ${BLOG_SERVICE_URI}
-          order: 100
-          predicates:
-            - Path=/api/blog/webjars/**
-          filters:
-            - StripPrefix=2
-            - AddRequestHeader=X-Gateway-Request, true
-            
-        - id: blog-service-api-docs
-          uri: ${BLOG_SERVICE_URI}
-          order: 100
-          predicates:
-            - Path=/api/blog/v3/api-docs/**
-          filters:
-            - StripPrefix=2
-            - AddRequestHeader=X-Gateway-Request, true
-            
-        # ===================================================================================
-        # PRODUCT-SERVICE SWAGGER ENDPOINTS - Order 100
-        # Individual Swagger documentation for Product Service
-        # Accessible at: http://localhost:8080/api/product/swagger-ui.html
-        # ===================================================================================
-        - id: product-service-swagger-ui
-          uri: ${PRODUCT_SERVICE_URI}
-          order: 100
-          predicates:
-            - Path=/api/product/swagger-ui.html
-          filters:
-            - SetPath=/swagger-ui.html
-            - AddRequestHeader=X-Gateway-Request, true
-            
-        - id: product-service-swagger-resources
-          uri: ${PRODUCT_SERVICE_URI}
-          order: 100
-          predicates:
-            - Path=/api/product/swagger-ui/**
-          filters:
-            - StripPrefix=2
-            - AddRequestHeader=X-Gateway-Request, true
-            
-        - id: product-service-webjars
-          uri: ${PRODUCT_SERVICE_URI}
-          order: 100
-          predicates:
-            - Path=/api/product/webjars/**
-          filters:
-            - StripPrefix=2
-            - AddRequestHeader=X-Gateway-Request, true
-            
-        - id: product-service-api-docs
-          uri: ${PRODUCT_SERVICE_URI}
-          order: 100
-          predicates:
-            - Path=/api/product/v3/api-docs/**
-          filters:
-            - StripPrefix=2
-            - AddRequestHeader=X-Gateway-Request, true
             
         # ===================================================================================
         # BUSINESS API ROUTES - Order 200 (Lower Priority)
@@ -405,47 +198,15 @@ spring:
             - StripPrefix=1                   # /api/product/** → /product/**
             - AddRequestHeader=X-Gateway-Request, true
 
-        # WebSocket CORS Preflight Route - MUST be before main route
-        - id: notification-websocket-cors
-          uri: no://op
-          order: 50
-          predicates:
-            - Path=/api/notification/ws/**
-            - Method=OPTIONS
-          filters:
-            - name: SetResponseHeader
-              args:
-                name: Access-Control-Allow-Origin
-                value: "*"
-            - name: SetResponseHeader
-              args:
-                name: Access-Control-Allow-Methods
-                value: "GET,POST,PUT,DELETE,OPTIONS,CONNECT,HEAD"
-            - name: SetResponseHeader
-              args:
-                name: Access-Control-Allow-Headers
-                value: "*"
-            - name: SetResponseHeader
-              args:
-                name: Access-Control-Max-Age
-                value: "86400"
-            - name: SetStatus
-              args:
-                status: 200
-            
-        # WebSocket Main Route
-        - id: notification-websocket
+        # WebSocket Service Routes - Proxied with JWT validation
+        - id: websocket-notifications
           uri: ${NOTIFICATION_SERVICE_URI}
           order: 100
           predicates:
-            - Path=/api/notification/ws/**    # WebSocket endpoint
+            - Path=/ws/notifications/**
           filters:
-            - StripPrefix=2                   # /api/notification/ws/** → /ws/**
             - AddRequestHeader=X-Gateway-Request, true
-            - name: SetResponseHeader
-              args:
-                name: Access-Control-Allow-Origin
-                value: "*"
+            - AddRequestHeader=X-Forwarded-Proto, ${X_FORWARDED_PROTO:http}
 
       # ===================================================================================
       # GLOBAL CONFIGURATIONS

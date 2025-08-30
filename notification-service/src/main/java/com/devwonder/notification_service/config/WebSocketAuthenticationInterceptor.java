@@ -2,6 +2,7 @@ package com.devwonder.notification_service.config;
 
 import com.devwonder.notification_service.util.JwtUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -10,18 +11,22 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.stereotype.Component;
 
 import java.security.Principal;
 import java.util.ArrayList;
-import java.util.Map;
+import java.util.List;
 
+@Component
 @Slf4j
 public class WebSocketAuthenticationInterceptor implements ChannelInterceptor {
     
-    private static final String REQUIRED_ROLE = "ADMIN";
     private static final String BEARER_PREFIX = "Bearer ";
-    private static final String JWT_TOKEN_KEY = "jwtToken";
-    private static final String JWT_SECRET = "your-secret-key-here";
+    
+    
+    @Value("${jwt.secret}")
+    private String jwtSecret;
     
     @Override
     public Message<?> preSend(@NonNull Message<?> message, @NonNull MessageChannel channel) {
@@ -33,70 +38,47 @@ public class WebSocketAuthenticationInterceptor implements ChannelInterceptor {
         }
         
         if (accessor != null && StompCommand.CONNECT.equals(accessor.getCommand())) {
-            return handleConnect(accessor);
+            return handleConnect(accessor, message);
         }
         
         return message;
     }
     
-    private Message<?> handleConnect(StompHeaderAccessor accessor) {
-        log.info("WebSocket CONNECT attempt - checking authentication");
+    private Message<?> handleConnect(StompHeaderAccessor accessor, Message<?> message) {
+        log.info("🔌 WebSocket CONNECT attempt");
         
         // Get JWT token from Authorization header
         String authHeader = accessor.getFirstNativeHeader("Authorization");
-        log.debug("Authorization header: {}", authHeader != null ? "Bearer ***" : "null");
         
         if (authHeader == null || !authHeader.startsWith(BEARER_PREFIX)) {
-            log.warn("No valid JWT token provided for WebSocket connection");
+            log.warn("❌ No Authorization header or invalid format");
             return null; // Reject connection
         }
         
-        String token = authHeader.substring(BEARER_PREFIX.length());
-        log.debug("Token extracted, length: {}", token.length());
+        String token = authHeader.substring(BEARER_PREFIX.length()).trim();
+        log.info("🎫 Token received: {}", token.substring(0, Math.min(20, token.length())) + "...");
         
-        // Validate JWT token (signature + expiration)
-        if (!JwtUtil.validateToken(token, JWT_SECRET)) {
-            log.warn("JWT token validation failed");
+        // Validate JWT token structure
+        if (token.isEmpty() || token.split("\\.").length != 3) {
+            log.warn("❌ Invalid token format - must have 3 parts");
             return null; // Reject connection
         }
         
-        // Extract user information from JWT
+        // Validate JWT token (structure + expiration)
+        if (!JwtUtil.validateToken(token, jwtSecret)) {
+            log.warn("❌ JWT token validation failed (invalid or expired)");
+            return null; // Reject connection
+        }
+        
+        // Extract username for logging
         String username = JwtUtil.extractUsername(token);
-        String userType = JwtUtil.extractUserType(token);
-        log.debug("JWT extraction results - username: {}, userType: {}", username, userType);
-        
-        if (username == null || username.isEmpty()) {
-            log.warn("Failed to extract username from JWT token");
+        if (username == null || username.trim().isEmpty()) {
+            log.warn("❌ Invalid username in JWT token");
             return null; // Reject connection
         }
         
-        // Check if user has ADMIN role
-        if (!REQUIRED_ROLE.equals(userType)) {
-            log.warn("WebSocket access denied - user {} has role {} but {} is required", 
-                    username, userType, REQUIRED_ROLE);
-            return null; // Reject connection
-        }
-        
-        log.info("WebSocket authentication successful for {} user: {}", REQUIRED_ROLE, username);
-        
-        // Store JWT token in session for later use
-        storeTokenInSession(accessor, token);
-        
-        // Create principal with username
-        Principal principal = new UsernamePasswordAuthenticationToken(username, null, new ArrayList<>());
-        accessor.setUser(principal);
-        
-        return null; // Continue processing
+        log.info("✅ JWT token valid and not expired - User: '{}' - Connection allowed", username);
+        return message; // Allow connection to continue
     }
     
-    private void storeTokenInSession(StompHeaderAccessor accessor, String token) {
-        @SuppressWarnings("unchecked")
-        Map<String, Object> sessionAttributes = (Map<String, Object>) accessor.getSessionAttributes();
-        if (sessionAttributes != null) {
-            sessionAttributes.put(JWT_TOKEN_KEY, token);
-            log.debug("JWT token stored in session");
-        } else {
-            log.warn("Session attributes not available - token not stored");
-        }
-    }
 }

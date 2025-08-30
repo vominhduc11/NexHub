@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Component
 public class RateLimitingGlobalFilter implements GlobalFilter, Ordered {
     
-    private static final int MAX_REQUESTS_PER_MINUTE = 60;
+    private static final int MAX_REQUESTS_PER_MINUTE = 300;
     private static final long WINDOW_SIZE_MILLIS = 60 * 1000L; // 1 minute in milliseconds
     
     private final ConcurrentHashMap<String, RequestCounter> requestCounts = new ConcurrentHashMap<>();
@@ -33,8 +33,13 @@ public class RateLimitingGlobalFilter implements GlobalFilter, Ordered {
         String clientId = RequestUtil.getClientIpAddress(request);
         String path = request.getPath().value();
         
-        // Skip rate limiting for health checks and static resources
-        if (path.contains("/actuator/") || path.contains("/health")) {
+        // Skip rate limiting for health checks, static resources, and API documentation
+        if (path.contains("/actuator/") ||
+            path.contains("/health") ||
+            path.contains("/swagger-ui/") ||
+            path.contains("/v3/api-docs") ||
+            path.contains("/swagger-resources/") ||
+            path.contains("/webjars/")) {
             return chain.filter(exchange);
         }
         

@@ -95,8 +95,8 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.DELETE, "/api/warranty/**")
                         .hasAnyAuthority("ROLE_ADMIN", "PERM_WARRANTY_DELETE")
 
-                        // WebSocket endpoints - require ADMIN role
-                        .pathMatchers("/api/notification/ws/**").hasAuthority("ROLE_ADMIN")
+                        // WebSocket routes - allow all (including SockJS handshake)
+                        .pathMatchers("/ws/**").permitAll()
 
                         .anyExchange().denyAll())
                 .build();

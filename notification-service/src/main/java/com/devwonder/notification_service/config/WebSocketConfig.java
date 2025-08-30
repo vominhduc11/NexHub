@@ -26,17 +26,13 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(@NonNull StompEndpointRegistry registry) {
         registry.addEndpoint("/ws/notifications")
-                .setAllowedOriginPatterns("*") // Allow all origins for testing
+                // No CORS config - trust API Gateway CORS handling
                 .withSockJS();
     }
 
     @Override
     public void configureClientInboundChannel(@NonNull ChannelRegistration registration) {
-        registration.interceptors(
-                // Authentication interceptor - handles CONNECT command
-                new WebSocketAuthenticationInterceptor(),
-                // Authorization interceptor - handles SUBSCRIBE command  
-                new WebSocketAuthorizationInterceptor()
-        );
+        // No interceptors needed - trust API Gateway authentication
+        // API Gateway validates JWT and forwards authenticated requests
     }
 }

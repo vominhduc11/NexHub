@@ -8,6 +8,7 @@
         "globalcors",
         "nexhub",
         "springdoc",
+        "springframework",
         "voduc",
         "webjars"
     ]

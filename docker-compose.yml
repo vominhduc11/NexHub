@@ -221,6 +221,9 @@ services:
       - MAIL_PORT=587
       - MAIL_USERNAME=vominhduc760@gmail.com
       - MAIL_PASSWORD=agcbtolwkdbbjwoi
+      - JWT_SECRET=nexhubSecretKey2024ForNotificationService
+      - JWT_EXPIRATION=86400000
+      - WEBSOCKET_REQUIRED_ROLE=ADMIN
     depends_on:
       config-server:
         condition: service_healthy
