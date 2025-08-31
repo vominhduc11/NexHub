@@ -1,343 +1,714 @@
-# NexHub - Microservices E-Commerce Platform
+# NexHub - Enterprise Microservices E-Commerce Platform
 
 ## Executive Summary
 
-**NexHub** is a production-ready e-commerce microservices platform built on Spring Boot 3.5.4, designed for scalable product management, warranty tracking, customer operations, and content management. The platform features distributed architecture with Redis caching, Kafka event streaming, WebSocket real-time communication, and comprehensive JWT security across 6 specialized PostgreSQL databases.
+**NexHub** is a production-ready enterprise e-commerce microservices platform built on Spring Boot 3.5.5, designed for scalable product management, warranty tracking, customer operations, and content management. The platform features distributed architecture with Redis caching, Kafka event streaming, WebSocket real-time communication, and comprehensive JWT security across 6 specialized PostgreSQL databases.
+
+**Recent Enhancements (August 2025)**:
+- Advanced WebSocket security with dual-layer JWT authentication
+- Shared nexhub-common library for code reusability and maintainability
+- Enhanced API Gateway security with comprehensive JWT validation
+- React-based WebSocket demonstration client
+- Improved microservices architecture with better separation of concerns
 
 ## 🏗️ Architecture Overview
 
-The platform consists of infrastructure services (Config Server, Discovery Service, API Gateway) and business services (Auth, User, Product, Warranty, Blog, Notification) with comprehensive security, caching, and real-time communication capabilities.
+NexHub implements a complete microservices architecture with infrastructure services for service discovery and configuration management, and business services for e-commerce operations. The platform uses event-driven architecture with Kafka for asynchronous communication and WebSocket for real-time features.
 
 ### 🔧 Infrastructure Services
 
-| Service | Port | Description | Status |
-|---------|------|-------------|---------|
-| **Config Server** | 8888 | Centralized configuration management | ✅ Production Ready |
-| **Discovery Service** | 8761 | Service registry and discovery | ✅ Production Ready |
-| **API Gateway** | 8080 | API routing, security, and aggregation | ✅ Production Ready |
+| Service | Port | Description | Technology Stack | Status |
+|---------|------|-------------|------------------|---------|
+| **Config Server** | 8888 | Centralized configuration management with native profile support | Spring Cloud Config, Git/Native | ✅ Production Ready |
+| **Discovery Service** | 8761 | Service registry and discovery with Eureka | Spring Cloud Netflix Eureka | ✅ Production Ready |
+| **API Gateway** | 8080 | API routing, JWT security, rate limiting, CORS, WebSocket proxying | Spring Cloud Gateway, OAuth2 Resource Server | ✅ Production Ready |
 
 ### 💼 Business Services
 
-| Service | Port | Database | Key Features | Status |
-|---------|------|----------|--------------|---------|
-| **Auth Service** | 8081 | nexhub_auth | RSA-256 JWT, RBAC, JWKS endpoint | ✅ Production Ready |
-| **User Service** | 8082 | nexhub_user | Customer & Reseller CRUD, Redis caching | ✅ Production Ready |
-| **Notification Service** | 8083 | nexhub_notification | Kafka email, WebSocket real-time | ✅ Production Ready |
-| **Product Service** | 8084 | nexhub_product | Product catalog, media, caching, search | ✅ Production Ready |
-| **Warranty Service** | 8085 | nexhub_warranty | Warranty tracking, claims, statistics | ✅ Production Ready |
-| **Blog Service** | 8087 | nexhub_blog | CMS with posts, categories, comments | ✅ Production Ready |
+| Service | Port | Database | Key Features | Technology Stack | Status |
+|---------|------|----------|--------------|------------------|---------|
+| **Auth Service** | 8081 | nexhub_auth | RSA-256 JWT with JWKS, RBAC, Account management | Spring Security, JJWT, JPA, Kafka Producer | ✅ Production Ready |
+| **User Service** | 8082 | nexhub_user | Customer & Reseller CRUD, Profile management | Spring Data JPA, Redis, MapStruct | ✅ Production Ready |
+| **Notification Service** | 8083 | nexhub_notification | Email notifications, WebSocket real-time messaging, advanced JWT validation | Kafka Consumer, WebSocket/STOMP, Spring Mail, Custom JWT Service | ✅ Production Ready |
+| **Product Service** | 8084→8080 | nexhub_product | Product catalog, categories, media, serial tracking | Spring Data JPA, Redis caching, OpenAPI | ✅ Production Ready |
+| **Warranty Service** | 8085 | nexhub_warranty | Warranty tracking, claims management, statistics | Spring Data JPA, OpenFeign, Redis | ✅ Production Ready |
+| **Blog Service** | 8087→8080 | nexhub_blog | CMS with posts, categories, comments, SEO | Spring Data JPA, SEO optimization | ✅ Production Ready |
+| **Language Service** | TBD | TBD | Internationalization support (Planned) | Spring Boot | 🚧 In Development |
+
+### 📚 Shared Libraries
+
+| Component | Description | Features |
+|-----------|-------------|----------|
+| **nexhub-common** | Common utilities and shared components | JWT utilities, logging aspects, validation annotations, shared DTOs, authorization aspects, security utilities |
 
 ### 🗄️ Data & Infrastructure
 
-| Component | Port | Description | Configuration |
-|-----------|------|-------------|---------------|
-| **PostgreSQL** | 5432 | Primary database | 6 separate databases with proper isolation |
-| **Redis** | 6379 | Cache & session store | Password-protected, persistent storage |
-| **Kafka Cluster** | 9092-9094 | Message streaming | 3-broker cluster with Zookeeper |
-| **Zookeeper** | 2181-2183 | Kafka coordination | 3-node ensemble for HA |
+| Component | Port | Configuration | Purpose |
+|-----------|------|---------------|---------|
+| **PostgreSQL Cluster** | 5432 | 6 separate databases with service isolation | Primary data storage with proper schema separation |
+| **Redis Cache** | 6379 | Password-protected, persistent storage | Distributed caching, session management |
+| **Kafka Cluster** | 9092-9094 | 3-broker cluster with Zookeeper ensemble | Event streaming, asynchronous communication |
+| **Zookeeper Ensemble** | 2181-2183 | 3-node cluster for high availability | Kafka coordination and metadata management |
+
+### 🔧 Development & Monitoring Tools
+
+| Tool | Port | Purpose |
+|------|------|---------|
+| **Redis Commander** | 8079 | Redis database management and monitoring |
+| **Kafka UI** | 8078 | Kafka cluster monitoring and topic management |
+| **React WebSocket Demo** | 5173 | Interactive WebSocket testing and demonstration |
 
 ## 🔐 Security Architecture
 
-### Authentication & Authorization
-- **JWT Tokens**: RSA-256 signatures with JWKS endpoint (`/auth/.well-known/jwks.json`)
-- **Role-Based Access Control**: ADMIN, DEALER, CUSTOMER with granular permissions (USER_*, PRODUCT_*, BLOG_*, WARRANTY_*, NOTIFICATION_ACCESS)
-- **Gateway Security**: JWT validation with ROLE-based authorization and automatic claim extraction
-- **WebSocket Security**: ADMIN-only access with JWT authentication at connection and subscription levels
-- **Permission System**: 15 granular permissions across all business domains
-- **Session Management**: JWT-based stateless authentication (Redis available for caching)
+### Enhanced Authentication & Authorization Framework
 
-### Security Flow
+**Advanced JWT Token System**:
+- **Algorithm**: RSA-256 signatures with JWKS endpoint (`/auth/.well-known/jwks.json`)
+- **Token Claims**: accountId, username, roles, permissions, userType, standard JWT claims
+- **Token Lifecycle**: Configurable expiration (default 24 hours), stateless validation
+- **Enhanced Validation**: Custom JwtService with comprehensive signature validation and JWKS integration
+
+**Role-Based Access Control (RBAC)**:
+- **Roles**: ADMIN, DEALER, CUSTOMER with hierarchical permissions
+- **Permissions**: 15+ granular permissions (USER_*, PRODUCT_*, BLOG_*, WARRANTY_*, NOTIFICATION_ACCESS)
+- **Authorization**: Both role-based and permission-based authorization at Gateway and service levels
+- **Aspect-Based Security**: Custom authorization aspects in nexhub-common library
+
+**API Gateway Security**:
+- **JWT Validation**: Automatic signature validation using JWKS endpoint
+- **Claims Extraction**: Roles and permissions extracted and forwarded to services
+- **Header Forwarding**: X-JWT-Subject, X-JWT-Username, X-JWT-Account-ID, X-User-Roles, X-User-Permissions
+- **CORS Configuration**: Configured for development origins with credentials support
+- **WebSocket Security**: JWT token validation for WebSocket connections through gateway
+
+### Advanced WebSocket Security
+
+**Multi-Layer Authentication**:
+- **Gateway Level**: Initial JWT validation and routing
+- **Application Level**: WebSocketJwtChannelInterceptor for STOMP frame validation
+- **Session Management**: User information stored in WebSocket session attributes
+- **Token Validation**: Custom JwtService with JWKS validation and expiration checks
+
+**Authorization Architecture**:
+- **Connection Authorization**: CUSTOMER role required for WebSocket connections
+- **Subscription Authorization**: Per-topic authorization with role verification
+- **Principal Management**: Custom Principal creation from JWT claims
+- **Session Attributes**: accountId, username, userType, roles, permissions stored per session
+
+**WebSocket Endpoints**:
+- **Connection Endpoint**: `/api/notification/ws/notifications`
+- **Protocol**: STOMP over SockJS with fallback support
+- **Authentication Methods**: Authorization header (Bearer token) or custom token header
+
+### Security Flow Architecture
 ```
-Client → API Gateway (JWT Validation) → Service (Role Authorization) → Database
-                ↓
-        Notification Service (Kafka) → Email/WebSocket
+Client Request → API Gateway (JWT Validation + RBAC + WebSocket Routing) → Service (Permission Check) → Database
+                      ↓
+           JWT Claims Forwarded as Headers
+                      ↓
+    Notification Service (Kafka + WebSocket) → Email/Real-time Client Updates
+                      ↓
+              WebSocketJwtChannelInterceptor (STOMP Frame Validation)
+                      ↓
+                Custom JwtService (JWKS + Signature Validation)
 ```
 
-## 📊 Database Design
+## 📊 Database Architecture
 
 ### Database-per-Service Pattern
-The platform uses 6 dedicated PostgreSQL databases to ensure proper service isolation:
+NexHub implements complete database isolation with 6 dedicated PostgreSQL databases:
 
 ```
-nexhub_auth         → Authentication accounts, roles, permissions
-nexhub_user         → Customer and Reseller profiles
-nexhub_product      → Product catalog, media, categories, serials
-nexhub_warranty     → Warranty tracking and claims
-nexhub_blog         → Blog posts, categories, authors, comments
-nexhub_notification → Email and notification history
+nexhub_auth         → Account management, roles, permissions, RBAC
+nexhub_user         → Customer and Reseller profiles, account mappings
+nexhub_product      → Product catalog, categories, media, serial numbers
+nexhub_warranty     → Warranty tracking, purchase records, claims
+nexhub_blog         → Blog posts, categories, authors, tags, comments
+nexhub_notification → Email history, notification tracking, audit logs
 ```
 
-### Key Entity Features
+### Entity Relationship Overview
 
-**Authentication (nexhub_auth)**
-- Account management with 3 roles (ADMIN, DEALER, CUSTOMER) and 15 granular permissions
-- BCrypt password hashing and RSA-256 JWT token support
-- Role-Permission mapping through junction table for flexible RBAC
+**Authentication Domain (nexhub_auth)**:
+- **Accounts**: Core authentication entities with username/password
+- **Roles**: ADMIN, DEALER, CUSTOMER with Many-to-Many mapping to accounts
+- **Permissions**: Granular permissions with Many-to-Many mapping to roles
+- **Junction Tables**: account_roles, role_permissions for flexible RBAC
 
-**User Management (nexhub_user)**  
-- Customer and Reseller profiles with soft delete support
-- Account ID mapping to auth service for unified authentication
+**User Management Domain (nexhub_user)**:
+- **Customers**: Customer profiles linked to auth accounts
+- **Resellers**: Dealer profiles with business information
+- **Account Integration**: Foreign key references to auth service account IDs
 
-**Product Catalog (nexhub_product)**
-- Comprehensive product management with categories, media, and serials
-- SEO optimization fields and specifications storage
-- Product feature and image management with display ordering
+**Product Catalog Domain (nexhub_product)**:
+- **Products**: Core product entities with specifications and pricing
+- **Categories**: Hierarchical product categorization
+- **ProductImages/Videos**: Media management with display ordering
+- **ProductSerials**: Individual product serial tracking
+- **ProductFeatures**: Dynamic feature management
 
-**Blog/CMS (nexhub_blog)**
-- Full content management with posts, categories, authors, and tags
-- SEO metadata including metaTitle, metaDescription, metaKeywords
-- Enhanced features: isFeatured, viewsCount, likesCount, readingTime
-- Comment system with approval workflow and nested comments
+**Blog/CMS Domain (nexhub_blog)**:
+- **BlogPosts**: Content management with SEO optimization fields
+- **BlogCategories**: Content categorization and organization
+- **BlogAuthors**: Author management and attribution
+- **BlogTags**: Tag-based content classification
+- **BlogComments**: Nested comment system with approval workflow
 
-**Warranty Management (nexhub_warranty)**
-- Purchase tracking with warranty expiration calculations
-- Claims management with status tracking and resolution notes
+**Warranty Domain (nexhub_warranty)**:
+- **WarrantyRecords**: Purchase tracking with expiration calculations
+- **WarrantyClaims**: Claims management with status workflow
+- **Integration**: Links to product and user services via Feign clients
 
-*See appendix for detailed entity schemas.*
+**Notification Domain (nexhub_notification)**:
+- **Email History**: Comprehensive email notification tracking
+- **Notification Types**: Categorized notification management
+- **Audit Logs**: Real-time messaging and WebSocket interaction logs
 
 ## 🚀 Technology Stack
 
-### Core Technologies
+### Core Platform Technologies
 | Category | Technology | Version | Purpose |
 |----------|------------|---------|---------|
-| **Runtime** | Java | 17 | Application runtime |
-| **Framework** | Spring Boot | 3.5.4 | Microservices framework |
-| **Build Tool** | Maven | 3.6+ | Dependency management |
-| **Database** | PostgreSQL | 15 | Primary data storage |
-| **Caching** | Redis | 7 | Distributed caching & sessions |
-| **Messaging** | Apache Kafka | 7.4 | Event streaming |
-| **API Docs** | SpringDoc OpenAPI | 3 | API documentation |
+| **Runtime** | Java | 17 | Application runtime and language |
+| **Framework** | Spring Boot | 3.5.5 | Microservices framework and dependency injection |
+| **Build Tool** | Maven | 3.9+ | Dependency management and build automation |
+| **Database** | PostgreSQL | 15-alpine | Primary relational data storage |
+| **Caching** | Redis | 7-alpine | Distributed caching and session management |
+| **Messaging** | Apache Kafka | 7.4.0 | Event streaming and asynchronous communication |
+| **Service Discovery** | Netflix Eureka | 2025.0.0 | Service registration and discovery |
+| **API Gateway** | Spring Cloud Gateway | 2024.0.0 | API routing, security, and rate limiting |
+| **Documentation** | SpringDoc OpenAPI | 2.2.0 | API documentation and Swagger UI |
 
-### Service Communication
-- **Service Discovery**: Netflix Eureka for service registration
-- **API Gateway**: Spring Cloud Gateway with JWT forwarding
-- **Sync Communication**: OpenFeign with load balancing
-- **Async Messaging**: Kafka with consumer groups and producers
-- **Real-time**: WebSocket with STOMP protocol and SockJS fallback
-- **Email Delivery**: Spring Mail with Gmail SMTP integration
+### Service Communication & Integration
+| Category | Technology | Purpose |
+|----------|------------|---------|
+| **Inter-Service Communication** | OpenFeign | Type-safe HTTP client for service-to-service calls |
+| **Load Balancing** | Spring Cloud LoadBalancer | Client-side load balancing for service discovery |
+| **Circuit Breaker** | Built-in resilience patterns | Fault tolerance and resilience |
+| **Message Broker** | Apache Kafka with Zookeeper | Event-driven architecture and async processing |
+| **Real-time Communication** | WebSocket with STOMP | Real-time notifications and messaging |
+| **Email Services** | Spring Mail with Gmail SMTP | Email notification delivery |
 
-## 🐳 Deployment Strategy
+### Data Management & Caching
+| Category | Technology | Configuration |
+|----------|------------|---------------|
+| **ORM** | Spring Data JPA with Hibernate | Entity management and database abstraction |
+| **Database Migration** | DDL Auto (update) | Schema evolution and database initialization |
+| **Caching Strategy** | Redis with Spring Cache | Distributed caching with 10-minute TTL |
+| **Data Validation** | Bean Validation (Hibernate Validator) | Request/response validation |
+| **Data Mapping** | MapStruct | Type-safe entity-to-DTO mapping |
 
-### Docker Architecture
-The platform uses Docker Compose with service dependencies and health checks:
+### Security & Authentication
+| Category | Technology | Implementation |
+|----------|------------|----------------|
+| **Authentication** | JWT with JJWT 0.11.5 | RSA-256 signed tokens with JWKS |
+| **Authorization** | Spring Security + Custom Aspects | RBAC with roles and permissions |
+| **Password Encryption** | BCrypt | Secure password hashing |
+| **CORS** | Spring Security CORS | Cross-origin resource sharing |
+| **Rate Limiting** | Custom Global Filter | API rate limiting and throttling |
 
-**Infrastructure Layer:**
-- PostgreSQL (with init scripts for 6 databases)
-- Redis (password-protected with persistent volumes)  
-- Zookeeper Ensemble (3-node cluster, ports 2181-2183)
-- Kafka Cluster (3 brokers, ports 9092-9094)
+### Frontend & Development Tools
+| Category | Technology | Version | Purpose |
+|----------|------------|---------|---------|
+| **WebSocket Demo** | React | 19.1.1 | Interactive WebSocket testing client |
+| **WebSocket Client** | @stomp/stompjs | 7.1.1 | STOMP protocol WebSocket client |
+| **Build Tool** | Vite | Latest | Fast development server and build tool |
+| **Package Manager** | npm | Latest | JavaScript package management |
 
-**Service Layer:**
-- Config Server (8888) → Discovery Service (8761) → API Gateway (8080)
-- Business Services with health checks and auto-restart policies
+## 🐳 Docker Architecture & Deployment
 
-**Service Port Mappings:**
+### Multi-Stage Docker Build Strategy
+All services use optimized multi-stage Dockerfiles:
+
+**Build Stage**:
+- **Base Image**: maven:3.9-eclipse-temurin-17
+- **Dependency Caching**: Separate layer for dependencies
+- **Common Library**: Builds nexhub-common first for all services
+- **Build Optimization**: Skip tests in container builds
+
+**Production Stage**:
+- **Base Image**: eclipse-temurin:17-jre (minimal JRE)
+- **Health Checks**: Built-in health check endpoints
+- **Security**: Non-root execution and minimal attack surface
+
+### Service Orchestration
+Docker Compose manages the complete platform with 597 lines of comprehensive configuration:
+
+**Infrastructure Dependencies**:
 ```
-Host:Container Ports
-├── Product Service: 8084:8080 (internal port 8080)
-├── Blog Service: 8087:8080 (internal port 8080)
-└── Other Services: Direct port mapping
+PostgreSQL → Redis → Zookeeper Ensemble → Kafka Cluster
+     ↓
+Config Server → Discovery Service → API Gateway
+     ↓
+Business Services (Auth, User, Product, Warranty, Blog, Notification)
 ```
 
-### Resilience & Monitoring
-- Health check endpoints (`/actuator/health`) on all services
-- 30-second health check intervals with 3 retries
-- Graceful startup dependencies with service health conditions
-- Auto-restart policy: `unless-stopped`
+**Network Architecture**:
+- **Custom Bridge Network**: `next-network` for service isolation
+- **Service Discovery**: Internal DNS resolution for service names
+- **Port Mappings**: Strategic port assignments avoiding conflicts
+- **Volume Management**: Persistent storage for databases and configuration
+
+### Health Monitoring & Resilience
+| Feature | Implementation | Configuration |
+|---------|----------------|---------------|
+| **Health Checks** | Spring Boot Actuator `/actuator/health` | 30-second intervals, 3 retries |
+| **Service Dependencies** | Docker Compose health conditions | Controlled startup ordering |
+| **Auto-Recovery** | `restart: unless-stopped` policy | Automatic service restart on failure |
+| **Graceful Shutdown** | Spring Boot shutdown hooks | Clean resource cleanup |
 
 ## ⚡ Real-time Communication & Performance
 
-### WebSocket Features
-**Real-time Messaging**: STOMP protocol with SockJS fallback at `/api/notification/ws/notifications`
-**Security**: ADMIN-only access with JWT signature validation at both Gateway and Application levels
-**Authentication Flow**: 
-- Gateway level: Requires valid JWT with ROLE_ADMIN authority
-- Application level: JWT signature validation + ADMIN role verification + per-subscription authorization
-**Architecture**: Separated authentication (CONNECT) and authorization (SUBSCRIBE) interceptors
-**Testing**: HTML WebSocket client included (`websocket-test.html`)
+### Enhanced WebSocket Architecture
+**Implementation**: Complete STOMP-based messaging with SockJS fallback and advanced security
+**Endpoint**: `/api/notification/ws/notifications` with comprehensive JWT validation
+
+**Advanced Security Architecture**:
+- **Gateway Level**: JWT validation with WebSocket proxying support
+- **Application Level**: WebSocketJwtChannelInterceptor with custom JwtService
+- **JWKS Integration**: Real-time public key fetching and validation
+- **Exception Handling**: Comprehensive JWT validation exceptions (TokenExpiredException, InvalidTokenSignatureException, JwksRetrievalException, JwtValidationException)
+- **Session Management**: Rich user context stored in WebSocket session attributes
+
+**Message Patterns**:
+```javascript
+// Public broadcasts
+/topic/dealer-registrations    // Dealer registration notifications
+/topic/admin-notifications     // Admin-only system notifications  
+/topic/dealer-updates          // Dealer-specific updates
+
+// Private messages
+/user/queue/notifications      // User-specific private notifications
+```
+
+**React WebSocket Demo Client**: Interactive testing client with modern React 19.1.1 and @stomp/stompjs integration
 
 ### Redis Caching Strategy
 **Implementation**: Distributed caching across Product, User, and Warranty services
-**Configuration**: Password-protected Redis with 10-minute TTL
-**Cache Keys**: Composite keys for paginated results and search queries
-**Performance**: Sub-millisecond cache retrieval vs database queries
+**Configuration**: Password-protected Redis with persistent storage
 
-## 🌐 API Gateway & Documentation
+**Cache Patterns**:
+- **Entity Caching**: Individual entity caching with composite keys
+- **Query Result Caching**: Paginated search results and filter queries
+- **TTL Management**: 10-minute default expiration with refresh strategies
+- **Cache Keys**: Service-prefixed keys for namespace isolation
 
-### Gateway Configuration
-**Main Entry Point**: http://localhost:8080
-**Swagger UI**: http://localhost:8080/swagger-ui.html (aggregated documentation)
-**CORS Settings**: 
-- **Allowed Origins**: `http://localhost:3000,http://localhost:9000,http://localhost:5173`
-- **Allowed Methods**: `GET,POST,PUT,DELETE,OPTIONS`
-- **Credentials**: Enabled for JWT authentication
+**Performance Impact**: Sub-millisecond cache retrieval vs. database queries
 
-### Service Routes
+## 🌐 API Gateway & Service Routing
+
+### Centralized API Management
+**Main Entry Point**: `http://localhost:8080`
+**Documentation**: Aggregated Swagger UI at `/swagger-ui.html`
+**WebSocket Endpoint**: `ws://localhost:8080/api/notification/ws/notifications`
+
+### Service Routing Configuration
 ```
-/api/auth/**         → Auth Service (8081)
-/api/user/**         → User Service (8082)
-/api/notification/** → Notification Service (8083)
-/api/product/**      → Product Service (8084:8080)
-/api/warranty/**     → Warranty Service (8085)
-/api/blog/**         → Blog Service (8087:8080)
+Authentication & Identity:
+/api/auth/**           → Auth Service (8081)
+/api/user/**           → User Service (8082)
+
+Business Operations:
+/api/product/**        → Product Service (8084→8080)  # Internal port 8080
+/api/warranty/**       → Warranty Service (8085)
+/api/blog/**           → Blog Service (8087→8080)     # Internal port 8080
+
+Communication:
+/api/notification/**   → Notification Service (8083)
+/ws/notifications      → WebSocket endpoint (STOMP over SockJS)
+
+Health & Monitoring:
+/actuator/health       → Health checks across all services
 ```
 
-## 📋 API Endpoints Summary
+### Enhanced CORS & Security Configuration
+**Allowed Origins**: `http://localhost:3000,http://localhost:9000,http://localhost:5173`
+**Allowed Methods**: `GET,POST,PUT,DELETE,OPTIONS`
+**Credentials**: Enabled for JWT authentication
+**Security Headers**: Comprehensive security header forwarding
+**WebSocket CORS**: Configured for WebSocket connections
 
-### Core Service Endpoints
+## 🔄 Inter-Service Communication Patterns
 
-**Authentication & User Management**
-- `/api/auth/**` - JWT authentication, login, JWKS
-- `/api/user/**` - Customer and Reseller CRUD operations
+### Synchronous Communication (OpenFeign)
+**Implementation**: Type-safe HTTP clients with service discovery integration
 
-**Business Operations**  
-- `/api/product/**` - Product catalog, categories, media management
-- `/api/warranty/**` - Warranty tracking, claims, statistics  
-- `/api/blog/**` - Blog posts, categories, comments (Note: Author/Tag management not yet implemented)
+**Example Integration**:
+```java
+// Warranty Service → User Service validation
+@FeignClient(name = "user-service")
+public interface UserServiceClient {
+    @GetMapping("/user/reseller/{accountId}/exists")
+    Boolean resellerExists(@PathVariable Long accountId);
+}
+```
 
-**Communication & Monitoring**
-- `/api/notification/**` - Email notifications, WebSocket real-time messaging
-- `/actuator/health` - Health check endpoints on all services
+**Features**:
+- **Load Balancing**: Automatic load balancing across service instances
+- **Circuit Breaker**: Built-in resilience patterns
+- **Request/Response Logging**: Comprehensive logging for debugging
 
-### Key Features by Service
+### Asynchronous Communication (Kafka)
+**Event-Driven Architecture**: Producer-Consumer pattern for decoupled services
 
-**Product Service**
-- Product CRUD with categories and search
-- Image and video media management  
-- Product serial tracking
-- Redis caching for performance
+**Message Flow**:
+```
+Auth Service → Kafka Topic (email-notifications) → Notification Service
+             → Email Service → SMTP Gateway
+             → WebSocket Controller → Real-time Client Updates (with JWT validation)
+```
 
-**Blog Service**
-- Post management with categories and comments
-- Enhanced SEO fields (metaTitle, metaDescription, isFeatured)
-- Missing: Author management and Tag management controllers
+**Kafka Configuration**:
+- **Brokers**: 3-broker cluster for high availability
+- **Topics**: Auto-creation enabled with configurable replication
+- **Consumer Groups**: Service-specific consumer groups for message processing
+- **Serialization**: JSON-based message serialization
 
-**Warranty Service**
-- Purchase registration and warranty tracking
-- Claims management with approval workflow
-- Statistics and expiration monitoring
+### Real-time Communication (WebSocket)
+**Enhanced WebSocket Integration**:
+- **JWT Authentication**: Multi-layer validation with JWKS support
+- **Custom Exceptions**: Specialized exception handling for WebSocket authentication
+- **Session Context**: Rich user information available in WebSocket sessions
+- **STOMP Protocol**: Full STOMP implementation with SockJS fallback
 
-**WebSocket Communication**
-- Real-time messaging via `/api/notification/ws/notifications` (ADMIN-only)
-- Dual-layer security: Gateway JWT validation + Application-level authentication
-- Clean architecture: Separated WebSocketAuthenticationInterceptor and WebSocketAuthorizationInterceptor
-- JWT signature validation with shared secret synchronization
-- Testing client available at `websocket-test.html`
+## 📋 Comprehensive API Endpoints
 
-## 🚦 Getting Started
+### Authentication & User Management
+| Endpoint | Method | Purpose | Security |
+|----------|---------|---------|----------|
+| `/api/auth/login` | POST | User authentication | Public |
+| `/api/auth/.well-known/jwks.json` | GET | JWT public keys | Public |
+| `/api/user/customers` | GET/POST | Customer management | ADMIN/DEALER |
+| `/api/user/resellers` | GET/POST | Reseller management | ADMIN |
 
-### Quick Start
+### Product Catalog Management
+| Endpoint | Method | Purpose | Security |
+|----------|---------|---------|----------|
+| `/api/product/products` | GET | Product listing | Public |
+| `/api/product/products` | POST/PUT/DELETE | Product management | ADMIN/PRODUCT_* |
+| `/api/product/categories` | GET | Category listing | Public |
+| `/api/product-serials` | GET/POST | Serial tracking | ADMIN/DEALER |
+
+### Content Management System
+| Endpoint | Method | Purpose | Security |
+|----------|---------|---------|----------|
+| `/api/blog/posts` | GET | Blog post listing | Public |
+| `/api/blog/posts` | POST/PUT/DELETE | Post management | ADMIN/BLOG_* |
+| `/api/blog/comments` | POST | Comment creation | CUSTOMER/ADMIN |
+| `/api/blog/categories` | GET/POST | Category management | ADMIN |
+
+### Warranty & Claims Management
+| Endpoint | Method | Purpose | Security |
+|----------|---------|---------|----------|
+| `/api/warranty/records` | GET/POST | Warranty tracking | ADMIN/DEALER/CUSTOMER |
+| `/api/warranty/claims` | GET/POST/PUT | Claims management | ADMIN/DEALER |
+| `/api/warranty/statistics` | GET | Warranty analytics | ADMIN |
+
+### Real-time Communication
+| Endpoint | Protocol | Purpose | Security |
+|----------|----------|---------|----------|
+| `/api/notification/ws/notifications` | WebSocket/STOMP | Real-time messaging | CUSTOMER+ with JWT validation |
+| `/topic/dealer-registrations` | STOMP | Public notifications | Authenticated subscribers |
+| `/user/queue/notifications` | STOMP | Private messages | User-specific with JWT validation |
+
+## 🚦 Development Setup & Getting Started
+
+### Prerequisites
+- **Java**: 17 or higher
+- **Docker & Docker Compose**: Latest stable version
+- **Maven**: 3.9+ for local development
+- **Node.js**: Latest LTS for React WebSocket demo
+- **IDE**: IntelliJ IDEA, Eclipse, or VS Code with Java extensions
+
+### Quick Start (Docker Compose)
 ```bash
-# Start all services with Docker Compose
+# Clone and navigate to project
+git clone <repository-url>
+cd NexHub
+
+# Start complete platform
 docker-compose up -d
 
-# Verify all services are running
+# Verify all services are healthy
 docker-compose ps
 
 # Access main documentation
 open http://localhost:8080/swagger-ui.html
+
+# Test WebSocket with React demo
+cd websocket-demo-react
+npm install
+npm run dev
+open http://localhost:5173
+
+# Monitor logs
+docker-compose logs -f <service-name>
 ```
 
-### Development Setup
+### Development Mode Setup
 ```bash
 # Start only infrastructure services
 docker-compose up -d postgres redis kafka1 kafka2 kafka3 zookeeper1 zookeeper2 zookeeper3
 
-# Run services locally for development
+# Build common library (required for all services)
+cd nexhub-common && mvn clean install
+
+# Start services in dependency order
 cd config-server && mvn spring-boot:run
-# Then start other services in dependency order
+cd discovery-service && mvn spring-boot:run
+cd api-gateway && mvn spring-boot:run
+
+# Start business services
+cd auth-service && mvn spring-boot:run
+cd user-service && mvn spring-boot:run
+cd notification-service && mvn spring-boot:run
+# ... other services
 ```
 
-**Prerequisites:** Java 17+, Docker & Docker Compose, Maven 3.6+
+### Testing & Validation
+```bash
+# Health check all services
+curl http://localhost:8080/actuator/health
+curl http://localhost:8081/actuator/health  # Auth Service
+curl http://localhost:8083/actuator/health  # Notification Service
 
-## 📊 Implementation Status
+# Test authentication
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"password"}'
 
-### Production-Ready Services ✅
-All services are fully implemented with comprehensive testing and documentation:
+# Test WebSocket endpoint (requires authentication)
+wscat -c "ws://localhost:8080/api/notification/ws/notifications" \
+  -H "Authorization: Bearer <jwt-token>"
 
-**Infrastructure:** Config Server, Discovery Service, API Gateway with JWT forwarding
-**Authentication:** RSA-256 JWT with JWKS endpoint, 3-role RBAC system (ADMIN/DEALER/CUSTOMER), and 15 granular permissions  
-**Business Logic:** User, Product, Warranty, Blog, and Notification services
-**Real-time:** WebSocket communication with ADMIN-only access and dual-layer security architecture
-**Performance:** Redis caching across Product, User, and Warranty services
-**Messaging:** Kafka-based email notifications and event processing
+# Access service discovery
+curl http://localhost:8761/eureka/apps
+```
 
-### Key Achievements
-- **6 Database Architecture**: Proper service isolation with dedicated schemas
-- **Security Implementation**: Complete JWT ecosystem with RSA-256 signatures, RBAC, and gateway integration
-- **WebSocket Integration**: Real-time communication with ADMIN-only access and comprehensive security layers
-- **Clean Architecture**: Refactored WebSocket interceptors, JWT utilities, and eliminated code duplication
-- **Permission System**: Comprehensive RBAC with 15 granular permissions aligned across all services
-- **Redis Caching**: Distributed caching for improved performance  
-- **Docker Architecture**: Production-ready containerization with health checks
-- **API Documentation**: Centralized Swagger UI with comprehensive endpoints
+## 📊 Current Implementation Status
 
-### Recent Enhancements (August 2025)
-- **JWT Security Improvements**: Enhanced signature validation and type safety across all services
-- **WebSocket Architecture Refactor**: Separated authentication and authorization interceptors for better maintainability
-- **Permission System Alignment**: Synchronized API Gateway permissions with database permissions for consistent authorization
-- **Code Quality**: Eliminated code duplication in JWT utilities, improved error handling and null safety
-- **RBAC Enhancement**: Simplified from 4 roles to 3 roles (ADMIN/DEALER/CUSTOMER) with clearer permission boundaries
+### ✅ Production-Ready Components
 
-### Known Limitations
-- **Blog Service**: Author and Tag management controllers not implemented
-- **Product Service**: Internal port mapping (8084:8080) may cause confusion
-- **Blog Service**: Internal port mapping (8087:8080) may cause confusion
+**Enhanced Infrastructure & Security**:
+- Complete service discovery and configuration management
+- Advanced JWT-based authentication with JWKS and custom validation
+- API Gateway with routing, CORS, rate limiting, and WebSocket proxying
+- Role-based authorization with 15+ granular permissions
+- nexhub-common shared library for code reusability
+
+**Business Services**:
+- Full CRUD operations across all domain services
+- Database-per-service architecture with proper isolation
+- Redis caching implementation across critical services
+- Email notification system with Kafka integration
+
+**Advanced Real-time Features**:
+- WebSocket implementation with multi-layer JWT security
+- React-based WebSocket demonstration client
+- Kafka-based event streaming for asynchronous processing
+- Real-time dealer registration notifications with authentication
+
+**Data Management**:
+- 6 PostgreSQL databases with comprehensive entity models
+- Automated database initialization and schema management
+- Service integration with OpenFeign clients
+
+### 🔧 Recent Major Enhancements (August 2025)
+
+**Security & Architecture Improvements**:
+- Advanced WebSocket security with WebSocketJwtChannelInterceptor
+- Custom JwtService with JWKS validation and comprehensive exception handling
+- nexhub-common library with shared utilities and authorization aspects
+- Enhanced JWT signature validation across all services
+
+**Development & Testing Enhancements**:
+- React-based WebSocket demo application with modern React 19.1.1
+- Comprehensive JWT validation exceptions for better error handling
+- Improved Docker builds with multi-stage optimization
+- Enhanced health check monitoring and resilience
+
+**Code Quality & Maintainability**:
+- Centralized common utilities in nexhub-common module
+- Removed code duplication across services (BaseResponse, GlobalExceptionHandler)
+- Improved separation of concerns with dedicated interceptors
+- Enhanced logging and debugging capabilities
+
+### ⚠️ Known Limitations & Considerations
+
+**Service Port Mapping**:
+- Product Service: External 8084 → Internal 8080 (architectural decision for container optimization)
+- Blog Service: External 8087 → Internal 8080 (architectural decision for container optimization)
+
+**Incomplete Features**:
+- Language Service: Directory exists but service not fully configured
+- Blog Service: Author and Tag management controllers need completion
+
+**Development Considerations**:
+- WebSocket requires CUSTOMER+ role for authentication
+- Database initialization requires proper startup sequence
+- Redis password configuration needed for local development
+- nexhub-common library must be built before other services
 
 ## 🔍 Monitoring & Troubleshooting
 
 ### Health Monitoring
-All services expose Spring Boot Actuator health endpoints at `/actuator/health`:
-- **Infrastructure**: Ports 8888, 8761, 8080
-- **Business Services**: Ports 8081, 8082, 8083, 8084, 8085, 8087
+All services expose comprehensive health endpoints:
+```bash
+# Service health checks
+curl http://localhost:8080/actuator/health  # API Gateway
+curl http://localhost:8081/actuator/health  # Auth Service
+curl http://localhost:8082/actuator/health  # User Service
+curl http://localhost:8083/actuator/health  # Notification Service
+curl http://localhost:8084/actuator/health  # Product Service
+curl http://localhost:8085/actuator/health  # Warranty Service
+curl http://localhost:8087/actuator/health  # Blog Service
+```
 
-### Quick Debugging
+### Infrastructure Monitoring
+```bash
+# Service discovery status
+curl http://localhost:8761/eureka/apps
+
+# Database connectivity test
+docker exec -it nexhub-postgres psql -U nexhub -d nexhub_auth -c "\dt"
+
+# Redis connectivity test
+docker exec -it nexhub_redis redis-cli -a voduc123 ping
+
+# Kafka cluster status via Kafka UI
+open http://localhost:8078
+
+# WebSocket connection test with React demo
+open http://localhost:5173
+```
+
+### Common Troubleshooting
 ```bash
 # Check all service status
 docker-compose ps
 
-# View service logs  
-docker-compose logs -f <service-name>
+# View service logs
+docker-compose logs -f auth-service
+docker-compose logs -f notification-service
 
-# Test database connectivity
-docker exec -it nexhub-postgres psql -U nexhub -d nexhub_auth
+# Restart specific service
+docker-compose restart notification-service
 
-# Check Redis connectivity
-docker exec -it nexhub_redis redis-cli -a voduc123
+# Database connection issues
+docker-compose logs postgres
+docker-compose restart postgres
 
-# Service discovery status
-curl http://localhost:8761/eureka/apps
+# WebSocket connection issues
+docker-compose logs api-gateway
+docker-compose logs notification-service
+
+# Network connectivity test
+docker exec nexhub-auth-service ping nexhub-postgres
+
+# Build common library if services fail to start
+cd nexhub-common && mvn clean install
 ```
 
-## 🎯 Future Enhancements
+## 🎯 Future Development Roadmap
 
 ### Immediate Priorities
-- **Blog Service**: Implement missing Author and Tag management controllers
-- **Admin Dashboard**: Comprehensive system management interface
-- **Customer Portal**: Self-service features and purchase history
+
+**Service Completions**:
+- Complete Language Service for internationalization support
+- Implement comprehensive Blog Service author and tag management
+- Enhanced admin dashboard with real-time monitoring
+- Advanced WebSocket message routing and filtering
+
+**Security Enhancements**:
+- OAuth2 integration for external authentication providers
+- Advanced rate limiting with Redis-based sliding window
+- Service-to-service mTLS communication
+- WebSocket message encryption for sensitive data
+
+### Medium-term Enhancements
+
+**Performance & Scalability**:
+- Database connection pooling optimization
+- Advanced caching strategies with cache warming
+- Service mesh integration (Istio/Linkerd)
+- WebSocket horizontal scaling with Redis Pub/Sub
+
+**Feature Expansions**:
+- Advanced product search with Elasticsearch
+- Real-time inventory management with WebSocket updates
+- Customer portal with self-service features
+- Mobile API optimization with GraphQL
+- Enhanced React WebSocket client with advanced features
 
 ### Long-term Vision
-- **Advanced Features**: Product recommendations, advanced search, analytics
-- **Scalability**: Multi-tenant architecture, performance optimizations
-- **Integrations**: Payment gateways, shipping providers, external APIs
-- **Mobile Support**: GraphQL endpoints, mobile-optimized APIs
 
-## Appendix
+**Advanced Architecture**:
+- Multi-tenant architecture support
+- Event sourcing and CQRS patterns
+- Advanced analytics and reporting with real-time dashboards
+- AI-powered recommendations with WebSocket delivery
 
-### Entity Schema Details
-For detailed entity schemas and relationships, refer to the individual service documentation or examine the entity classes in each service module:
+**Integration & Ecosystem**:
+- Payment gateway integrations
+- Shipping provider integrations
+- Third-party marketplace connectors
+- Advanced monitoring with Prometheus/Grafana
+- Kubernetes deployment with Helm charts
 
-- `auth-service/src/main/java/com/devwonder/auth_service/entity/`
-- `blog-service/src/main/java/com/devwonder/blog_service/entity/`
-- `product-service/src/main/java/com/devwonder/product_service/entity/`
-- `warranty-service/src/main/java/com/devwonder/warranty_service/entity/`
-- `user-service/src/main/java/com/devwonder/user_service/entity/`
+## 📚 Additional Resources
+
+### Documentation Access Points
+| Resource | URL | Purpose |
+|----------|-----|---------|
+| **Aggregated API Docs** | http://localhost:8080/swagger-ui.html | Complete API documentation |
+| **Service Discovery** | http://localhost:8761 | Eureka dashboard |
+| **Kafka Management** | http://localhost:8078 | Kafka UI for topic management |
+| **Redis Management** | http://localhost:8079 | Redis Commander interface |
+| **WebSocket Demo** | http://localhost:5173 | Interactive React WebSocket client |
+
+### Development Tools
+| Tool | Location | Purpose |
+|------|----------|---------|
+| **React WebSocket Demo** | `./websocket-demo-react/` | Modern React-based WebSocket testing |
+| **Database Init Scripts** | `./database/init-databases.sql` | Database initialization |
+| **Architecture Diagrams** | `./classdiagram.drawio`, `./kafka.drawio` | System architecture visualization |
+| **Common Library** | `./nexhub-common/` | Shared utilities and components |
+
+### Key Configuration Files
+| File | Purpose |
+|------|---------|
+| `docker-compose.yml` | Complete platform orchestration (597 lines) |
+| `nexhub-common/pom.xml` | Shared library dependencies |
+| `config-server/src/main/resources/configs/` | Centralized service configurations |
+| `notification-service/src/main/java/com/devwonder/notification_service/config/` | WebSocket and security configurations |
 
 ---
 
-**NexHub Platform Overview**  
-**Version**: 2.1.0 | **Last Updated**: August 27, 2025  
-**Status**: Production-Ready Microservices Platform  
-**Architecture**: Spring Boot 3.5.4 with Redis, Kafka, WebSocket, JWT Security  
-**Databases**: 6 PostgreSQL databases with service isolation  
-**Maintainer**: DevWonder Team
+## Project Metadata
+
+**Platform**: NexHub Enterprise E-Commerce Microservices  
+**Version**: 3.1.0  
+**Last Updated**: August 31, 2025  
+**Status**: Production-Ready with Active Development  
+**Architecture**: Spring Boot 3.5.5 Microservices with Event-Driven Communication  
+**Infrastructure**: Docker, PostgreSQL, Redis, Kafka, WebSocket, React Demo  
+**Security**: Enhanced JWT with RSA-256, JWKS, Multi-layer WebSocket Authentication  
+**Maintainer**: DevWonder Development Team  
+
+**Total Services**: 10 (7 Business + 3 Infrastructure)  
+**Database Count**: 6 PostgreSQL databases with service isolation  
+**Message Brokers**: 3-node Kafka cluster with Zookeeper  
+**Caching**: Redis with distributed caching strategy  
+**Real-time**: Advanced WebSocket with STOMP, JWT validation, and React demo client  
+**Shared Libraries**: nexhub-common for code reusability and maintainability  
+**Demo Applications**: React-based WebSocket testing client with modern UI  
+
+**Recent Major Changes**:
+- Enhanced WebSocket security with dual-layer JWT authentication
+- React WebSocket demonstration client with modern React 19.1.1
+- nexhub-common shared library implementation
+- Advanced JWT validation with JWKS integration
+- Comprehensive exception handling for WebSocket authentication
+- Improved Docker architecture and service orchestration
+
+This documentation represents the current state of NexHub as of August 31, 2025, reflecting all implemented features, recent enhancements, architectural improvements, and comprehensive development roadmap.
