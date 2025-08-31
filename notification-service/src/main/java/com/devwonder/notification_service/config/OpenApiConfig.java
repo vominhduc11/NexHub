@@ -10,6 +10,7 @@ import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.Components;
+
 import java.util.List;
 
 @Configuration
@@ -23,14 +24,14 @@ public class OpenApiConfig {
         return new OpenAPI()
                 .info(new Info()
                         .title("Notification Service API")
-                        .description("Email and WebSocket notification service for real-time messaging")
+                        .description("Real-time notification and WebSocket communication service")
                         .version("1.0.0")
                         .contact(new Contact()
                                 .name("DevWonder Team")
                                 .email("support@devwonder.com")))
                 .servers(List.of(
                         new Server().url("http://localhost:8080/api").description("Via API Gateway"),
-                        new Server().url("http://localhost:8083").description("Direct access (dev only)")
+                        new Server().url("http://localhost:8086").description("Direct access (dev only)")
                 ))
                 .components(new Components()
                         .addSecuritySchemes(JWT_SECURITY_NAME, new SecurityScheme()

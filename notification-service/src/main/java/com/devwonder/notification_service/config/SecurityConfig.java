@@ -26,6 +26,9 @@ public class SecurityConfig {
                 // Actuator health check (always allow for Docker health checks)
                 .requestMatchers("/actuator/health").permitAll()
                 
+                // Swagger UI and OpenAPI endpoints
+                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                
                 // Test endpoints - Allow direct access for testing (HIGH PRIORITY)
                 .requestMatchers("/notification/test/**").permitAll()
                 
@@ -34,16 +37,6 @@ public class SecurityConfig {
                 
                 // SockJS specific endpoints
                 .requestMatchers("/**/websocket", "/**/info", "/**/iframe.html").permitAll()
-                
-                // Swagger docs (ONLY via API Gateway)
-                .requestMatchers(
-                    "/swagger-ui.html",
-                    "/swagger-ui/**",
-                    "/v3/api-docs/**",
-                    "/webjars/**"
-                ).access(new WebExpressionAuthorizationManager(
-                    "request.getHeader('X-Gateway-Request') == 'true'"   // ONLY Gateway header
-                ))
                 
                 // All notification endpoints - ONLY accessible via API Gateway
                 .requestMatchers("/notifications/**").access(new WebExpressionAuthorizationManager(

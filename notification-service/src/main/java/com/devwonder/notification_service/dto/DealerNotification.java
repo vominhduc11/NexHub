@@ -8,24 +8,24 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "WebSocket notification for dealer-related events")
+@Schema(description = "Dealer notification data transfer object")
 public class DealerNotification {
     
-    @Schema(description = "Type of notification", example = "DEALER_REGISTERED")
+    @Schema(description = "Notification type", example = "DEALER_UPDATE")
     private String type;
     
-    @Schema(description = "Username of the dealer", example = "dealer001")
+    @Schema(description = "Dealer username", example = "dealer123")
     private String username;
     
-    @Schema(description = "Full name of the dealer", example = "John Doe")
+    @Schema(description = "Dealer full name", example = "John Doe")
     private String name;
     
-    @Schema(description = "Email address of the dealer", example = "dealer001@example.com")
+    @Schema(description = "Dealer email address", example = "dealer@example.com")
     private String email;
     
-    @Schema(description = "Notification message content", example = "New dealer registered: John Doe (dealer001)")
+    @Schema(description = "Notification message content", example = "New product available")
     private String message;
     
-    @Schema(description = "Timestamp when notification was created", example = "1693123456789")
+    @Schema(description = "Timestamp when notification was created", example = "1672531200000")
     private long timestamp;
 }
