@@ -159,3 +159,6 @@ yarn-error.log*
 # Other
 .history/
 .sass-cache/
+
+# Windows reserved device names
+nul
