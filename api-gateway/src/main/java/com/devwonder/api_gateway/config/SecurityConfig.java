@@ -26,18 +26,7 @@ public class SecurityConfig {
                                                 .jwt(jwt -> jwt
                                                                 .jwkSetUri("http://auth-service:8081/auth/.well-known/jwks.json")
                                                                 .jwtAuthenticationConverter(
-                                                                                jwtAuthenticationConverter()))
-                                                .authenticationEntryPoint((exchange, ex) -> {
-                                                        // Allow WebSocket endpoints to bypass JWT validation errors
-                                                        String path = exchange.getRequest().getPath().value();
-                                                        if (path.startsWith("/ws/")) {
-                                                                return exchange.getResponse().setComplete();
-                                                        }
-                                                        // Return 401 for other endpoints
-                                                        exchange.getResponse().setStatusCode(
-                                                                        org.springframework.http.HttpStatus.UNAUTHORIZED);
-                                                        return exchange.getResponse().setComplete();
-                                                }))
+                                                                                jwtAuthenticationConverter())))
 
                                 .authorizeExchange(exchanges -> exchanges
                                                 // CORS preflight requests - HIGHEST PRIORITY - Allow ALL OPTIONS
@@ -117,8 +106,6 @@ public class SecurityConfig {
                                                 .pathMatchers(HttpMethod.DELETE, "/api/warranty/**")
                                                 .hasAnyAuthority("ROLE_ADMIN", "PERM_WARRANTY_DELETE")
 
-                                                // WebSocket routes - allow all (including SockJS handshake)
-                                                .pathMatchers("/ws/**").permitAll()
 
                                                 .anyExchange().denyAll())
                                 .build();

@@ -1,0 +1,132 @@
+package com.devwonder.notification_service.service;
+
+import com.devwonder.notification_service.exception.InvalidTokenSignatureException;
+import com.devwonder.notification_service.exception.JwksRetrievalException;
+import com.devwonder.notification_service.exception.JwtValidationException;
+import com.devwonder.notification_service.exception.TokenExpiredException;
+import com.nimbusds.jose.JWSVerifier;
+import com.nimbusds.jose.crypto.RSASSAVerifier;
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import java.net.URL;
+import java.time.Instant;
+import java.util.List;
+
+@Service
+@Slf4j
+public class JwtService {
+
+    @Value("${jwt.jwks-uri:http://auth-service:8081/auth/.well-known/jwks.json}")
+    private String jwksUri;
+
+    public JWTClaimsSet validateToken(String token) throws JwtValidationException {
+        try {
+            // Parse JWT
+            SignedJWT signedJWT = SignedJWT.parse(token);
+            
+            // Get claims
+            JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
+            
+            // Check expiration
+            if (claimsSet.getExpirationTime() != null &&
+                claimsSet.getExpirationTime().before(java.util.Date.from(Instant.now()))) {
+                throw new TokenExpiredException("Token expired");
+            }
+            
+            // Get public key from JWKS
+            RSAKey rsaKey = getRSAKey(signedJWT.getHeader().getKeyID());
+            
+            // Verify signature
+            JWSVerifier verifier = new RSASSAVerifier(rsaKey);
+            if (!signedJWT.verify(verifier)) {
+                throw new InvalidTokenSignatureException("Invalid token signature");
+            }
+            
+            log.info("Token validated successfully for user: {}", claimsSet.getSubject());
+            return claimsSet;
+            
+        } catch (JwtValidationException e) {
+            log.error("Token validation failed: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("Token validation failed: {}", e.getMessage());
+            throw new JwtValidationException("Token validation failed", e);
+        }
+    }
+
+    private RSAKey getRSAKey(String keyId) throws JwksRetrievalException {
+        try {
+            // Fetch JWKS from auth service
+            JWKSet jwkSet = JWKSet.load(new URL(jwksUri));
+            
+            // Find key by keyId
+            JWK jwk = jwkSet.getKeyByKeyId(keyId);
+            if (jwk == null) {
+                throw new JwksRetrievalException("Key not found: " + keyId);
+            }
+            
+            return jwk.toRSAKey();
+            
+        } catch (JwksRetrievalException e) {
+            log.error("Failed to get RSA key: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("Failed to get RSA key: {}", e.getMessage());
+            throw new JwksRetrievalException("Failed to get RSA key", e);
+        }
+    }
+
+    public String extractUsername(JWTClaimsSet claimsSet) {
+        try {
+            return claimsSet.getStringClaim("username");
+        } catch (Exception e) {
+            log.warn("Failed to extract username from token: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    public Long extractAccountId(JWTClaimsSet claimsSet) {
+        try {
+            return Long.parseLong(claimsSet.getSubject());
+        } catch (Exception e) {
+            log.warn("Failed to extract accountId from token: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    public String extractUserType(JWTClaimsSet claimsSet) {
+        try {
+            return claimsSet.getStringClaim("userType");
+        } catch (Exception e) {
+            log.warn("Failed to extract userType from token: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<String> extractRoles(JWTClaimsSet claimsSet) {
+        try {
+            return (List<String>) claimsSet.getClaim("roles");
+        } catch (Exception e) {
+            log.warn("Failed to extract roles from token: {}", e.getMessage());
+            return List.of();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<String> extractPermissions(JWTClaimsSet claimsSet) {
+        try {
+            return (List<String>) claimsSet.getClaim("permissions");
+        } catch (Exception e) {
+            log.warn("Failed to extract permissions from token: {}", e.getMessage());
+            return List.of();
+        }
+    }
+}

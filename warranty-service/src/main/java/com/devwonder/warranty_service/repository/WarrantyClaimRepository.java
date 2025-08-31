@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -21,11 +22,11 @@ public interface WarrantyClaimRepository extends JpaRepository<WarrantyClaim, Lo
     // Override default methods to exclude soft deleted
     @Override
     @Query("SELECT wc FROM WarrantyClaim wc WHERE wc.deletedAt IS NULL")
-    Page<WarrantyClaim> findAll(Pageable pageable);
+    @NonNull Page<WarrantyClaim> findAll(@NonNull Pageable pageable);
     
     @Override
     @Query("SELECT wc FROM WarrantyClaim wc WHERE wc.id = :id AND wc.deletedAt IS NULL")
-    Optional<WarrantyClaim> findById(@Param("id") Long id);
+    @NonNull Optional<WarrantyClaim> findById(@Param("id") @NonNull Long id);
     
     // Find by claim number
     @Query("SELECT wc FROM WarrantyClaim wc WHERE wc.claimNumber = :claimNumber AND wc.deletedAt IS NULL")

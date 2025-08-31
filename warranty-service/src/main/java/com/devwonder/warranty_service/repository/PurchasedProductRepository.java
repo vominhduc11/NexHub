@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -19,11 +20,11 @@ public interface PurchasedProductRepository extends JpaRepository<PurchasedProdu
     // Override default methods to exclude soft deleted
     @Override
     @Query("SELECT pp FROM PurchasedProduct pp WHERE pp.deletedAt IS NULL")
-    Page<PurchasedProduct> findAll(Pageable pageable);
+    @NonNull Page<PurchasedProduct> findAll(Pageable pageable);
     
     @Override
     @Query("SELECT pp FROM PurchasedProduct pp WHERE pp.id = :id AND pp.deletedAt IS NULL")
-    Optional<PurchasedProduct> findById(@Param("id") Long id);
+    @NonNull Optional<PurchasedProduct> findById(@Param("id") Long id);
     
     // Find by customer ID
     @Query("SELECT pp FROM PurchasedProduct pp WHERE pp.idCustomer = :customerId AND pp.deletedAt IS NULL ORDER BY pp.purchaseDate DESC")

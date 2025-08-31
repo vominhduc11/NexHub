@@ -1,5 +1,6 @@
 package com.devwonder.notification_service.config;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.NonNull;
 import org.springframework.messaging.simp.config.ChannelRegistration;
@@ -11,8 +12,11 @@ import lombok.extern.slf4j.Slf4j;
 
 @Configuration
 @EnableWebSocketMessageBroker
+@RequiredArgsConstructor
 @Slf4j
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+
+    private final WebSocketJwtChannelInterceptor jwtChannelInterceptor;
 
     @Override
     public void configureMessageBroker(@NonNull MessageBrokerRegistry config) {
@@ -26,14 +30,13 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(@NonNull StompEndpointRegistry registry) {
         registry.addEndpoint("/ws/notifications")
-                // Disable CORS - Let API Gateway handle CORS globally
                 .setAllowedOriginPatterns("*")
                 .withSockJS();
     }
 
     @Override
     public void configureClientInboundChannel(@NonNull ChannelRegistration registration) {
-        // No interceptors needed - trust API Gateway authentication
-        // API Gateway validates JWT and forwards authenticated requests
+        // Add JWT authentication interceptor for STOMP CONNECT frames
+        registration.interceptors(jwtChannelInterceptor);
     }
 }
