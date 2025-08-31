@@ -1,0 +1,3 @@
+Kết nối websocket thông qua api gateway
+Kiểm tra securityConfig
+Kiểm tra lại biến môi trường ở docker compose
