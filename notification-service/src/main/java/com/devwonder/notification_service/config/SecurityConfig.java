@@ -41,10 +41,9 @@ public class SecurityConfig {
                 // SockJS specific endpoints
                 .requestMatchers("/**/websocket", "/**/info", "/**/iframe.html").permitAll()
                 
-                // All other notification endpoints - ONLY accessible via API Gateway
-                .requestMatchers("/notifications/**").access(new WebExpressionAuthorizationManager(
-                    "request.getHeader('X-Gateway-Request') == 'true'"   // ONLY Gateway header
-                ))
+                // All other notification endpoints - Allow direct access (bypassing Gateway)
+                // Block all REST endpoints since we're using pure WebSocket
+                .requestMatchers("/notifications/**").denyAll()
                 
                 // Block all other direct access
                 .anyRequest().denyAll()
@@ -57,4 +56,5 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
 }

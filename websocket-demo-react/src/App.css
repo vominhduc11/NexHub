@@ -341,6 +341,16 @@ h1 {
   cursor: not-allowed;
 }
 
+.form-input.invalid-input {
+  border-color: #f56565;
+  background-color: #fed7d7;
+}
+
+.form-input.invalid-input:focus {
+  border-color: #e53e3e;
+  box-shadow: 0 0 0 3px rgba(245, 101, 101, 0.1);
+}
+
 .btn-login {
   background: linear-gradient(135deg, #667eea, #764ba2);
   color: white;

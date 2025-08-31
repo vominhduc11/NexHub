@@ -1,17 +1,19 @@
 package com.devwonder.notification_service.controller;
 
 import com.devwonder.notification_service.dto.DealerNotification;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Controller
-@RequiredArgsConstructor
-@Slf4j
 public class NotificationWebSocketController {
 
-    private final SimpMessagingTemplate messagingTemplate;
+    private static final Logger log = LoggerFactory.getLogger(NotificationWebSocketController.class);
+    
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
 
     public void broadcastDealerRegistration(String dealerUsername, String dealerName, String dealerEmail) {
         log.info("Broadcasting dealer registration notification for: {}", dealerUsername);

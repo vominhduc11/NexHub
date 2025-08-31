@@ -5,11 +5,12 @@
 **NexHub** is a production-ready enterprise e-commerce microservices platform built on Spring Boot 3.5.5, designed for scalable product management, warranty tracking, customer operations, and content management. The platform features distributed architecture with Redis caching, Kafka event streaming, WebSocket real-time communication, and comprehensive JWT security across 6 specialized PostgreSQL databases.
 
 **Recent Enhancements (August 2025)**:
-- Advanced WebSocket security with dual-layer JWT authentication
+- Direct WebSocket connection bypassing API Gateway for improved performance
+- Advanced role-based authorization with dual-layer interceptor architecture (JWT + Permissions)
+- Pure STOMP messaging with @MessageMapping controllers (no REST endpoints for messaging)
+- Enhanced WebSocket security with username pattern validation for target users
+- React-based WebSocket demonstration client with real-time validation
 - Shared nexhub-common library for code reusability and maintainability
-- Enhanced API Gateway security with comprehensive JWT validation
-- React-based WebSocket demonstration client
-- Improved microservices architecture with better separation of concerns
 
 ## 🏗️ Architecture Overview
 
@@ -29,7 +30,7 @@ NexHub implements a complete microservices architecture with infrastructure serv
 |---------|------|----------|--------------|------------------|---------|
 | **Auth Service** | 8081 | nexhub_auth | RSA-256 JWT with JWKS, RBAC, Account management | Spring Security, JJWT, JPA, Kafka Producer | ✅ Production Ready |
 | **User Service** | 8082 | nexhub_user | Customer & Reseller CRUD, Profile management | Spring Data JPA, Redis, MapStruct | ✅ Production Ready |
-| **Notification Service** | 8083 | nexhub_notification | Email notifications, WebSocket real-time messaging, advanced JWT validation | Kafka Consumer, WebSocket/STOMP, Spring Mail, Custom JWT Service | ✅ Production Ready |
+| **Notification Service** | 8083 | nexhub_notification | Direct WebSocket messaging, role-based permissions, email notifications, STOMP messaging | Pure WebSocket/STOMP, Dual Interceptor Architecture, Kafka Consumer, Spring Mail | ✅ Production Ready |
 | **Product Service** | 8084→8080 | nexhub_product | Product catalog, categories, media, serial tracking | Spring Data JPA, Redis caching, OpenAPI | ✅ Production Ready |
 | **Warranty Service** | 8085 | nexhub_warranty | Warranty tracking, claims management, statistics | Spring Data JPA, OpenFeign, Redis | ✅ Production Ready |
 | **Blog Service** | 8087→8080 | nexhub_blog | CMS with posts, categories, comments, SEO | Spring Data JPA, SEO optimization | ✅ Production Ready |
@@ -81,36 +82,41 @@ NexHub implements a complete microservices architecture with infrastructure serv
 - **CORS Configuration**: Configured for development origins with credentials support
 - **WebSocket Security**: JWT token validation for WebSocket connections through gateway
 
-### Advanced WebSocket Security
+### Advanced WebSocket Security & Direct Connection
 
-**Multi-Layer Authentication**:
-- **Gateway Level**: Initial JWT validation and routing
-- **Application Level**: WebSocketJwtChannelInterceptor for STOMP frame validation
+**Direct Connection Architecture** (Bypassing API Gateway):
+- **Connection Endpoint**: `ws://localhost:8083/ws/notifications` (Direct to Notification Service)
+- **Performance**: Reduced latency by eliminating gateway proxy layer
+- **Security**: Maintained through dual interceptor architecture
+- **Protocol**: Pure STOMP over SockJS with direct JWT validation
+
+**Dual-Layer Interceptor Security**:
+- **Layer 1**: WebSocketJwtChannelInterceptor for authentication (CONNECT frames)
+- **Layer 2**: WebSocketRoleChannelInterceptor for authorization (SEND frames)  
 - **Session Management**: User information stored in WebSocket session attributes
 - **Token Validation**: Custom JwtService with JWKS validation and expiration checks
 
-**Authorization Architecture**:
-- **Connection Authorization**: CUSTOMER role required for WebSocket connections
-- **Subscription Authorization**: Per-topic authorization with role verification
-- **Principal Management**: Custom Principal creation from JWT claims
-- **Session Attributes**: accountId, username, userType, roles, permissions stored per session
-
-**WebSocket Endpoints**:
-- **Connection Endpoint**: `/api/notification/ws/notifications`
-- **Protocol**: STOMP over SockJS with fallback support
-- **Authentication Methods**: Authorization header (Bearer token) or custom token header
+**Role-Based Message Authorization**:
+- **Broadcast Messages**: Only ADMIN users can send (`@MessageMapping("/broadcast")`)
+- **Private Messages**: Only ADMIN → CUSTOMER communication allowed (`@MessageMapping("/private/{targetUser}")`)
+- **Username Validation**: Pattern-based validation ensures target users are identified as CUSTOMER
+- **Real-time Validation**: Both client-side and server-side validation with visual feedback
 
 ### Security Flow Architecture
 ```
-Client Request → API Gateway (JWT Validation + RBAC + WebSocket Routing) → Service (Permission Check) → Database
-                      ↓
-           JWT Claims Forwarded as Headers
-                      ↓
-    Notification Service (Kafka + WebSocket) → Email/Real-time Client Updates
-                      ↓
-              WebSocketJwtChannelInterceptor (STOMP Frame Validation)
-                      ↓
-                Custom JwtService (JWKS + Signature Validation)
+REST API Flow:
+Client Request → API Gateway (JWT Validation + RBAC) → Service (Permission Check) → Database
+
+WebSocket Flow (Direct):
+Client WebSocket → Notification Service (Port 8083)
+                       ↓
+         WebSocketJwtChannelInterceptor (Authentication)
+                       ↓
+       WebSocketRoleChannelInterceptor (Authorization) 
+                       ↓
+               @MessageMapping Controllers
+                       ↓
+           SimpMessagingTemplate (Broadcast/Private)
 ```
 
 ## 📊 Database Architecture
@@ -259,29 +265,35 @@ Business Services (Auth, User, Product, Warranty, Blog, Notification)
 
 ## ⚡ Real-time Communication & Performance
 
-### Enhanced WebSocket Architecture
-**Implementation**: Complete STOMP-based messaging with SockJS fallback and advanced security
-**Endpoint**: `/api/notification/ws/notifications` with comprehensive JWT validation
+### Enhanced WebSocket Architecture (Direct Connection)
+**Implementation**: Pure STOMP messaging with @MessageMapping controllers, bypassing API Gateway
+**Direct Endpoint**: `ws://localhost:8083/ws/notifications` (No gateway proxy)
 
-**Advanced Security Architecture**:
-- **Gateway Level**: JWT validation with WebSocket proxying support
-- **Application Level**: WebSocketJwtChannelInterceptor with custom JwtService
-- **JWKS Integration**: Real-time public key fetching and validation
-- **Exception Handling**: Comprehensive JWT validation exceptions (TokenExpiredException, InvalidTokenSignatureException, JwksRetrievalException, JwtValidationException)
-- **Session Management**: Rich user context stored in WebSocket session attributes
-
-**Message Patterns**:
-```javascript
-// Public broadcasts
-/topic/dealer-registrations    // Dealer registration notifications
-/topic/admin-notifications     // Admin-only system notifications  
-/topic/dealer-updates          // Dealer-specific updates
-
-// Private messages
-/user/queue/notifications      // User-specific private notifications
+**Message Mapping Architecture**:
+```java
+@MessageMapping("/broadcast")           // ADMIN-only broadcasts
+@MessageMapping("/private/{targetUser}") // ADMIN → CUSTOMER private messaging
 ```
 
-**React WebSocket Demo Client**: Interactive testing client with modern React 19.1.1 and @stomp/stompjs integration
+**Advanced Security Architecture**:
+- **Direct Connection**: Eliminates gateway proxy for improved performance  
+- **Dual Interceptors**: JWT authentication + role-based authorization
+- **Username Validation**: Pattern-based validation for target user identification
+- **Session-based Auth**: User context stored from JWT claims, no header dependencies
+
+**Permission Matrix**:
+```javascript
+// Message sending permissions
+Broadcast: ADMIN only → All users
+Private:   ADMIN only → CUSTOMER users only
+
+// Topic subscriptions (receiving)
+/topic/notifications          // All authenticated users
+/user/queue/private          // User-specific private messages
+/topic/dealer-registrations  // System notifications
+```
+
+**React WebSocket Demo Client**: Interactive testing with real-time validation and permission checks
 
 ### Redis Caching Strategy
 **Implementation**: Distributed caching across Product, User, and Warranty services
@@ -300,7 +312,7 @@ Business Services (Auth, User, Product, Warranty, Blog, Notification)
 ### Centralized API Management
 **Main Entry Point**: `http://localhost:8080`
 **Documentation**: Aggregated Swagger UI at `/swagger-ui.html`
-**WebSocket Endpoint**: `ws://localhost:8080/api/notification/ws/notifications`
+**WebSocket Endpoint**: `ws://localhost:8083/ws/notifications` (Direct connection, bypassing gateway)
 
 ### Service Routing Configuration
 ```
@@ -314,8 +326,8 @@ Business Operations:
 /api/blog/**           → Blog Service (8087→8080)     # Internal port 8080
 
 Communication:
-/api/notification/**   → Notification Service (8083)
-/ws/notifications      → WebSocket endpoint (STOMP over SockJS)
+WebSocket Direct:      → ws://localhost:8083/ws/notifications (Bypassing gateway)
+Email Notifications:   → Via Kafka messaging (internal)
 
 Health & Monitoring:
 /actuator/health       → Health checks across all services
@@ -404,12 +416,14 @@ Auth Service → Kafka Topic (email-notifications) → Notification Service
 | `/api/warranty/claims` | GET/POST/PUT | Claims management | ADMIN/DEALER |
 | `/api/warranty/statistics` | GET | Warranty analytics | ADMIN |
 
-### Real-time Communication
+### Real-time Communication (Direct WebSocket)
 | Endpoint | Protocol | Purpose | Security |
 |----------|----------|---------|----------|
-| `/api/notification/ws/notifications` | WebSocket/STOMP | Real-time messaging | CUSTOMER+ with JWT validation |
-| `/topic/dealer-registrations` | STOMP | Public notifications | Authenticated subscribers |
-| `/user/queue/notifications` | STOMP | Private messages | User-specific with JWT validation |
+| `ws://localhost:8083/ws/notifications` | WebSocket/STOMP | Direct real-time messaging | JWT + Role validation |
+| `@MessageMapping("/broadcast")` | STOMP | Broadcast to all users | ADMIN only |
+| `@MessageMapping("/private/{targetUser}")` | STOMP | Private messaging | ADMIN → CUSTOMER only |
+| `/topic/notifications` | STOMP | Receive broadcasts | All authenticated users |
+| `/user/queue/private` | STOMP | Receive private messages | User-specific validation |
 
 ## 🚦 Development Setup & Getting Started
 
@@ -477,8 +491,8 @@ curl -X POST http://localhost:8080/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"password"}'
 
-# Test WebSocket endpoint (requires authentication)
-wscat -c "ws://localhost:8080/api/notification/ws/notifications" \
+# Test WebSocket endpoint (direct connection, requires authentication)
+wscat -c "ws://localhost:8083/ws/notifications" \
   -H "Authorization: Bearer <jwt-token>"
 
 # Access service discovery
@@ -503,10 +517,11 @@ curl http://localhost:8761/eureka/apps
 - Email notification system with Kafka integration
 
 **Advanced Real-time Features**:
-- WebSocket implementation with multi-layer JWT security
-- React-based WebSocket demonstration client
+- Direct WebSocket connection with dual-layer interceptor security
+- Role-based messaging with ADMIN → CUSTOMER restrictions  
+- Pure STOMP messaging with @MessageMapping controllers
+- React-based WebSocket demonstration client with real-time validation
 - Kafka-based event streaming for asynchronous processing
-- Real-time dealer registration notifications with authentication
 
 **Data Management**:
 - 6 PostgreSQL databases with comprehensive entity models
@@ -516,10 +531,11 @@ curl http://localhost:8761/eureka/apps
 ### 🔧 Recent Major Enhancements (August 2025)
 
 **Security & Architecture Improvements**:
-- Advanced WebSocket security with WebSocketJwtChannelInterceptor
+- Direct WebSocket connection architecture bypassing API Gateway
+- Dual-layer interceptor security (JWT authentication + role authorization)
+- Enhanced username pattern validation for target user identification
 - Custom JwtService with JWKS validation and comprehensive exception handling
 - nexhub-common library with shared utilities and authorization aspects
-- Enhanced JWT signature validation across all services
 
 **Development & Testing Enhancements**:
 - React-based WebSocket demo application with modern React 19.1.1
@@ -544,8 +560,11 @@ curl http://localhost:8761/eureka/apps
 - Blog Service: Author and Tag management controllers need completion
 
 **Development Considerations**:
-- WebSocket requires CUSTOMER+ role for authentication
-- Database initialization requires proper startup sequence
+- WebSocket connects directly to port 8083 (bypasses API Gateway)
+- Broadcast messages require ADMIN role for sending
+- Private messages restricted to ADMIN → CUSTOMER communication only
+- Target usernames validated by pattern matching for CUSTOMER identification
+- Database initialization requires proper startup sequence  
 - Redis password configuration needed for local development
 - nexhub-common library must be built before other services
 
@@ -578,7 +597,7 @@ docker exec -it nexhub_redis redis-cli -a voduc123 ping
 # Kafka cluster status via Kafka UI
 open http://localhost:8078
 
-# WebSocket connection test with React demo
+# WebSocket connection test with React demo (connects directly to port 8083)
 open http://localhost:5173
 ```
 
@@ -687,28 +706,29 @@ cd nexhub-common && mvn clean install
 ## Project Metadata
 
 **Platform**: NexHub Enterprise E-Commerce Microservices  
-**Version**: 3.1.0  
+**Version**: 3.2.0  
 **Last Updated**: August 31, 2025  
 **Status**: Production-Ready with Active Development  
-**Architecture**: Spring Boot 3.5.5 Microservices with Event-Driven Communication  
-**Infrastructure**: Docker, PostgreSQL, Redis, Kafka, WebSocket, React Demo  
-**Security**: Enhanced JWT with RSA-256, JWKS, Multi-layer WebSocket Authentication  
+**Architecture**: Spring Boot 3.5.5 Microservices with Direct WebSocket Communication  
+**Infrastructure**: Docker, PostgreSQL, Redis, Kafka, Direct WebSocket, React Demo  
+**Security**: Enhanced JWT with RSA-256, JWKS, Dual-Layer WebSocket Interceptors, Role-Based Messaging  
 **Maintainer**: DevWonder Development Team  
 
 **Total Services**: 10 (7 Business + 3 Infrastructure)  
 **Database Count**: 6 PostgreSQL databases with service isolation  
 **Message Brokers**: 3-node Kafka cluster with Zookeeper  
 **Caching**: Redis with distributed caching strategy  
-**Real-time**: Advanced WebSocket with STOMP, JWT validation, and React demo client  
+**Real-time**: Direct WebSocket with STOMP, Dual-Layer Security, Role-Based Messaging, and React demo client  
 **Shared Libraries**: nexhub-common for code reusability and maintainability  
 **Demo Applications**: React-based WebSocket testing client with modern UI  
 
 **Recent Major Changes**:
-- Enhanced WebSocket security with dual-layer JWT authentication
-- React WebSocket demonstration client with modern React 19.1.1
-- nexhub-common shared library implementation
-- Advanced JWT validation with JWKS integration
-- Comprehensive exception handling for WebSocket authentication
-- Improved Docker architecture and service orchestration
+- **Direct WebSocket Architecture**: Bypassing API Gateway for improved performance
+- **Dual-Layer Interceptor Security**: JWT authentication + role-based authorization
+- **Role-Based Messaging**: ADMIN-only broadcasts, ADMIN → CUSTOMER private messaging
+- **Username Pattern Validation**: Server-side validation for target user identification
+- **Pure STOMP Implementation**: @MessageMapping controllers replacing REST endpoints
+- **Enhanced React Demo**: Real-time validation with visual feedback
+- **nexhub-common shared library**: Code reusability and maintainability improvements
 
 This documentation represents the current state of NexHub as of August 31, 2025, reflecting all implemented features, recent enhancements, architectural improvements, and comprehensive development roadmap.

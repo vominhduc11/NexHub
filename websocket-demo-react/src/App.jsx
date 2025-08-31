@@ -10,6 +10,7 @@ function App() {
   const [logs, setLogs] = useState([])
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [token, setToken] = useState('')
+  const [userRole, setUserRole] = useState('')
   const [loginForm, setLoginForm] = useState({
     username: '',
     password: '',
@@ -20,6 +21,7 @@ function App() {
   const [broadcastMessage, setBroadcastMessage] = useState('')
   const [privateMessage, setPrivateMessage] = useState('')
   const [targetUsername, setTargetUsername] = useState('')
+  const [isValidCustomer, setIsValidCustomer] = useState(true)
   const [subscriptions, setSubscriptions] = useState([])
   
   const stompClientRef = useRef(null)
@@ -41,6 +43,19 @@ function App() {
     }
     
     setLogs(prevLogs => [...prevLogs, newLog])
+  }
+
+  const isCustomerUsername = (username) => {
+    if (!username || username.trim().length === 0) return true // Allow empty for now
+    
+    const lower = username.toLowerCase().trim()
+    
+    return lower.includes('customer') ||
+           lower.includes('user') ||
+           lower.includes('client') ||
+           lower.startsWith('cust') ||
+           lower.match(/.*customer.*/) ||
+           (!lower.includes('admin') && !lower.includes('dealer'))
   }
 
   const addMessage = (content, type, topic = null) => {
@@ -67,13 +82,17 @@ function App() {
   useEffect(() => {
     addLog('🚀 React WebSocket Demo loaded', 'info')
     addLog('📝 Login first, then connect to test WebSocket', 'info')
+    addLog('⚡ Using pure WebSocket messaging (no REST APIs)', 'info')
     
-    // Check for saved token
+    // Check for saved token and role
     const savedToken = localStorage.getItem('authToken')
+    const savedRole = localStorage.getItem('userRole')
     if (savedToken) {
       setToken(savedToken)
+      setUserRole(savedRole || 'CUSTOMER')
       setIsLoggedIn(true)
       addLog('🔑 Found saved token - ready to connect', 'success')
+      addLog(`👤 Role: ${savedRole || 'CUSTOMER'}`, 'info')
     }
     
     // Cleanup on component unmount
@@ -112,11 +131,14 @@ function App() {
           const authToken = loginData.token
           
           if (authToken) {
+            const userType = loginData.user?.userType || loginForm.userType
             setToken(authToken)
+            setUserRole(userType)
             setIsLoggedIn(true)
             localStorage.setItem('authToken', authToken)
+            localStorage.setItem('userRole', userType)
             addLog('✅ Login successful! Token saved.', 'success')
-            addLog(`👤 Logged in as: ${loginForm.username} (${loginData.user?.userType || loginForm.userType})`, 'success')
+            addLog(`👤 Logged in as: ${loginForm.username} (${userType})`, 'success')
             addLog(`🎯 User ID: ${loginData.user?.id || 'N/A'}`, 'info')
             addLog(`🔑 Token type: ${loginData.tokenType || 'Bearer'}`, 'info')
           } else {
@@ -142,8 +164,10 @@ function App() {
 
   const logout = () => {
     setToken('')
+    setUserRole('')
     setIsLoggedIn(false)
     localStorage.removeItem('authToken')
+    localStorage.removeItem('userRole')
     setLoginForm({ username: '', password: '', userType: 'CUSTOMER' })
     addLog('👋 Logged out successfully', 'info')
     
@@ -286,36 +310,33 @@ function App() {
     }
   }
 
-  const sendBroadcast = async () => {
+  const sendBroadcast = () => {
     if (!broadcastMessage.trim()) {
       addLog('Please enter broadcast message!', 'error')
       return
     }
 
-    try {
-      const response = await fetch('http://localhost:8080/api/notifications/broadcast', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-          'X-Gateway-Request': 'true'
-        },
-        body: JSON.stringify(broadcastMessage)
-      })
+    if (!stompClientRef.current || !stompClientRef.current.connected) {
+      addLog('❌ Not connected to WebSocket!', 'error')
+      return
+    }
 
-      if (response.ok) {
-        addLog('📢 Broadcast sent successfully', 'success')
-        setBroadcastMessage('')
-      } else {
-        const error = await response.json()
-        addLog(`❌ Failed to send broadcast: ${error.message}`, 'error')
-      }
+    // Check if user is ADMIN
+    if (userRole !== 'ADMIN') {
+      addLog(`❌ Access denied: Only ADMIN can send broadcast messages (you are ${userRole})`, 'error')
+      return
+    }
+
+    try {
+      stompClientRef.current.send('/app/broadcast', {}, broadcastMessage)
+      addLog('📢 Broadcast sent to all users via WebSocket', 'success')
+      setBroadcastMessage('')
     } catch (error) {
       addLog(`❌ Error sending broadcast: ${error.message}`, 'error')
     }
   }
 
-  const sendPrivateMessage = async () => {
+  const sendPrivateMessage = () => {
     if (!privateMessage.trim()) {
       addLog('Please enter private message!', 'error')
       return
@@ -325,25 +346,29 @@ function App() {
       return
     }
 
-    try {
-      const response = await fetch(`http://localhost:8080/api/notifications/user/${targetUsername}/send`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-          'X-Gateway-Request': 'true'
-        },
-        body: JSON.stringify(privateMessage)
-      })
+    if (!stompClientRef.current || !stompClientRef.current.connected) {
+      addLog('❌ Not connected to WebSocket!', 'error')
+      return
+    }
 
-      if (response.ok) {
-        addLog(`📧 Private message sent to ${targetUsername} successfully`, 'success')
-        setPrivateMessage('')
-        setTargetUsername('')
-      } else {
-        const error = await response.json()
-        addLog(`❌ Failed to send private message: ${error.message}`, 'error')
-      }
+    // Check if user is ADMIN
+    if (userRole !== 'ADMIN') {
+      addLog(`❌ Access denied: Only ADMIN can send private messages (you are ${userRole})`, 'error')
+      return
+    }
+
+    // Check if target is valid customer
+    if (!isCustomerUsername(targetUsername)) {
+      addLog(`❌ Invalid target: '${targetUsername}' is not identified as a CUSTOMER username`, 'error')
+      return
+    }
+
+    try {
+      stompClientRef.current.send(`/app/private/${targetUsername}`, {}, privateMessage)
+      addLog(`📧 Private message sent to CUSTOMER ${targetUsername} via WebSocket`, 'success')
+      setPrivateMessage('')
+      setTargetUsername('')
+      setIsValidCustomer(true)
     } catch (error) {
       addLog(`❌ Error sending private message: ${error.message}`, 'error')
     }
@@ -373,7 +398,7 @@ function App() {
   return (
     <div className="app">
       <div className="container">
-        <h1>🔌 React WebSocket Connection Demo</h1>
+        <h1>🔌 React WebSocket Direct Connection Demo</h1>
         
         {/* Login Section */}
         {!isLoggedIn ? (
@@ -429,7 +454,7 @@ function App() {
           <>
             {/* User Info */}
             <div className="user-info">
-              <span className="user-status">👤 Logged in as: <strong>{loginForm.username}</strong></span>
+              <span className="user-status">👤 Logged in as: <strong>{loginForm.username}</strong> ({userRole})</span>
               <button onClick={logout} className="btn btn-logout">
                 🚪 Logout
               </button>
@@ -474,9 +499,14 @@ function App() {
               <div className="messaging-section">
                 <h3>📨 Send Messages</h3>
                 
-                {/* Broadcast to All */}
+                {/* Broadcast to All - Only for ADMIN */}
                 <div className="message-form">
-                  <h4>📢 Broadcast to All Users</h4>
+                  <h4>📢 Broadcast to All Users (ADMIN only)</h4>
+                  {userRole !== 'ADMIN' && (
+                    <div style={{color: '#ff6b6b', marginBottom: '10px', fontSize: '14px'}}>
+                      ⚠️ Only ADMIN users can send broadcast messages to all users
+                    </div>
+                  )}
                   <div className="form-group">
                     <input
                       type="text"
@@ -485,10 +515,11 @@ function App() {
                       className="form-input"
                       placeholder="Enter broadcast message for all users"
                       onKeyPress={(e) => e.key === 'Enter' && sendBroadcast()}
+                      disabled={userRole !== 'ADMIN'}
                     />
                     <button 
                       onClick={sendBroadcast}
-                      disabled={!broadcastMessage.trim()}
+                      disabled={userRole !== 'ADMIN' || !broadcastMessage.trim()}
                       className="btn btn-send"
                     >
                       📢 Send Broadcast
@@ -496,28 +527,47 @@ function App() {
                   </div>
                 </div>
 
-                {/* Private Message */}
+                {/* Private Message - Only for ADMIN */}
                 <div className="message-form">
-                  <h4>📧 Private Message</h4>
+                  <h4>📧 Private Message (ADMIN → CUSTOMER only)</h4>
+                  {userRole !== 'ADMIN' && (
+                    <div style={{color: '#ff6b6b', marginBottom: '10px', fontSize: '14px'}}>
+                      ⚠️ Only ADMIN users can send private messages to CUSTOMER users
+                    </div>
+                  )}
+                  <div style={{color: '#4a90e2', marginBottom: '10px', fontSize: '12px'}}>
+                    💡 Target username must be identifiable as CUSTOMER (e.g., 'customer', 'user123', 'client_name')
+                  </div>
                   <div className="form-group">
                     <input
                       type="text"
                       value={targetUsername}
-                      onChange={(e) => setTargetUsername(e.target.value)}
-                      className="form-input"
-                      placeholder="Target username"
+                      onChange={(e) => {
+                        const value = e.target.value
+                        setTargetUsername(value)
+                        setIsValidCustomer(isCustomerUsername(value))
+                      }}
+                      className={`form-input ${!isValidCustomer && targetUsername.trim() ? 'invalid-input' : ''}`}
+                      placeholder="CUSTOMER username (e.g., customer123, user456, client_name)"
+                      disabled={userRole !== 'ADMIN'}
                     />
+                    {!isValidCustomer && targetUsername.trim() && (
+                      <div style={{color: '#ff6b6b', fontSize: '12px', marginTop: '4px'}}>
+                        ⚠️ Username '{targetUsername}' might not be recognized as CUSTOMER
+                      </div>
+                    )}
                     <input
                       type="text"
                       value={privateMessage}
                       onChange={(e) => setPrivateMessage(e.target.value)}
                       className="form-input"
-                      placeholder="Enter private message"
+                      placeholder="Enter private message for CUSTOMER"
                       onKeyPress={(e) => e.key === 'Enter' && sendPrivateMessage()}
+                      disabled={userRole !== 'ADMIN'}
                     />
                     <button 
                       onClick={sendPrivateMessage}
-                      disabled={!privateMessage.trim() || !targetUsername.trim()}
+                      disabled={userRole !== 'ADMIN' || !privateMessage.trim() || !targetUsername.trim() || !isValidCustomer}
                       className="btn btn-send"
                     >
                       📧 Send Private Message

@@ -1,71 +1,53 @@
 package com.devwonder.notification_service.controller;
 
-import com.devwonder.common.dto.BaseResponse;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.stereotype.Controller;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@RestController
-@RequestMapping("/notifications")
-@RequiredArgsConstructor
-@Slf4j
-@Tag(name = "Notification Management", description = "Real-time notification and WebSocket communication endpoints")
-@SecurityRequirement(name = "Gateway Request")
+@Controller
 public class NotificationController {
 
-    private final NotificationWebSocketController webSocketController;
+    private static final Logger log = LoggerFactory.getLogger(NotificationController.class);
+    
+    @Autowired
+    private NotificationWebSocketController webSocketController;
 
-    @GetMapping("/health") 
-    @Operation(summary = "Health check", description = "Check if notification service is running")
-    @ApiResponse(responseCode = "200", description = "Service is healthy")
-    public ResponseEntity<BaseResponse<String>> health() {
-        try {
-            return ResponseEntity.ok(BaseResponse.success("OK", "Notification service is running"));
-        } catch (Exception e) {
-            log.error("Health check failed: {}", e.getMessage(), e);
-            return ResponseEntity.status(500).body(BaseResponse.error("Health check failed", "HEALTH_CHECK_ERROR", e.getMessage()));
-        }
-    }
 
-    @PostMapping("/broadcast")
-    @Operation(summary = "Broadcast notification to all users", description = "Send notification to all connected users via WebSocket")
-    @ApiResponse(responseCode = "200", description = "Broadcast notification sent successfully")
-    public ResponseEntity<BaseResponse<String>> broadcastToAll(
-            @Parameter(description = "Broadcast message") @RequestBody String message) {
-        
+
+    @MessageMapping("/broadcast")
+    public void broadcastToAll(@Payload String message, SimpMessageHeaderAccessor headerAccessor) {
         try {
-            log.info("Broadcasting to all users: {}", message);
-            webSocketController.broadcastToAllUsers(message);
+            String username = headerAccessor.getUser() != null ? headerAccessor.getUser().getName() : "Anonymous";
+            log.info("ADMIN {} broadcasting to all users: {}", username, message);
             
-            return ResponseEntity.ok(BaseResponse.success(
-                "Sent to all connected users",
-                "Broadcast notification sent"
-            ));
+            String broadcastMessage = String.format("[Broadcast from ADMIN %s]: %s", username, message);
+            webSocketController.broadcastToAllUsers(broadcastMessage);
+            
         } catch (Exception e) {
             log.error("Broadcast failed: {}", e.getMessage(), e);
-            return ResponseEntity.status(500).body(BaseResponse.error("Broadcast failed", "BROADCAST_ERROR", e.getMessage()));
         }
     }
 
-    @PostMapping("/user/{username}/send")
-    @Operation(summary = "Send private notification", description = "Send private notification to specific user via WebSocket")
-    @ApiResponse(responseCode = "200", description = "Private notification sent successfully")
-    public ResponseEntity<BaseResponse<String>> sendPrivateNotification(
-            @Parameter(description = "Target username") @PathVariable String username,
-            @Parameter(description = "Private notification message") @RequestBody String message) {
+    @MessageMapping("/private/{targetUser}")
+    public void sendPrivateNotification(
+            @DestinationVariable String targetUser,
+            @Payload String message,
+            SimpMessageHeaderAccessor headerAccessor) {
         
-        log.info("Sending private notification to {}: {}", username, message);
-        webSocketController.sendPrivateNotification(username, "PRIVATE_MESSAGE", message);
-        
-        return ResponseEntity.ok(BaseResponse.success(
-            "Private notification sent",
-            "Sent to user: " + username
-        ));
+        try {
+            String senderUsername = headerAccessor.getUser() != null ? headerAccessor.getUser().getName() : "Anonymous";
+            log.info("ADMIN {} sending private notification to CUSTOMER {}: {}", senderUsername, targetUser, message);
+            
+            String privateMessage = String.format("[Private from ADMIN %s]: %s", senderUsername, message);
+            webSocketController.sendPrivateNotification(targetUser, "PRIVATE_MESSAGE", privateMessage);
+            
+        } catch (Exception e) {
+            log.error("Private message failed: {}", e.getMessage(), e);
+        }
     }
 }

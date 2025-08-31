@@ -92,14 +92,6 @@ spring:
             - AddRequestHeader=X-Gateway-Request, true
           order: 100
 
-        - id: notification-api-docs
-          uri: ${NOTIFICATION_SERVICE_URI}
-          predicates:
-            - Path=/api/notifications/v3/api-docs/**
-          filters:
-            - StripPrefix=2
-            - AddRequestHeader=X-Gateway-Request, true
-          order: 100
 
         # ===================================================================================
         # JWT/JWKS ENDPOINT
@@ -158,15 +150,6 @@ spring:
             - StripPrefix=1                   # /api/user/** → /user/**
             - AddRequestHeader=X-Gateway-Request, true
 
-        # Notification Service API Routes
-        - id: notification-service
-          uri: ${NOTIFICATION_SERVICE_URI}
-          order: 200
-          predicates:
-            - Path=/api/notifications/**       # Real-time notifications via WebSocket
-          filters:
-            - StripPrefix=1                   # /api/notifications/** → /notifications/**
-            - AddRequestHeader=X-Gateway-Request, true
 
         # Blog Service API Routes (CMS)
         - id: blog-service
@@ -248,8 +231,5 @@ springdoc:
       - url: /api/warranty/v3/api-docs
         name: warranty-service
         display-name: "🛡️ Warranty Service"
-      - url: /api/notifications/v3/api-docs
-        name: notification-service
-        display-name: "🔔 Notification Service"
   api-docs:
     enabled: ${SWAGGER_API_DOCS_ENABLED:true}
