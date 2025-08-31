@@ -34,7 +34,7 @@ public class NotificationWebSocketController {
     public void sendPrivateNotification(String username, String notificationType, String message) {
         log.info("Sending private notification to user: {}", username);
         
-        messagingTemplate.convertAndSendToUser(username, "/queue/notifications", new DealerNotification(
+        messagingTemplate.convertAndSendToUser(username, "/queue/private", new DealerNotification(
             notificationType,
             username,
             "", // name not needed for private notification
@@ -46,36 +46,20 @@ public class NotificationWebSocketController {
         log.info("Private notification sent to user: {}", username);
     }
     
-    // Send admin-only notification
-    public void broadcastAdminNotification(String message) {
-        log.info("Broadcasting admin notification: {}", message);
+    // Send broadcast notification to all users
+    public void broadcastToAllUsers(String message) {
+        log.info("Broadcasting to all users: {}", message);
         
-        messagingTemplate.convertAndSend("/topic/admin-notifications", new DealerNotification(
-            "ADMIN_NOTIFICATION",
+        messagingTemplate.convertAndSend("/topic/notifications", new DealerNotification(
+            "BROADCAST_NOTIFICATION",
             "system",
-            "System Admin",
-            "",
-            message,
-            System.currentTimeMillis()
-        ));
-        
-        log.info("Admin notification broadcasted");
-    }
-    
-    // Send dealer-specific notification
-    public void broadcastDealerUpdate(String message) {
-        log.info("Broadcasting dealer update: {}", message);
-        
-        messagingTemplate.convertAndSend("/topic/dealer-updates", new DealerNotification(
-            "DEALER_UPDATE",
-            "system", 
             "System",
             "",
             message,
             System.currentTimeMillis()
         ));
         
-        log.info("Dealer update broadcasted");
+        log.info("Broadcast notification sent to all users");
     }
 
 }

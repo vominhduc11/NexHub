@@ -42,12 +42,8 @@ public class WebSocketJwtChannelInterceptor implements ChannelInterceptor {
                 // Validate JWT token (includes expiration check)
                 JWTClaimsSet claimsSet = jwtService.validateToken(token);
                 
-                // Check if user has CUSTOMER role
+                // Extract user info (no role restriction - all authenticated users allowed)
                 List<String> roles = jwtService.extractRoles(claimsSet);
-                if (roles == null || !roles.contains("CUSTOMER")) {
-                    log.warn("STOMP CONNECT denied: User does not have CUSTOMER role. Roles: {}", roles);
-                    throw new AuthorizationException("Access denied: CUSTOMER role required");
-                }
                 
                 // Create a Principal and set it in the accessor
                 Principal principal = createPrincipal(claimsSet);

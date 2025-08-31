@@ -32,13 +32,16 @@ public class SecurityConfig {
                 // Test endpoints - Allow direct access for testing (HIGH PRIORITY)
                 .requestMatchers("/notification/test/**").permitAll()
                 
+                // Health check endpoint - Allow direct access (HIGH PRIORITY)
+                .requestMatchers("/notifications/health").permitAll()
+                
                 // WebSocket endpoints - Allow both direct and Gateway access (HIGHEST PRIORITY)
                 .requestMatchers("/ws/**", "/websocket/**", "/info", "/sockjs-node/**").permitAll()
                 
                 // SockJS specific endpoints
                 .requestMatchers("/**/websocket", "/**/info", "/**/iframe.html").permitAll()
                 
-                // All notification endpoints - ONLY accessible via API Gateway
+                // All other notification endpoints - ONLY accessible via API Gateway
                 .requestMatchers("/notifications/**").access(new WebExpressionAuthorizationManager(
                     "request.getHeader('X-Gateway-Request') == 'true'"   // ONLY Gateway header
                 ))

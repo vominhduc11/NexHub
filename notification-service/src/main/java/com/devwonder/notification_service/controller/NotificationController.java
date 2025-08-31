@@ -21,41 +21,36 @@ public class NotificationController {
 
     private final NotificationWebSocketController webSocketController;
 
-    @GetMapping("/health")
+    @GetMapping("/health") 
     @Operation(summary = "Health check", description = "Check if notification service is running")
     @ApiResponse(responseCode = "200", description = "Service is healthy")
     public ResponseEntity<BaseResponse<String>> health() {
-        return ResponseEntity.ok(BaseResponse.success("Notification service is running", "OK"));
+        try {
+            return ResponseEntity.ok(BaseResponse.success("OK", "Notification service is running"));
+        } catch (Exception e) {
+            log.error("Health check failed: {}", e.getMessage(), e);
+            return ResponseEntity.status(500).body(BaseResponse.error("Health check failed", "HEALTH_CHECK_ERROR", e.getMessage()));
+        }
     }
 
-    @PostMapping("/admin/broadcast")
-    @Operation(summary = "Broadcast admin notification", description = "Send notification to all admin users via WebSocket")
-    @ApiResponse(responseCode = "200", description = "Admin notification sent successfully")
-    public ResponseEntity<BaseResponse<String>> broadcastAdminNotification(
-            @Parameter(description = "Admin notification message") @RequestBody String message) {
+    @PostMapping("/broadcast")
+    @Operation(summary = "Broadcast notification to all users", description = "Send notification to all connected users via WebSocket")
+    @ApiResponse(responseCode = "200", description = "Broadcast notification sent successfully")
+    public ResponseEntity<BaseResponse<String>> broadcastToAll(
+            @Parameter(description = "Broadcast message") @RequestBody String message) {
         
-        log.info("Broadcasting admin notification: {}", message);
-        webSocketController.broadcastAdminNotification(message);
-        
-        return ResponseEntity.ok(BaseResponse.success(
-            "Admin notification broadcasted",
-            "Sent to /topic/admin-notifications"
-        ));
-    }
-
-    @PostMapping("/dealer/broadcast")
-    @Operation(summary = "Broadcast dealer update", description = "Send update notification to all dealers via WebSocket")
-    @ApiResponse(responseCode = "200", description = "Dealer update sent successfully")
-    public ResponseEntity<BaseResponse<String>> broadcastDealerUpdate(
-            @Parameter(description = "Dealer update message") @RequestBody String message) {
-        
-        log.info("Broadcasting dealer update: {}", message);
-        webSocketController.broadcastDealerUpdate(message);
-        
-        return ResponseEntity.ok(BaseResponse.success(
-            "Dealer update broadcasted", 
-            "Sent to /topic/dealer-updates"
-        ));
+        try {
+            log.info("Broadcasting to all users: {}", message);
+            webSocketController.broadcastToAllUsers(message);
+            
+            return ResponseEntity.ok(BaseResponse.success(
+                "Sent to all connected users",
+                "Broadcast notification sent"
+            ));
+        } catch (Exception e) {
+            log.error("Broadcast failed: {}", e.getMessage(), e);
+            return ResponseEntity.status(500).body(BaseResponse.error("Broadcast failed", "BROADCAST_ERROR", e.getMessage()));
+        }
     }
 
     @PostMapping("/user/{username}/send")

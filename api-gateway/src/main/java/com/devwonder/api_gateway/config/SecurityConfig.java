@@ -46,6 +46,7 @@ public class SecurityConfig {
         configureBlogServiceAuth(exchanges);
         configureUserServiceAuth(exchanges);
         configureWarrantyServiceAuth(exchanges);
+        configureNotificationServiceAuth(exchanges);
         
         // Deny all other requests
         exchanges.anyExchange().denyAll();
@@ -116,6 +117,18 @@ public class SecurityConfig {
                 .hasAnyAuthority("ROLE_ADMIN", "ROLE_DEALER", "PERM_WARRANTY_UPDATE")
                 .pathMatchers(HttpMethod.DELETE, "/api/warranty/**")
                 .hasAnyAuthority("ROLE_ADMIN", "PERM_WARRANTY_DELETE");
+    }
+
+    private void configureNotificationServiceAuth(ServerHttpSecurity.AuthorizeExchangeSpec exchanges) {
+        exchanges
+                // Health check - public access
+                .pathMatchers(HttpMethod.GET, "/api/notifications/health").permitAll()
+                // Broadcast to all users - all authenticated users can send
+                .pathMatchers(HttpMethod.POST, "/api/notifications/broadcast")
+                .hasAnyAuthority("ROLE_ADMIN", "ROLE_DEALER", "ROLE_CUSTOMER")
+                // Private messages - all authenticated users can send
+                .pathMatchers(HttpMethod.POST, "/api/notifications/user/*/send")
+                .hasAnyAuthority("ROLE_ADMIN", "ROLE_DEALER", "ROLE_CUSTOMER");
     }
 
     private String[] getSwaggerPaths() {

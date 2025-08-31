@@ -16,6 +16,11 @@ function App() {
     userType: 'CUSTOMER'
   })
   const [loggingIn, setLoggingIn] = useState(false)
+  const [messages, setMessages] = useState([])
+  const [broadcastMessage, setBroadcastMessage] = useState('')
+  const [privateMessage, setPrivateMessage] = useState('')
+  const [targetUsername, setTargetUsername] = useState('')
+  const [subscriptions, setSubscriptions] = useState([])
   
   const stompClientRef = useRef(null)
   const logContainerRef = useRef(null)
@@ -36,6 +41,20 @@ function App() {
     }
     
     setLogs(prevLogs => [...prevLogs, newLog])
+  }
+
+  const addMessage = (content, type, topic = null) => {
+    const timestamp = new Date().toLocaleTimeString()
+    const newMessage = {
+      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      content,
+      type,
+      topic,
+      timestamp
+    }
+    
+    setMessages(prevMessages => [...prevMessages, newMessage])
+    addLog(`📨 Received ${type} message: ${content}`, 'success')
   }
 
   useEffect(() => {
@@ -179,6 +198,10 @@ function App() {
           addLog(`👤 Connected as: ${frame.headers['user-name'] || 'Anonymous User'}`, 'success')
           addLog(`🆔 Session ID: ${frame.headers['session'] || 'N/A'}`, 'info')
           addLog('✅ Ready to communicate via WebSocket!', 'success')
+          
+          // Subscribe to topics based on user type
+          subscribeToTopics(stompClient)
+          
           setConnected(true)
           setConnecting(false)
         },
@@ -218,7 +241,37 @@ function App() {
     }
   }
 
+  const subscribeToTopics = (stompClient) => {
+    const subs = []
+    
+    // Subscribe to broadcast notifications (all users can receive)
+    const broadcastSub = stompClient.subscribe('/topic/notifications', (message) => {
+      addMessage(message.body, 'Broadcast Notification', '/topic/notifications')
+    })
+    subs.push(broadcastSub)
+    addLog('📡 Subscribed to broadcast notifications', 'success')
+    
+    // Subscribe to private messages for current user
+    if (loginForm.username) {
+      const privateSub = stompClient.subscribe(`/user/${loginForm.username}/queue/private`, (message) => {
+        addMessage(message.body, 'Private Message', `/user/${loginForm.username}/queue/private`)
+      })
+      subs.push(privateSub)
+      addLog(`📡 Subscribed to private messages for ${loginForm.username}`, 'success')
+    }
+    
+    setSubscriptions(subs)
+  }
+
   const disconnect = () => {
+    // Unsubscribe from all topics
+    subscriptions.forEach(sub => {
+      if (sub && sub.unsubscribe) {
+        sub.unsubscribe()
+      }
+    })
+    setSubscriptions([])
+    
     if (stompClientRef.current && stompClientRef.current.connected) {
       addLog('🔄 Disconnecting from WebSocket...', 'info')
       stompClientRef.current.disconnect(() => {
@@ -233,12 +286,80 @@ function App() {
     }
   }
 
+  const sendBroadcast = async () => {
+    if (!broadcastMessage.trim()) {
+      addLog('Please enter broadcast message!', 'error')
+      return
+    }
+
+    try {
+      const response = await fetch('http://localhost:8080/api/notifications/broadcast', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'X-Gateway-Request': 'true'
+        },
+        body: JSON.stringify(broadcastMessage)
+      })
+
+      if (response.ok) {
+        addLog('📢 Broadcast sent successfully', 'success')
+        setBroadcastMessage('')
+      } else {
+        const error = await response.json()
+        addLog(`❌ Failed to send broadcast: ${error.message}`, 'error')
+      }
+    } catch (error) {
+      addLog(`❌ Error sending broadcast: ${error.message}`, 'error')
+    }
+  }
+
+  const sendPrivateMessage = async () => {
+    if (!privateMessage.trim()) {
+      addLog('Please enter private message!', 'error')
+      return
+    }
+    if (!targetUsername.trim()) {
+      addLog('Please enter target username!', 'error')
+      return
+    }
+
+    try {
+      const response = await fetch(`http://localhost:8080/api/notifications/user/${targetUsername}/send`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'X-Gateway-Request': 'true'
+        },
+        body: JSON.stringify(privateMessage)
+      })
+
+      if (response.ok) {
+        addLog(`📧 Private message sent to ${targetUsername} successfully`, 'success')
+        setPrivateMessage('')
+        setTargetUsername('')
+      } else {
+        const error = await response.json()
+        addLog(`❌ Failed to send private message: ${error.message}`, 'error')
+      }
+    } catch (error) {
+      addLog(`❌ Error sending private message: ${error.message}`, 'error')
+    }
+  }
+
   const clearLogs = () => {
     setLogs([{
       id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       message: 'ℹ️ Log cleared - Ready for new connection test...',
       type: 'info'
     }])
+  }
+
+  const clearMessages = () => {
+    setMessages([])
+    addLog('🧹 Messages cleared', 'info')
   }
 
   const getStatusDisplay = () => {
@@ -347,6 +468,94 @@ function App() {
                 🔌 Disconnect
               </button>
             </div>
+
+            {/* Message Sending Section */}
+            {connected && (
+              <div className="messaging-section">
+                <h3>📨 Send Messages</h3>
+                
+                {/* Broadcast to All */}
+                <div className="message-form">
+                  <h4>📢 Broadcast to All Users</h4>
+                  <div className="form-group">
+                    <input
+                      type="text"
+                      value={broadcastMessage}
+                      onChange={(e) => setBroadcastMessage(e.target.value)}
+                      className="form-input"
+                      placeholder="Enter broadcast message for all users"
+                      onKeyPress={(e) => e.key === 'Enter' && sendBroadcast()}
+                    />
+                    <button 
+                      onClick={sendBroadcast}
+                      disabled={!broadcastMessage.trim()}
+                      className="btn btn-send"
+                    >
+                      📢 Send Broadcast
+                    </button>
+                  </div>
+                </div>
+
+                {/* Private Message */}
+                <div className="message-form">
+                  <h4>📧 Private Message</h4>
+                  <div className="form-group">
+                    <input
+                      type="text"
+                      value={targetUsername}
+                      onChange={(e) => setTargetUsername(e.target.value)}
+                      className="form-input"
+                      placeholder="Target username"
+                    />
+                    <input
+                      type="text"
+                      value={privateMessage}
+                      onChange={(e) => setPrivateMessage(e.target.value)}
+                      className="form-input"
+                      placeholder="Enter private message"
+                      onKeyPress={(e) => e.key === 'Enter' && sendPrivateMessage()}
+                    />
+                    <button 
+                      onClick={sendPrivateMessage}
+                      disabled={!privateMessage.trim() || !targetUsername.trim()}
+                      className="btn btn-send"
+                    >
+                      📧 Send Private Message
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Received Messages Section */}
+            {connected && (
+              <div className="messages-section">
+                <h3>📨 Received Messages</h3>
+                <div className="messages-container">
+                  {messages.length === 0 ? (
+                    <div className="no-messages">No messages received yet...</div>
+                  ) : (
+                    messages.map(message => (
+                      <div key={message.id} className={`message-item ${message.type.toLowerCase().replace(' ', '-')}`}>
+                        <div className="message-header">
+                          <span className="message-type">{message.type}</span>
+                          <span className="message-time">{message.timestamp}</span>
+                        </div>
+                        <div className="message-content">{message.content}</div>
+                        {message.topic && (
+                          <div className="message-topic">Topic: {message.topic}</div>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+                <div className="messages-controls">
+                  <button onClick={clearMessages} className="btn btn-clear">
+                    🧹 Clear Messages
+                  </button>
+                </div>
+              </div>
+            )}
           </>
         )}
 
