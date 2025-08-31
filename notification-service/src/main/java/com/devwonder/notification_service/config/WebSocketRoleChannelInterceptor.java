@@ -27,7 +27,6 @@ public class WebSocketRoleChannelInterceptor implements ChannelInterceptor {
     
     private final JwtService jwtService;
     
-    @Autowired
     public WebSocketRoleChannelInterceptor(JwtService jwtService) {
         this.jwtService = jwtService;
     }
@@ -36,30 +35,66 @@ public class WebSocketRoleChannelInterceptor implements ChannelInterceptor {
     public Message<?> preSend(@NonNull Message<?> message, @NonNull MessageChannel channel) {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
         
-        if (accessor != null && StompCommand.SEND.equals(accessor.getCommand())) {
-            String destination = accessor.getDestination();
-            Principal user = accessor.getUser();
-            
-            if (destination != null && user != null) {
-                String username = user.getName();
-                List<String> userRoles = getUserRoles(accessor);
-                
-                log.info("WebSocket SEND command - User: {}, Destination: {}, Roles: {}", 
-                         username, destination, userRoles);
-                
-                if (!hasPermissionForDestination(destination, userRoles, username)) {
-                    log.error("ACCESS DENIED - User: {} with roles: {} cannot access destination: {}", 
-                            username, userRoles, destination);
-                    throw new AccessDeniedException("Access denied to destination: " + destination);
-                }
-                
-                log.info("ACCESS GRANTED - User: {} authorized for destination: {}", username, destination);
-            } else {
-                log.warn("Missing destination ({}) or user ({}) in SEND command", destination, user);
-            }
+        if (accessor == null) {
+            return message;
+        }
+        
+        StompCommand command = accessor.getCommand();
+        if (StompCommand.SEND.equals(command)) {
+            handleSendCommand(accessor);
+        } else if (StompCommand.SUBSCRIBE.equals(command)) {
+            handleSubscribeCommand(accessor);
         }
         
         return message;
+    }
+
+    private void handleSendCommand(StompHeaderAccessor accessor) {
+        String destination = accessor.getDestination();
+        Principal user = accessor.getUser();
+        
+        if (destination == null || user == null) {
+            log.warn("Missing destination ({}) or user ({}) in SEND command", destination, user);
+            return;
+        }
+        
+        String username = user.getName();
+        List<String> userRoles = getUserRoles(accessor);
+        
+        log.info("WebSocket SEND command - User: {}, Destination: {}, Roles: {}", 
+                 username, destination, userRoles);
+        
+        if (!hasSendPermissionForDestination(destination, userRoles, username)) {
+            log.error("SEND ACCESS DENIED - User: {} with roles: {} cannot send to destination: {}", 
+                    username, userRoles, destination);
+            throw new AccessDeniedException("Send access denied to destination: " + destination);
+        }
+        
+        log.info("SEND ACCESS GRANTED - User: {} authorized to send to destination: {}", username, destination);
+    }
+    
+    private void handleSubscribeCommand(StompHeaderAccessor accessor) {
+        String destination = accessor.getDestination();
+        Principal user = accessor.getUser();
+        
+        if (destination == null || user == null) {
+            log.warn("Missing destination ({}) or user ({}) in SUBSCRIBE command", destination, user);
+            return;
+        }
+        
+        String username = user.getName();
+        List<String> userRoles = getUserRoles(accessor);
+        
+        log.info("WebSocket SUBSCRIBE command - User: {}, Destination: {}, Roles: {}", 
+                 username, destination, userRoles);
+        
+        if (!hasSubscribePermissionForDestination(destination, userRoles, username)) {
+            log.error("SUBSCRIBE ACCESS DENIED - User: {} with roles: {} cannot subscribe to destination: {}", 
+                    username, userRoles, destination);
+            throw new AccessDeniedException("Subscribe access denied to destination: " + destination);
+        }
+        
+        log.info("SUBSCRIBE ACCESS GRANTED - User: {} authorized to subscribe to destination: {}", username, destination);
     }
 
     private List<String> getUserRoles(StompHeaderAccessor accessor) {
@@ -136,10 +171,10 @@ public class WebSocketRoleChannelInterceptor implements ChannelInterceptor {
                (!lowerUsername.contains("admin") && !lowerUsername.contains("dealer"));
     }
 
-    private boolean hasPermissionForDestination(String destination, List<String> userRoles, String username) {
+    private boolean hasSendPermissionForDestination(String destination, List<String> userRoles, String username) {
         // Check if user has ADMIN role
         boolean isAdmin = userRoles.stream()
-                .anyMatch(role -> "ADMIN".equalsIgnoreCase(role));
+                .anyMatch("ADMIN"::equalsIgnoreCase);
         
         // Broadcast messages - Only ADMIN can send
         if (destination.equals("/app/broadcast")) {
@@ -172,6 +207,40 @@ public class WebSocketRoleChannelInterceptor implements ChannelInterceptor {
         
         // Default: deny access to unknown destinations
         log.warn("Unknown destination: {} - Access denied", destination);
+        return false;
+    }
+    
+    private boolean hasSubscribePermissionForDestination(String destination, List<String> userRoles, String username) {
+        // Check if user has ADMIN role
+        boolean isAdmin = userRoles.stream()
+                .anyMatch("ADMIN"::equalsIgnoreCase);
+        
+        // Public topic subscriptions - All authenticated users can subscribe
+        if (destination.equals("/topic/notifications")) {
+            log.info("Public notifications subscription - User: {}, Roles: {} - ALLOWED", username, userRoles);
+            return true;
+        }
+        
+        // Dealer registration topic - ADMIN only
+        if (destination.equals("/topic/dealer-registrations")) {
+            log.info("Dealer registrations subscription check - User: {}, Roles: {}, Is Admin: {}", username, userRoles, isAdmin);
+            return isAdmin;
+        }
+        
+        // Private message queue - User-specific (only own queue)
+        if (destination.startsWith("/user/queue/private") || destination.startsWith("/user/" + username + "/queue/private")) {
+            log.info("Private queue subscription check - User: {}, Destination: {} - ALLOWED (own queue)", username, destination);
+            return true;
+        }
+        
+        // Block subscription to other users' private queues
+        if (destination.startsWith("/user/") && destination.contains("/queue/private")) {
+            log.warn("Private queue subscription denied - User: {} trying to access another user's queue: {}", username, destination);
+            return false;
+        }
+        
+        // Default: deny access to unknown destinations
+        log.warn("Unknown subscription destination: {} - Access denied for user: {}", destination, username);
         return false;
     }
 }

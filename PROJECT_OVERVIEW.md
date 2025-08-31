@@ -94,19 +94,27 @@ NexHub implements a complete microservices architecture with infrastructure serv
 - **Layer 1**: WebSocketJwtChannelInterceptor for authentication (CONNECT frames)
   - Initial JWT validation and Principal creation
   - Stateless authentication without session storage
-- **Layer 2**: WebSocketRoleChannelInterceptor for authorization (SEND frames)
+- **Layer 2**: WebSocketRoleChannelInterceptor for authorization (SEND/SUBSCRIBE frames)
   - Real-time JWT token validation on each message
   - Fresh role extraction directly from token claims
+  - Comprehensive SEND and SUBSCRIBE permission checking
   - Token expiration handling during active sessions
   - Pure JWT-based without session dependencies
+  - Clean architecture with optimized cognitive complexity
 - **Token Security**: Custom JwtService with JWKS validation and comprehensive expiration checks
 - **Architecture**: Fully stateless WebSocket security with no session storage
 
 **Role-Based Message Authorization**:
-- **Broadcast Messages**: Only ADMIN users can send (`@MessageMapping("/broadcast")`)
-- **Private Messages**: Only ADMIN → CUSTOMER communication allowed (`@MessageMapping("/private/{targetUser}")`)
-- **Username Validation**: Pattern-based validation ensures target users are identified as CUSTOMER
-- **Real-time Validation**: Both client-side and server-side validation with visual feedback
+- **SEND Permissions** (Message Sending):
+  - **Broadcast Messages**: Only ADMIN users can send (`@MessageMapping("/broadcast")`)
+  - **Private Messages**: Only ADMIN → CUSTOMER communication allowed (`@MessageMapping("/private/{targetUser}")`)
+  - **Username Validation**: Pattern-based validation ensures target users are identified as CUSTOMER
+- **SUBSCRIBE Permissions** (Message Receiving):
+  - **Public Topics**: All authenticated users can subscribe (`/topic/notifications`)
+  - **Admin Topics**: ADMIN-only subscription (`/topic/dealer-registrations`)
+  - **Private Queues**: User-specific subscription only (`/user/queue/private`)
+  - **Security**: Prevention of cross-user queue access
+- **Real-time Validation**: Both client-side and server-side validation with comprehensive logging
 
 ### Security Flow Architecture
 ```
@@ -542,6 +550,8 @@ curl http://localhost:8761/eureka/apps
 - Enhanced username pattern validation for target user identification
 - Custom JwtService with JWKS validation and comprehensive exception handling
 - Token expiration handling during active WebSocket sessions
+- Comprehensive SEND and SUBSCRIBE authorization with role-based permissions
+- Clean code architecture with SonarQube compliance and optimized cognitive complexity
 - nexhub-common library with shared utilities and authorization aspects
 
 **Development & Testing Enhancements**:
@@ -732,11 +742,13 @@ cd nexhub-common && mvn clean install
 **Recent Major Changes**:
 - **Direct WebSocket Architecture**: Bypassing API Gateway for improved performance
 - **Stateless WebSocket Security**: Pure JWT-based authentication without session storage
-- **Dual-Layer Interceptor Security**: JWT authentication + real-time JWT validation for authorization
+- **Dual-Layer Interceptor Security**: JWT authentication + comprehensive SEND/SUBSCRIBE authorization
 - **Role-Based Messaging**: ADMIN-only broadcasts, ADMIN → CUSTOMER private messaging
+- **Comprehensive Permission System**: Both sending and subscription permission controls
 - **Real-time Token Validation**: Fresh JWT validation on each WebSocket message
 - **Token Expiration Handling**: Automatic session termination when tokens expire
 - **Username Pattern Validation**: Server-side validation for target user identification
+- **Clean Code Architecture**: SonarQube compliance with optimized cognitive complexity
 - **Pure STOMP Implementation**: @MessageMapping controllers replacing REST endpoints
 - **Enhanced React Demo**: Real-time validation with visual feedback
 - **nexhub-common shared library**: Code reusability and maintainability improvements

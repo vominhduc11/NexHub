@@ -4,8 +4,8 @@ import com.devwonder.notification_service.service.JwtService;
 import com.devwonder.common.exception.AuthenticationException;
 import com.devwonder.common.exception.AuthorizationException;
 import com.nimbusds.jwt.JWTClaimsSet;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -19,11 +19,15 @@ import java.security.Principal;
 import java.util.List;
 
 @Component
-@RequiredArgsConstructor
-@Slf4j
 public class WebSocketJwtChannelInterceptor implements ChannelInterceptor {
 
+    private static final Logger log = LoggerFactory.getLogger(WebSocketJwtChannelInterceptor.class);
+    
     private final JwtService jwtService;
+    
+    public WebSocketJwtChannelInterceptor(JwtService jwtService) {
+        this.jwtService = jwtService;
+    }
 
     @Override
     public Message<?> preSend(@NonNull Message<?> message, @NonNull MessageChannel channel) {
@@ -50,7 +54,7 @@ public class WebSocketJwtChannelInterceptor implements ChannelInterceptor {
                 accessor.setUser(principal);
                 
                 log.info("STOMP CONNECT authenticated for user: {} (ID: {}) with roles: {}", 
-                        jwtService.extractUsername(claimsSet), 
+                        jwtService.extractUsername(claimsSet),
                         jwtService.extractAccountId(claimsSet),
                         roles);
                 
