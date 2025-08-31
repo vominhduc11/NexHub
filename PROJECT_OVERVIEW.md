@@ -87,14 +87,20 @@ NexHub implements a complete microservices architecture with infrastructure serv
 **Direct Connection Architecture** (Bypassing API Gateway):
 - **Connection Endpoint**: `ws://localhost:8083/ws/notifications` (Direct to Notification Service)
 - **Performance**: Reduced latency by eliminating gateway proxy layer
-- **Security**: Maintained through dual interceptor architecture
+- **Security**: Maintained through dual interceptor architecture with real-time JWT validation
 - **Protocol**: Pure STOMP over SockJS with direct JWT validation
 
-**Dual-Layer Interceptor Security**:
+**Dual-Layer Interceptor Security with Pure JWT Token Validation**:
 - **Layer 1**: WebSocketJwtChannelInterceptor for authentication (CONNECT frames)
-- **Layer 2**: WebSocketRoleChannelInterceptor for authorization (SEND frames)  
-- **Session Management**: User information stored in WebSocket session attributes
-- **Token Validation**: Custom JwtService with JWKS validation and expiration checks
+  - Initial JWT validation and Principal creation
+  - Stateless authentication without session storage
+- **Layer 2**: WebSocketRoleChannelInterceptor for authorization (SEND frames)
+  - Real-time JWT token validation on each message
+  - Fresh role extraction directly from token claims
+  - Token expiration handling during active sessions
+  - Pure JWT-based without session dependencies
+- **Token Security**: Custom JwtService with JWKS validation and comprehensive expiration checks
+- **Architecture**: Fully stateless WebSocket security with no session storage
 
 **Role-Based Message Authorization**:
 - **Broadcast Messages**: Only ADMIN users can send (`@MessageMapping("/broadcast")`)
@@ -111,9 +117,9 @@ WebSocket Flow (Direct):
 Client WebSocket → Notification Service (Port 8083)
                        ↓
          WebSocketJwtChannelInterceptor (Authentication)
-                       ↓
-       WebSocketRoleChannelInterceptor (Authorization) 
-                       ↓
+                       ↓ (Principal creation, no session storage)
+       WebSocketRoleChannelInterceptor (Real-time Authorization)
+                       ↓ (Fresh JWT validation + role extraction from token)
                @MessageMapping Controllers
                        ↓
            SimpMessagingTemplate (Broadcast/Private)
@@ -532,9 +538,10 @@ curl http://localhost:8761/eureka/apps
 
 **Security & Architecture Improvements**:
 - Direct WebSocket connection architecture bypassing API Gateway
-- Dual-layer interceptor security (JWT authentication + role authorization)
+- Dual-layer interceptor security with real-time JWT validation on each message
 - Enhanced username pattern validation for target user identification
 - Custom JwtService with JWKS validation and comprehensive exception handling
+- Token expiration handling during active WebSocket sessions
 - nexhub-common library with shared utilities and authorization aspects
 
 **Development & Testing Enhancements**:
@@ -724,8 +731,11 @@ cd nexhub-common && mvn clean install
 
 **Recent Major Changes**:
 - **Direct WebSocket Architecture**: Bypassing API Gateway for improved performance
-- **Dual-Layer Interceptor Security**: JWT authentication + role-based authorization
+- **Stateless WebSocket Security**: Pure JWT-based authentication without session storage
+- **Dual-Layer Interceptor Security**: JWT authentication + real-time JWT validation for authorization
 - **Role-Based Messaging**: ADMIN-only broadcasts, ADMIN → CUSTOMER private messaging
+- **Real-time Token Validation**: Fresh JWT validation on each WebSocket message
+- **Token Expiration Handling**: Automatic session termination when tokens expire
 - **Username Pattern Validation**: Server-side validation for target user identification
 - **Pure STOMP Implementation**: @MessageMapping controllers replacing REST endpoints
 - **Enhanced React Demo**: Real-time validation with visual feedback

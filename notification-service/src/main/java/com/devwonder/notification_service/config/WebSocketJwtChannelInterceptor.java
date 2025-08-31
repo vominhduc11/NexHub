@@ -49,13 +49,6 @@ public class WebSocketJwtChannelInterceptor implements ChannelInterceptor {
                 Principal principal = createPrincipal(claimsSet);
                 accessor.setUser(principal);
                 
-                // Store additional user info in session attributes
-                accessor.getSessionAttributes().put("accountId", jwtService.extractAccountId(claimsSet));
-                accessor.getSessionAttributes().put("username", jwtService.extractUsername(claimsSet));
-                accessor.getSessionAttributes().put("userType", jwtService.extractUserType(claimsSet));
-                accessor.getSessionAttributes().put("roles", roles);
-                accessor.getSessionAttributes().put("permissions", jwtService.extractPermissions(claimsSet));
-                
                 log.info("STOMP CONNECT authenticated for user: {} (ID: {}) with roles: {}", 
                         jwtService.extractUsername(claimsSet), 
                         jwtService.extractAccountId(claimsSet),

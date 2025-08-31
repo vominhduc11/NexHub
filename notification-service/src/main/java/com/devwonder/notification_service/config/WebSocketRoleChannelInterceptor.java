@@ -1,5 +1,10 @@
 package com.devwonder.notification_service.config;
 
+import com.devwonder.notification_service.service.JwtService;
+import com.devwonder.common.exception.AuthenticationException;
+import com.devwonder.common.exception.AuthorizationException;
+import com.nimbusds.jwt.JWTClaimsSet;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -19,6 +24,13 @@ import java.util.List;
 public class WebSocketRoleChannelInterceptor implements ChannelInterceptor {
 
     private static final Logger log = LoggerFactory.getLogger(WebSocketRoleChannelInterceptor.class);
+    
+    private final JwtService jwtService;
+    
+    @Autowired
+    public WebSocketRoleChannelInterceptor(JwtService jwtService) {
+        this.jwtService = jwtService;
+    }
 
     @Override
     public Message<?> preSend(@NonNull Message<?> message, @NonNull MessageChannel channel) {
@@ -51,25 +63,61 @@ public class WebSocketRoleChannelInterceptor implements ChannelInterceptor {
     }
 
     private List<String> getUserRoles(StompHeaderAccessor accessor) {
-        // Get roles from session attributes (stored during JWT validation)
-        @SuppressWarnings("unchecked")
-        List<String> roles = (List<String>) accessor.getSessionAttributes().get("roles");
+        // Extract and validate JWT token for real-time role extraction
+        String token = extractTokenFromHeaders(accessor);
         
-        if (roles != null && !roles.isEmpty()) {
-            log.debug("Found roles in session attributes: {}", roles);
-            return roles;
+        if (token == null || token.isEmpty()) {
+            log.error("No JWT token found in headers for role extraction");
+            throw new AccessDeniedException("Authentication token required");
         }
         
-        // Try to get userType from session attributes as fallback
-        String userType = (String) accessor.getSessionAttributes().get("userType");
-        if (userType != null && !userType.trim().isEmpty()) {
-            log.debug("Using userType as role: {}", userType);
-            return List.of(userType);
+        try {
+            // Validate JWT token and extract fresh roles
+            JWTClaimsSet claimsSet = jwtService.validateToken(token);
+            List<String> roles = jwtService.extractRoles(claimsSet);
+            
+            if (roles != null && !roles.isEmpty()) {
+                log.debug("Extracted roles from JWT token: {}", roles);
+                return roles;
+            }
+            
+            // Fallback to userType if no roles found
+            String userType = jwtService.extractUserType(claimsSet);
+            if (userType != null && !userType.trim().isEmpty()) {
+                log.debug("Using userType from JWT as role: {}", userType);
+                return List.of(userType);
+            }
+            
+            // No roles or userType found
+            log.warn("No roles or userType found in JWT token");
+            return List.of();
+            
+        } catch (AuthenticationException | AuthorizationException e) {
+            log.error("JWT token validation failed during role extraction: {}", e.getMessage());
+            throw new AccessDeniedException("Invalid or expired token: " + e.getMessage());
+        } catch (Exception e) {
+            log.error("Unexpected error during JWT token validation: {}", e.getMessage());
+            throw new AccessDeniedException("Token validation failed: " + e.getMessage());
+        }
+    }
+    
+    private String extractTokenFromHeaders(StompHeaderAccessor accessor) {
+        // Try to get token from Authorization header
+        List<String> authHeaders = accessor.getNativeHeader("Authorization");
+        if (authHeaders != null && !authHeaders.isEmpty()) {
+            String authHeader = authHeaders.get(0);
+            if (authHeader.startsWith("Bearer ")) {
+                return authHeader.substring(7);
+            }
         }
         
-        // Default to empty list if no roles found
-        log.warn("No roles found in session attributes for user");
-        return List.of();
+        // Try to get token from custom header
+        List<String> tokenHeaders = accessor.getNativeHeader("token");
+        if (tokenHeaders != null && !tokenHeaders.isEmpty()) {
+            return tokenHeaders.get(0);
+        }
+        
+        return null;
     }
 
     private boolean isCustomerUsername(String username) {
@@ -84,15 +132,14 @@ public class WebSocketRoleChannelInterceptor implements ChannelInterceptor {
                lowerUsername.contains("user") ||
                lowerUsername.contains("client") ||
                lowerUsername.startsWith("cust") ||
-               // Common customer username patterns
-               lowerUsername.matches(".*customer.*") ||
                // Default: if not clearly admin/dealer, assume customer
                (!lowerUsername.contains("admin") && !lowerUsername.contains("dealer"));
     }
 
     private boolean hasPermissionForDestination(String destination, List<String> userRoles, String username) {
-        // Check if user has ADMIN role (either in roles list or userType)
-        boolean isAdmin = userRoles.contains("ADMIN") || userRoles.contains("admin");
+        // Check if user has ADMIN role
+        boolean isAdmin = userRoles.stream()
+                .anyMatch(role -> "ADMIN".equalsIgnoreCase(role));
         
         // Broadcast messages - Only ADMIN can send
         if (destination.equals("/app/broadcast")) {
