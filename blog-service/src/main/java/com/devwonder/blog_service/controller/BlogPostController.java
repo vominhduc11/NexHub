@@ -1,6 +1,8 @@
 package com.devwonder.blog_service.controller;
 
 import com.devwonder.common.dto.BaseResponse;
+import com.devwonder.common.exception.BaseException;
+import com.devwonder.common.util.ResponseUtils;
 import com.devwonder.blog_service.dto.BlogPostRequest;
 import com.devwonder.blog_service.dto.BlogPostResponse;
 import com.devwonder.blog_service.service.BlogPostService;
@@ -108,11 +110,10 @@ public class BlogPostController {
         
         try {
             Page<BlogPostResponse> posts = blogPostService.getFeaturedPosts(page, size);
-            return ResponseEntity.ok(BaseResponse.success(posts, "Featured posts retrieved successfully"));
+            return ResponseUtils.success(posts, "Featured posts retrieved successfully");
         } catch (Exception e) {
             log.error("Error retrieving featured posts", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving featured posts", "INTERNAL_ERROR"));
+            return ResponseUtils.internalError("Error retrieving featured posts");
         }
     }
     
@@ -126,11 +127,10 @@ public class BlogPostController {
         
         try {
             Page<BlogPostResponse> posts = blogPostService.getPopularPosts(page, size);
-            return ResponseEntity.ok(BaseResponse.success(posts, "Popular posts retrieved successfully"));
+            return ResponseUtils.success(posts, "Popular posts retrieved successfully");
         } catch (Exception e) {
             log.error("Error retrieving popular posts", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving popular posts", "INTERNAL_ERROR"));
+            return ResponseUtils.internalError("Error retrieving popular posts");
         }
     }
     
@@ -205,13 +205,10 @@ public class BlogPostController {
         try {
             Page<BlogPostResponse> posts = blogPostService.getRelatedPosts(id, limit);
             return ResponseEntity.ok(BaseResponse.success(posts, "Related posts retrieved successfully"));
-        } catch (RuntimeException e) {
-            if (e.getMessage().contains("not found")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(BaseResponse.error("Post not found", "NOT_FOUND"));
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(BaseResponse.error(e.getMessage(), "VALIDATION_ERROR"));
+        } catch (BaseException e) {
+            log.error("Error retrieving related posts: {}", e.getMessage(), e);
+            return ResponseEntity.status(e.getHttpStatus())
+                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
         } catch (Exception e) {
             log.error("Error retrieving related posts", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -251,13 +248,10 @@ public class BlogPostController {
         try {
             BlogPostResponse response = blogPostService.updatePost(id, request);
             return ResponseEntity.ok(BaseResponse.success(response, "Post updated successfully"));
-        } catch (RuntimeException e) {
-            if (e.getMessage().contains("not found")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(BaseResponse.error("Post not found", "NOT_FOUND"));
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(BaseResponse.error(e.getMessage(), "VALIDATION_ERROR"));
+        } catch (BaseException e) {
+            log.error("Error retrieving related posts: {}", e.getMessage(), e);
+            return ResponseEntity.status(e.getHttpStatus())
+                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
         } catch (Exception e) {
             log.error("Error updating post", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -275,13 +269,10 @@ public class BlogPostController {
         try {
             blogPostService.deletePost(id);
             return ResponseEntity.ok(BaseResponse.success("Post deleted successfully"));
-        } catch (RuntimeException e) {
-            if (e.getMessage().contains("not found")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(BaseResponse.error("Post not found", "NOT_FOUND"));
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(BaseResponse.error(e.getMessage(), "VALIDATION_ERROR"));
+        } catch (BaseException e) {
+            log.error("Error retrieving related posts: {}", e.getMessage(), e);
+            return ResponseEntity.status(e.getHttpStatus())
+                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
         } catch (Exception e) {
             log.error("Error deleting post", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -299,13 +290,10 @@ public class BlogPostController {
         try {
             BlogPostResponse response = blogPostService.publishPost(id);
             return ResponseEntity.ok(BaseResponse.success(response, "Post published successfully"));
-        } catch (RuntimeException e) {
-            if (e.getMessage().contains("not found")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(BaseResponse.error("Post not found", "NOT_FOUND"));
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(BaseResponse.error(e.getMessage(), "VALIDATION_ERROR"));
+        } catch (BaseException e) {
+            log.error("Error retrieving related posts: {}", e.getMessage(), e);
+            return ResponseEntity.status(e.getHttpStatus())
+                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
         } catch (Exception e) {
             log.error("Error publishing post", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -323,13 +311,10 @@ public class BlogPostController {
         try {
             blogPostService.likePost(id);
             return ResponseEntity.ok(BaseResponse.success("Post liked successfully"));
-        } catch (RuntimeException e) {
-            if (e.getMessage().contains("not found")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(BaseResponse.error("Post not found", "NOT_FOUND"));
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(BaseResponse.error(e.getMessage(), "VALIDATION_ERROR"));
+        } catch (BaseException e) {
+            log.error("Error retrieving related posts: {}", e.getMessage(), e);
+            return ResponseEntity.status(e.getHttpStatus())
+                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
         } catch (Exception e) {
             log.error("Error liking post", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

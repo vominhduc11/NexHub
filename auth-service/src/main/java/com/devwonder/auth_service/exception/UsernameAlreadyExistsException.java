@@ -1,6 +1,8 @@
 package com.devwonder.auth_service.exception;
 
-public class UsernameAlreadyExistsException extends RuntimeException {
+import com.devwonder.common.exception.BusinessException;
+
+public class UsernameAlreadyExistsException extends BusinessException {
     public UsernameAlreadyExistsException(String message) {
         super(message);
     }

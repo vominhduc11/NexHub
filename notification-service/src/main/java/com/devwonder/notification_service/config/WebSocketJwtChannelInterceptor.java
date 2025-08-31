@@ -1,6 +1,8 @@
 package com.devwonder.notification_service.config;
 
 import com.devwonder.notification_service.service.JwtService;
+import com.devwonder.common.exception.AuthenticationException;
+import com.devwonder.common.exception.AuthorizationException;
 import com.nimbusds.jwt.JWTClaimsSet;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +35,7 @@ public class WebSocketJwtChannelInterceptor implements ChannelInterceptor {
             
             if (token == null || token.isEmpty()) {
                 log.warn("No JWT token provided in STOMP CONNECT frame");
-                throw new RuntimeException("Authentication required");
+                throw new AuthenticationException("Authentication required");
             }
             
             try {
@@ -44,7 +46,7 @@ public class WebSocketJwtChannelInterceptor implements ChannelInterceptor {
                 List<String> roles = jwtService.extractRoles(claimsSet);
                 if (roles == null || !roles.contains("CUSTOMER")) {
                     log.warn("STOMP CONNECT denied: User does not have CUSTOMER role. Roles: {}", roles);
-                    throw new RuntimeException("Access denied: CUSTOMER role required");
+                    throw new AuthorizationException("Access denied: CUSTOMER role required");
                 }
                 
                 // Create a Principal and set it in the accessor
@@ -63,9 +65,12 @@ public class WebSocketJwtChannelInterceptor implements ChannelInterceptor {
                         jwtService.extractAccountId(claimsSet),
                         roles);
                 
+            } catch (AuthenticationException | AuthorizationException e) {
+                // Re-throw specific authentication/authorization exceptions
+                throw e;
             } catch (Exception e) {
                 log.error("STOMP CONNECT authentication failed: {}", e.getMessage());
-                throw new RuntimeException("Authentication failed: " + e.getMessage());
+                throw new AuthenticationException("Authentication failed: " + e.getMessage());
             }
         }
         

@@ -11,6 +11,7 @@ import com.devwonder.auth_service.entity.Role;
 import java.util.Optional;
 import com.devwonder.auth_service.exception.RoleNotFoundException;
 import com.devwonder.auth_service.exception.UsernameAlreadyExistsException;
+import com.devwonder.auth_service.exception.UserServiceIntegrationException;
 import com.devwonder.auth_service.repository.AccountRepository;
 import com.devwonder.auth_service.repository.RoleRepository;
 import lombok.RequiredArgsConstructor;
@@ -86,7 +87,7 @@ public class ResellerService {
                 
             } catch (Exception e) {
                 log.error("Failed to create reseller profile in user-service for account ID: {}", savedAccount.getId(), e);
-                throw new RuntimeException("Failed to create reseller profile: " + e.getMessage());
+                throw new UserServiceIntegrationException("Failed to create reseller profile: " + e.getMessage(), e);
             }
             
             log.info("Successfully registered reseller with ID: {}", savedAccount.getId());

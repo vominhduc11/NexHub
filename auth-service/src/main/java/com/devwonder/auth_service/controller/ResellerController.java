@@ -1,6 +1,7 @@
 package com.devwonder.auth_service.controller;
 
 import com.devwonder.common.dto.BaseResponse;
+import com.devwonder.common.exception.BaseException;
 import com.devwonder.auth_service.dto.ResellerRegistrationRequest;
 import com.devwonder.auth_service.dto.ResellerRegistrationResponse;
 import com.devwonder.auth_service.exception.UsernameAlreadyExistsException;
@@ -51,16 +52,10 @@ public class ResellerController {
             BaseResponse<ResellerRegistrationResponse> errorResponse = BaseResponse.error(e.getMessage(), "ROLE_NOT_FOUND");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
             
-        } catch (RuntimeException e) {
-            log.error("Runtime error: {}", e.getMessage(), e);
-            
-            if (e.getMessage().contains("Failed to create reseller profile")) {
-                BaseResponse<ResellerRegistrationResponse> errorResponse = BaseResponse.error("Failed to complete registration", "REGISTRATION_FAILED");
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
-            }
-            
-            BaseResponse<ResellerRegistrationResponse> errorResponse = BaseResponse.error(e.getMessage(), "RUNTIME_ERROR");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        } catch (BaseException e) {
+            log.error("Base exception: {}", e.getMessage(), e);
+            BaseResponse<ResellerRegistrationResponse> errorResponse = BaseResponse.error(e.getMessage(), e.getErrorCode());
+            return ResponseEntity.status(e.getHttpStatus()).body(errorResponse);
             
         } catch (Exception e) {
             log.error("Unexpected error: {}", e.getMessage(), e);

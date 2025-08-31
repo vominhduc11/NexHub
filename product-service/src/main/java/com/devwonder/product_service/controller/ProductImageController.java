@@ -2,6 +2,7 @@ package com.devwonder.product_service.controller;
 
 import com.devwonder.common.annotation.RequireAdminRole;
 import com.devwonder.common.dto.BaseResponse;
+import com.devwonder.common.exception.BaseException;
 import com.devwonder.product_service.dto.ProductImageRequest;
 import com.devwonder.product_service.dto.ProductImageResponse;
 import com.devwonder.product_service.service.ProductImageService;
@@ -43,13 +44,10 @@ public class ProductImageController {
         try {
             List<ProductImageResponse> images = productImageService.getProductImages(productId);
             return ResponseEntity.ok(BaseResponse.success(images, "Product images retrieved successfully"));
-        } catch (RuntimeException e) {
-            if (e.getMessage().contains("not found")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(BaseResponse.error("Product not found", "NOT_FOUND"));
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(BaseResponse.error(e.getMessage(), "VALIDATION_ERROR"));
+        } catch (BaseException e) {
+            log.error("Error with product image operation: {}", e.getMessage(), e);
+            return ResponseEntity.status(e.getHttpStatus())
+                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
         } catch (Exception e) {
             log.error("Error retrieving product images: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -76,13 +74,10 @@ public class ProductImageController {
             ProductImageResponse addedImage = productImageService.addProductImage(productId, imageRequest);
             return ResponseEntity.status(HttpStatus.CREATED)
                 .body(BaseResponse.success(addedImage, "Product image added successfully"));
-        } catch (RuntimeException e) {
-            if (e.getMessage().contains("not found")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(BaseResponse.error("Product not found", "NOT_FOUND"));
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(BaseResponse.error(e.getMessage(), "VALIDATION_ERROR"));
+        } catch (BaseException e) {
+            log.error("Error with product image operation: {}", e.getMessage(), e);
+            return ResponseEntity.status(e.getHttpStatus())
+                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
         } catch (Exception e) {
             log.error("Error adding product image: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -109,13 +104,10 @@ public class ProductImageController {
         try {
             ProductImageResponse updatedImage = productImageService.updateProductImage(productId, imageId, imageRequest);
             return ResponseEntity.ok(BaseResponse.success(updatedImage, "Product image updated successfully"));
-        } catch (RuntimeException e) {
-            if (e.getMessage().contains("not found")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(BaseResponse.error(e.getMessage(), "NOT_FOUND"));
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(BaseResponse.error(e.getMessage(), "VALIDATION_ERROR"));
+        } catch (BaseException e) {
+            log.error("Error updating product image: {}", e.getMessage(), e);
+            return ResponseEntity.status(e.getHttpStatus())
+                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
         } catch (Exception e) {
             log.error("Error updating product image: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -140,13 +132,10 @@ public class ProductImageController {
         try {
             productImageService.deleteProductImage(productId, imageId);
             return ResponseEntity.ok(BaseResponse.success("Product image deleted successfully"));
-        } catch (RuntimeException e) {
-            if (e.getMessage().contains("not found")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(BaseResponse.error(e.getMessage(), "NOT_FOUND"));
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(BaseResponse.error(e.getMessage(), "VALIDATION_ERROR"));
+        } catch (BaseException e) {
+            log.error("Error deleting product image: {}", e.getMessage(), e);
+            return ResponseEntity.status(e.getHttpStatus())
+                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
         } catch (Exception e) {
             log.error("Error deleting product image: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

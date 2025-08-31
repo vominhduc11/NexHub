@@ -1,5 +1,6 @@
 package com.devwonder.user_service.controller;
 
+import com.devwonder.common.exception.BaseException;
 import com.devwonder.user_service.dto.CreateResellerRequest;
 import com.devwonder.user_service.dto.ResellerResponse;
 import com.devwonder.user_service.service.ResellerService;
@@ -37,14 +38,9 @@ public class ResellerController {
             ResellerResponse response = resellerService.createReseller(request);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
             
-        } catch (RuntimeException e) {
+        } catch (BaseException e) {
             log.error("Error creating reseller: {}", e.getMessage());
-            
-            if (e.getMessage().contains("already exists")) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).build();
-            }
-            
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return ResponseEntity.status(e.getHttpStatus()).build();
         }
     }
 

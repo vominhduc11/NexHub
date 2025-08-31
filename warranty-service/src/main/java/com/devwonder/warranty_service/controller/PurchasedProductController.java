@@ -1,6 +1,7 @@
 package com.devwonder.warranty_service.controller;
 
 import com.devwonder.common.dto.BaseResponse;
+import com.devwonder.common.exception.BaseException;
 import com.devwonder.warranty_service.dto.PurchasedProductRequest;
 import com.devwonder.warranty_service.dto.PurchasedProductResponse;
 import com.devwonder.warranty_service.service.PurchasedProductService;
@@ -269,13 +270,10 @@ public class PurchasedProductController {
         try {
             PurchasedProductResponse response = purchasedProductService.updatePurchasedProduct(id, request);
             return ResponseEntity.ok(BaseResponse.success(response, "Product warranty updated successfully"));
-        } catch (RuntimeException e) {
-            if (e.getMessage().contains("not found")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(BaseResponse.error("Product not found", "NOT_FOUND"));
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(BaseResponse.error(e.getMessage(), "VALIDATION_ERROR"));
+        } catch (BaseException e) {
+            log.error("Error with purchased product operation: {}", e.getMessage(), e);
+            return ResponseEntity.status(e.getHttpStatus())
+                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
         } catch (Exception e) {
             log.error("Error updating purchased product", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -293,13 +291,10 @@ public class PurchasedProductController {
         try {
             purchasedProductService.deletePurchasedProduct(id);
             return ResponseEntity.ok(BaseResponse.success("Product warranty deleted successfully"));
-        } catch (RuntimeException e) {
-            if (e.getMessage().contains("not found")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(BaseResponse.error("Product not found", "NOT_FOUND"));
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(BaseResponse.error(e.getMessage(), "VALIDATION_ERROR"));
+        } catch (BaseException e) {
+            log.error("Error with purchased product operation: {}", e.getMessage(), e);
+            return ResponseEntity.status(e.getHttpStatus())
+                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
         } catch (Exception e) {
             log.error("Error deleting purchased product", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -317,13 +312,10 @@ public class PurchasedProductController {
         try {
             purchasedProductService.updateWarrantyRemainingDays(id);
             return ResponseEntity.ok(BaseResponse.success("Warranty days updated successfully"));
-        } catch (RuntimeException e) {
-            if (e.getMessage().contains("not found")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(BaseResponse.error("Product not found", "NOT_FOUND"));
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(BaseResponse.error(e.getMessage(), "VALIDATION_ERROR"));
+        } catch (BaseException e) {
+            log.error("Error with purchased product operation: {}", e.getMessage(), e);
+            return ResponseEntity.status(e.getHttpStatus())
+                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
         } catch (Exception e) {
             log.error("Error updating warranty days", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

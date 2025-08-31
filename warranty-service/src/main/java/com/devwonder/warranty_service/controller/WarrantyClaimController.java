@@ -1,6 +1,7 @@
 package com.devwonder.warranty_service.controller;
 
 import com.devwonder.common.dto.BaseResponse;
+import com.devwonder.common.exception.BaseException;
 import com.devwonder.warranty_service.dto.WarrantyClaimRequest;
 import com.devwonder.warranty_service.dto.WarrantyClaimResponse;
 import com.devwonder.warranty_service.dto.WarrantyStatsResponse;
@@ -327,13 +328,10 @@ public class WarrantyClaimController {
         try {
             WarrantyClaimResponse response = warrantyClaimService.updateClaimStatus(id, status, internalNotes);
             return ResponseEntity.ok(BaseResponse.success(response, "Claim status updated successfully"));
-        } catch (RuntimeException e) {
-            if (e.getMessage().contains("not found")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(BaseResponse.error("Claim not found", "NOT_FOUND"));
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(BaseResponse.error(e.getMessage(), "VALIDATION_ERROR"));
+        } catch (BaseException e) {
+            log.error("Error with warranty claim operation: {}", e.getMessage(), e);
+            return ResponseEntity.status(e.getHttpStatus())
+                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
         } catch (Exception e) {
             log.error("Error updating claim status", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -352,13 +350,10 @@ public class WarrantyClaimController {
         try {
             WarrantyClaimResponse response = warrantyClaimService.addResolutionNotes(id, resolutionNotes);
             return ResponseEntity.ok(BaseResponse.success(response, "Resolution notes added successfully"));
-        } catch (RuntimeException e) {
-            if (e.getMessage().contains("not found")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(BaseResponse.error("Claim not found", "NOT_FOUND"));
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(BaseResponse.error(e.getMessage(), "VALIDATION_ERROR"));
+        } catch (BaseException e) {
+            log.error("Error with warranty claim operation: {}", e.getMessage(), e);
+            return ResponseEntity.status(e.getHttpStatus())
+                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
         } catch (Exception e) {
             log.error("Error adding resolution notes", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -376,13 +371,10 @@ public class WarrantyClaimController {
         try {
             warrantyClaimService.deleteClaim(id);
             return ResponseEntity.ok(BaseResponse.success("Warranty claim deleted successfully"));
-        } catch (RuntimeException e) {
-            if (e.getMessage().contains("not found")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(BaseResponse.error("Claim not found", "NOT_FOUND"));
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(BaseResponse.error(e.getMessage(), "VALIDATION_ERROR"));
+        } catch (BaseException e) {
+            log.error("Error with warranty claim operation: {}", e.getMessage(), e);
+            return ResponseEntity.status(e.getHttpStatus())
+                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
         } catch (Exception e) {
             log.error("Error deleting warranty claim", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

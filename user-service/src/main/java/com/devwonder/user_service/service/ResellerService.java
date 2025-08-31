@@ -7,6 +7,8 @@ import com.devwonder.user_service.exception.EmailAlreadyExistsException;
 import com.devwonder.user_service.exception.PhoneAlreadyExistsException;
 import com.devwonder.user_service.mapper.ResellerMapper;
 import com.devwonder.user_service.repository.ResellerRepository;
+import com.devwonder.user_service.exception.ResellerNotFoundException;
+import com.devwonder.common.exception.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -32,7 +34,7 @@ public class ResellerService {
         
         // Check if reseller already exists
         if (resellerRepository.existsById(request.getAccountId())) {
-            throw new RuntimeException("Reseller with account ID " + request.getAccountId() + " already exists");
+            throw new ValidationException("Reseller with account ID " + request.getAccountId() + " already exists");
         }
         
         // Check if phone already exists
@@ -84,10 +86,10 @@ public class ResellerService {
         log.info("Soft deleting reseller with account ID: {}", accountId);
         
         Reseller reseller = resellerRepository.findById(accountId)
-            .orElseThrow(() -> new RuntimeException("Reseller not found with account ID: " + accountId));
+            .orElseThrow(() -> new ResellerNotFoundException(accountId));
 
         if (reseller.getDeletedAt() != null) {
-            throw new IllegalStateException("Reseller is already deleted");
+            throw new ValidationException("Reseller is already deleted");
         }
 
         reseller.setDeletedAt(LocalDateTime.now());
@@ -100,10 +102,10 @@ public class ResellerService {
         log.info("Restoring reseller with account ID: {}", accountId);
         
         Reseller reseller = resellerRepository.findById(accountId)
-            .orElseThrow(() -> new RuntimeException("Reseller not found with account ID: " + accountId));
+            .orElseThrow(() -> new ResellerNotFoundException(accountId));
 
         if (reseller.getDeletedAt() == null) {
-            throw new IllegalStateException("Reseller is not deleted");
+            throw new ValidationException("Reseller is not deleted");
         }
 
         reseller.setDeletedAt(null);
@@ -116,7 +118,7 @@ public class ResellerService {
         log.info("Hard deleting reseller with account ID: {}", accountId);
         
         Reseller reseller = resellerRepository.findById(accountId)
-            .orElseThrow(() -> new RuntimeException("Reseller not found with account ID: " + accountId));
+            .orElseThrow(() -> new ResellerNotFoundException(accountId));
 
         resellerRepository.delete(reseller);
         log.info("Reseller hard deleted successfully: {}", reseller.getName());

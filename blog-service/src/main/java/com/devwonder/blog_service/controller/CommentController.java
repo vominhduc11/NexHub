@@ -1,6 +1,7 @@
 package com.devwonder.blog_service.controller;
 
 import com.devwonder.common.dto.BaseResponse;
+import com.devwonder.common.exception.BaseException;
 import com.devwonder.blog_service.dto.CommentRequest;
 import com.devwonder.blog_service.dto.CommentResponse;
 import com.devwonder.blog_service.service.CommentService;
@@ -180,13 +181,10 @@ public class CommentController {
         try {
             CommentResponse response = commentService.approveComment(id);
             return ResponseEntity.ok(BaseResponse.success(response, "Comment approved successfully"));
-        } catch (RuntimeException e) {
-            if (e.getMessage().contains("not found")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(BaseResponse.error("Comment not found", "NOT_FOUND"));
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(BaseResponse.error(e.getMessage(), "VALIDATION_ERROR"));
+        } catch (BaseException e) {
+            log.error("Error approving comment: {}", e.getMessage(), e);
+            return ResponseEntity.status(e.getHttpStatus())
+                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
         } catch (Exception e) {
             log.error("Error approving comment", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -204,13 +202,10 @@ public class CommentController {
         try {
             commentService.deleteComment(id);
             return ResponseEntity.ok(BaseResponse.success("Comment deleted successfully"));
-        } catch (RuntimeException e) {
-            if (e.getMessage().contains("not found")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(BaseResponse.error("Comment not found", "NOT_FOUND"));
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(BaseResponse.error(e.getMessage(), "VALIDATION_ERROR"));
+        } catch (BaseException e) {
+            log.error("Error deleting comment: {}", e.getMessage(), e);
+            return ResponseEntity.status(e.getHttpStatus())
+                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
         } catch (Exception e) {
             log.error("Error deleting comment", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

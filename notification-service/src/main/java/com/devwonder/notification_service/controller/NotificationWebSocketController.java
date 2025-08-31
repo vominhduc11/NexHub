@@ -1,5 +1,6 @@
 package com.devwonder.notification_service.controller;
 
+import com.devwonder.notification_service.dto.DealerNotification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -77,45 +78,4 @@ public class NotificationWebSocketController {
         log.info("Dealer update broadcasted");
     }
 
-    public static class DealerNotification {
-        private String type;
-        private String username;
-        private String name;
-        private String email;
-        private String message;
-        private long timestamp;
-
-        public DealerNotification(String type, String username, String name, String email, String message, long timestamp) {
-            this.type = type;
-            this.username = username;
-            this.name = name;
-            this.email = email;
-            this.message = message;
-            this.timestamp = timestamp;
-        }
-
-        public String getType() {
-            return type;
-        }
-
-        public String getUsername() {
-            return username;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getEmail() {
-            return email;
-        }
-
-        public String getMessage() {
-            return message;
-        }
-
-        public long getTimestamp() {
-            return timestamp;
-        }
-    }
 }

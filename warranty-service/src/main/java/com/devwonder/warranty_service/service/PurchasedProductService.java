@@ -5,6 +5,8 @@ import com.devwonder.warranty_service.dto.PurchasedProductResponse;
 import com.devwonder.warranty_service.entity.PurchasedProduct;
 import com.devwonder.warranty_service.mapper.WarrantyMapper;
 import com.devwonder.warranty_service.repository.PurchasedProductRepository;
+import com.devwonder.warranty_service.exception.PurchasedProductNotFoundException;
+import com.devwonder.common.exception.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -149,12 +151,12 @@ public class PurchasedProductService {
         
         // Check if product serial is already registered
         if (purchasedProductRepository.existsByIdProductSerial(request.getIdProductSerial())) {
-            throw new IllegalArgumentException("Product with serial ID " + request.getIdProductSerial() + " is already registered");
+            throw new ValidationException("Product with serial ID " + request.getIdProductSerial() + " is already registered");
         }
         
         // Validate dates
         if (request.getExpirationDate().isBefore(request.getPurchaseDate())) {
-            throw new IllegalArgumentException("Expiration date must be after purchase date");
+            throw new ValidationException("Expiration date must be after purchase date");
         }
         
         PurchasedProduct purchasedProduct = warrantyMapper.toPurchasedProductEntity(request);
@@ -170,7 +172,7 @@ public class PurchasedProductService {
         log.info("Updating purchased product with ID: {}", id);
         
         PurchasedProduct purchasedProduct = purchasedProductRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Purchased product not found with id: " + id));
+            .orElseThrow(() -> new PurchasedProductNotFoundException(id));
         
         // Validate foreign key references
         validationService.validatePurchasedProductReferences(
@@ -182,12 +184,12 @@ public class PurchasedProductService {
         // Check if product serial is already registered by another product
         if (!purchasedProduct.getIdProductSerial().equals(request.getIdProductSerial()) &&
             purchasedProductRepository.existsByIdProductSerial(request.getIdProductSerial())) {
-            throw new IllegalArgumentException("Product with serial ID " + request.getIdProductSerial() + " is already registered");
+            throw new ValidationException("Product with serial ID " + request.getIdProductSerial() + " is already registered");
         }
         
         // Validate dates
         if (request.getExpirationDate().isBefore(request.getPurchaseDate())) {
-            throw new IllegalArgumentException("Expiration date must be after purchase date");
+            throw new ValidationException("Expiration date must be after purchase date");
         }
         
         // Update fields
@@ -210,7 +212,7 @@ public class PurchasedProductService {
         log.info("Deleting purchased product with ID: {}", id);
         
         PurchasedProduct purchasedProduct = purchasedProductRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Purchased product not found with id: " + id));
+            .orElseThrow(() -> new PurchasedProductNotFoundException(id));
         
         purchasedProductRepository.delete(purchasedProduct);
         log.info("Purchased product deleted successfully: {}", id);
@@ -221,7 +223,7 @@ public class PurchasedProductService {
         log.info("Updating warranty remaining days for purchased product: {}", id);
         
         if (!purchasedProductRepository.existsById(id)) {
-            throw new RuntimeException("Purchased product not found with id: " + id);
+            throw new PurchasedProductNotFoundException(id);
         }
         
         purchasedProductRepository.updateWarrantyRemainingDays(id);

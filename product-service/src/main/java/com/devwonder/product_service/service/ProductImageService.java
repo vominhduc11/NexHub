@@ -6,6 +6,8 @@ import com.devwonder.product_service.entity.Product;
 import com.devwonder.product_service.entity.ProductImage;
 import com.devwonder.product_service.mapper.ProductImageMapper;
 import com.devwonder.product_service.repository.ProductRepository;
+import com.devwonder.product_service.exception.ProductNotFoundException;
+import com.devwonder.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,7 +29,7 @@ public class ProductImageService {
         log.info("Adding image to product ID: {}", productId);
         
         Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
+            .orElseThrow(() -> new ProductNotFoundException(productId));
 
         // Create ProductImage entity using Builder pattern
         ProductImage productImage = ProductImage.builder()
@@ -45,7 +47,7 @@ public class ProductImageService {
         ProductImage savedImage = savedProduct.getProductImages().stream()
             .filter(img -> img.getUrl().equals(imageRequest.getImageUrl()))
             .findFirst()
-            .orElseThrow(() -> new RuntimeException("Failed to save product image"));
+            .orElseThrow(() -> new BusinessException("Failed to save product image"));
 
         log.info("Product image added successfully with ID: {}", savedImage.getId());
         return productImageMapper.toResponse(savedImage);
@@ -55,12 +57,12 @@ public class ProductImageService {
         log.info("Updating image ID: {} for product ID: {}", imageId, productId);
         
         Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
+            .orElseThrow(() -> new ProductNotFoundException(productId));
 
         ProductImage productImage = product.getProductImages().stream()
             .filter(img -> img.getId().equals(imageId))
             .findFirst()
-            .orElseThrow(() -> new RuntimeException("Product image not found with id: " + imageId));
+            .orElseThrow(() -> new BusinessException("Product image not found with id: " + imageId));
 
         // Update image fields
         productImage.setUrl(imageRequest.getImageUrl());
@@ -76,12 +78,12 @@ public class ProductImageService {
         log.info("Deleting image ID: {} from product ID: {}", imageId, productId);
         
         Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
+            .orElseThrow(() -> new ProductNotFoundException(productId));
 
         ProductImage productImage = product.getProductImages().stream()
             .filter(img -> img.getId().equals(imageId))
             .findFirst()
-            .orElseThrow(() -> new RuntimeException("Product image not found with id: " + imageId));
+            .orElseThrow(() -> new BusinessException("Product image not found with id: " + imageId));
 
         product.getProductImages().remove(productImage);
         productRepository.save(product);
@@ -93,7 +95,7 @@ public class ProductImageService {
         log.info("Fetching images for product ID: {}", productId);
         
         Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
+            .orElseThrow(() -> new ProductNotFoundException(productId));
 
         return product.getProductImages().stream()
             .map(productImageMapper::toResponse)

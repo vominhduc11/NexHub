@@ -2,12 +2,13 @@ package com.devwonder.warranty_service.service;
 
 import com.devwonder.warranty_service.dto.WarrantyClaimRequest;
 import com.devwonder.warranty_service.dto.WarrantyClaimResponse;
-import com.devwonder.warranty_service.dto.WarrantyStatsResponse;
 import com.devwonder.warranty_service.entity.PurchasedProduct;
 import com.devwonder.warranty_service.entity.WarrantyClaim;
 import com.devwonder.warranty_service.mapper.WarrantyMapper;
 import com.devwonder.warranty_service.repository.PurchasedProductRepository;
 import com.devwonder.warranty_service.repository.WarrantyClaimRepository;
+import com.devwonder.warranty_service.exception.WarrantyClaimNotFoundException;
+import com.devwonder.warranty_service.dto.WarrantyStatsResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -32,6 +33,7 @@ public class WarrantyClaimService {
     private final WarrantyClaimRepository warrantyClaimRepository;
     private final PurchasedProductRepository purchasedProductRepository;
     private final WarrantyMapper warrantyMapper;
+    private final WarrantyStatsService statsService;
     
     // Get all claims
     @Transactional(readOnly = true)
@@ -157,7 +159,7 @@ public class WarrantyClaimService {
     }
     
     // Create new claim
-    @CacheEvict(value = {"warranty-claims", "warranty-claims-by-customer", "warranty-claims-by-status", "warranty-claims-pending", "warranty-stats"}, allEntries = true)
+    @CacheEvict(value = {"warranty-claims", "warranty-claims-by-customer", "warranty-claims-by-status", "warranty-claims-pending"}, allEntries = true)
     public WarrantyClaimResponse createClaim(WarrantyClaimRequest request) {
         log.info("Creating new warranty claim for purchased product: {}", request.getPurchasedProductId());
         
@@ -188,12 +190,12 @@ public class WarrantyClaimService {
     }
     
     // Update claim status
-    @CacheEvict(value = {"warranty-claims", "warranty-claims-by-customer", "warranty-claims-by-status", "warranty-claims-pending", "warranty-stats"}, allEntries = true)
+    @CacheEvict(value = {"warranty-claims", "warranty-claims-by-customer", "warranty-claims-by-status", "warranty-claims-pending"}, allEntries = true)
     public WarrantyClaimResponse updateClaimStatus(Long id, WarrantyClaimResponse.ClaimStatus status, String internalNotes) {
         log.info("Updating warranty claim status: {} to {}", id, status);
         
         WarrantyClaim claim = warrantyClaimRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Warranty claim not found with id: " + id));
+            .orElseThrow(() -> new WarrantyClaimNotFoundException(id));
         
         WarrantyClaimResponse.ClaimStatus oldStatus = claim.getStatus();
         claim.setStatus(status);
@@ -216,7 +218,7 @@ public class WarrantyClaimService {
         log.info("Adding resolution notes to warranty claim: {}", id);
         
         WarrantyClaim claim = warrantyClaimRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Warranty claim not found with id: " + id));
+            .orElseThrow(() -> new WarrantyClaimNotFoundException(id));
         
         claim.setResolutionNotes(resolutionNotes);
         WarrantyClaim updatedClaim = warrantyClaimRepository.save(claim);
@@ -226,12 +228,12 @@ public class WarrantyClaimService {
     }
     
     // Delete claim
-    @CacheEvict(value = {"warranty-claims", "warranty-claims-by-customer", "warranty-claims-by-status", "warranty-claims-pending", "warranty-stats"}, allEntries = true)
+    @CacheEvict(value = {"warranty-claims", "warranty-claims-by-customer", "warranty-claims-by-status", "warranty-claims-pending"}, allEntries = true)
     public void deleteClaim(Long id) {
         log.info("Deleting warranty claim with ID: {}", id);
         
         WarrantyClaim claim = warrantyClaimRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Warranty claim not found with id: " + id));
+            .orElseThrow(() -> new WarrantyClaimNotFoundException(id));
         
         warrantyClaimRepository.delete(claim);
         log.info("Warranty claim deleted successfully: {}", claim.getClaimNumber());
@@ -239,41 +241,8 @@ public class WarrantyClaimService {
     
     // Get warranty statistics
     @Transactional(readOnly = true)
-    @Cacheable(value = "warranty-stats", key = "'stats'")
     public WarrantyStatsResponse getWarrantyStats() {
-        log.info("Generating warranty statistics");
-        
-        // Get warranty counts
-        Long totalActive = purchasedProductRepository.countActiveWarranties();
-        Long totalExpired = purchasedProductRepository.countExpiredWarranties();
-        LocalDate expiringSoonDate = LocalDate.now().plusDays(30);
-        Long totalExpiringSoon = purchasedProductRepository.countWarrantiesExpiringSoon(expiringSoonDate);
-        
-        // Get claim counts
-        Long totalClaims = warrantyClaimRepository.countTotalClaims();
-        Long totalPending = warrantyClaimRepository.countByStatus(WarrantyClaimResponse.ClaimStatus.PENDING);
-        Long totalApproved = warrantyClaimRepository.countByStatus(WarrantyClaimResponse.ClaimStatus.APPROVED);
-        Long totalRejected = warrantyClaimRepository.countByStatus(WarrantyClaimResponse.ClaimStatus.REJECTED);
-        Long totalCompleted = warrantyClaimRepository.countByStatus(WarrantyClaimResponse.ClaimStatus.COMPLETED);
-        
-        // Calculate metrics
-        Double averageResolutionDays = warrantyClaimRepository.calculateAverageResolutionDays();
-        Double claimApprovalRate = warrantyClaimRepository.calculateApprovalRate();
-        
-        WarrantyStatsResponse stats = new WarrantyStatsResponse();
-        stats.setTotalActiveWarranties(totalActive);
-        stats.setTotalExpiredWarranties(totalExpired);
-        stats.setTotalExpiringSoonWarranties(totalExpiringSoon);
-        stats.setTotalClaims(totalClaims);
-        stats.setTotalPendingClaims(totalPending);
-        stats.setTotalApprovedClaims(totalApproved);
-        stats.setTotalRejectedClaims(totalRejected);
-        stats.setTotalCompletedClaims(totalCompleted);
-        stats.setAverageResolutionDays(averageResolutionDays != null ? averageResolutionDays : 0.0);
-        stats.setClaimApprovalRate(claimApprovalRate != null ? claimApprovalRate : 0.0);
-        
-        log.info("Warranty statistics generated successfully");
-        return stats;
+        return statsService.getWarrantyStats();
     }
     
     // Get claims needing attention

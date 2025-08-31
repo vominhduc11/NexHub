@@ -2,6 +2,8 @@ package com.devwonder.product_service.service;
 
 import com.devwonder.product_service.entity.Category;
 import com.devwonder.product_service.repository.CategoryRepository;
+import com.devwonder.product_service.exception.CategoryNotFoundException;
+import com.devwonder.common.exception.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -30,7 +32,7 @@ public class CategoryService {
         
         // Validation
         if (category.getName() == null || category.getName().trim().isEmpty()) {
-            throw new IllegalArgumentException("Category name cannot be empty");
+            throw new ValidationException("Category name cannot be empty");
         }
         
         Category savedCategory = categoryRepository.save(category);
@@ -57,11 +59,11 @@ public class CategoryService {
         log.info("Updating category with ID: {}", id);
         
         Category category = categoryRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Category not found with id: " + id));
+            .orElseThrow(() -> new CategoryNotFoundException(id));
 
         // Validation
         if (categoryDetails.getName() == null || categoryDetails.getName().trim().isEmpty()) {
-            throw new IllegalArgumentException("Category name cannot be empty");
+            throw new ValidationException("Category name cannot be empty");
         }
 
         category.setName(categoryDetails.getName());
@@ -77,7 +79,7 @@ public class CategoryService {
         log.info("Hard deleting category with ID: {}", id);
         
         Category category = categoryRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Category not found with id: " + id));
+            .orElseThrow(() -> new CategoryNotFoundException(id));
 
         categoryRepository.delete(category);
         log.info("Category hard deleted successfully: {}", category.getName());
@@ -88,10 +90,10 @@ public class CategoryService {
         log.info("Soft deleting category with ID: {}", id);
         
         Category category = categoryRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Category not found with id: " + id));
+            .orElseThrow(() -> new CategoryNotFoundException(id));
 
         if (category.getDeletedAt() != null) {
-            throw new IllegalStateException("Category is already deleted");
+            throw new ValidationException("Category is already deleted");
         }
 
         category.setDeletedAt(LocalDateTime.now());
@@ -104,10 +106,10 @@ public class CategoryService {
         log.info("Restoring category with ID: {}", id);
         
         Category category = categoryRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Category not found with id: " + id));
+            .orElseThrow(() -> new CategoryNotFoundException(id));
 
         if (category.getDeletedAt() == null) {
-            throw new IllegalStateException("Category is not deleted");
+            throw new ValidationException("Category is not deleted");
         }
 
         category.setDeletedAt(null);

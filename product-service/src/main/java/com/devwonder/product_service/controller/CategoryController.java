@@ -2,6 +2,7 @@ package com.devwonder.product_service.controller;
 
 import com.devwonder.common.annotation.RequireAdminRole;
 import com.devwonder.common.dto.BaseResponse;
+import com.devwonder.common.exception.BaseException;
 import com.devwonder.product_service.entity.Category;
 import com.devwonder.product_service.service.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -82,13 +83,10 @@ public class CategoryController {
         try {
             Category updatedCategory = categoryService.updateCategory(id, category);
             return ResponseEntity.ok(BaseResponse.success(updatedCategory, "Category updated successfully"));
-        } catch (RuntimeException e) {
-            if (e.getMessage().contains("not found")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(BaseResponse.error("Category not found", "NOT_FOUND"));
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(BaseResponse.error(e.getMessage(), "VALIDATION_ERROR"));
+        } catch (BaseException e) {
+            log.error("Error updating category: {}", e.getMessage(), e);
+            return ResponseEntity.status(e.getHttpStatus())
+                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
         } catch (Exception e) {
             log.error("Error updating category", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -110,17 +108,10 @@ public class CategoryController {
         try {
             categoryService.softDeleteCategory(id);
             return ResponseEntity.ok(BaseResponse.success("Category soft deleted successfully"));
-        } catch (RuntimeException e) {
-            if (e.getMessage().contains("not found")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(BaseResponse.error("Category not found", "NOT_FOUND"));
-            }
-            if (e.getMessage().contains("already deleted")) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(BaseResponse.error("Category is already deleted", "ALREADY_DELETED"));
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(BaseResponse.error(e.getMessage(), "VALIDATION_ERROR"));
+        } catch (BaseException e) {
+            log.error("Error soft deleting category: {}", e.getMessage(), e);
+            return ResponseEntity.status(e.getHttpStatus())
+                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
         } catch (Exception e) {
             log.error("Error soft deleting category", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -141,13 +132,10 @@ public class CategoryController {
         try {
             categoryService.deleteCategory(id);
             return ResponseEntity.ok(BaseResponse.success("Category hard deleted successfully"));
-        } catch (RuntimeException e) {
-            if (e.getMessage().contains("not found")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(BaseResponse.error("Category not found", "NOT_FOUND"));
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(BaseResponse.error(e.getMessage(), "VALIDATION_ERROR"));
+        } catch (BaseException e) {
+            log.error("Error updating category: {}", e.getMessage(), e);
+            return ResponseEntity.status(e.getHttpStatus())
+                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
         } catch (Exception e) {
             log.error("Error hard deleting category", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -169,17 +157,10 @@ public class CategoryController {
         try {
             categoryService.restoreCategory(id);
             return ResponseEntity.ok(BaseResponse.success("Category restored successfully"));
-        } catch (RuntimeException e) {
-            if (e.getMessage().contains("not found")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(BaseResponse.error("Category not found", "NOT_FOUND"));
-            }
-            if (e.getMessage().contains("not deleted")) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(BaseResponse.error("Category is not deleted", "NOT_DELETED"));
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(BaseResponse.error(e.getMessage(), "VALIDATION_ERROR"));
+        } catch (BaseException e) {
+            log.error("Error restoring category: {}", e.getMessage(), e);
+            return ResponseEntity.status(e.getHttpStatus())
+                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
         } catch (Exception e) {
             log.error("Error restoring category", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

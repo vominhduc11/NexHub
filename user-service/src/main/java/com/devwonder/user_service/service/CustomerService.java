@@ -2,6 +2,8 @@ package com.devwonder.user_service.service;
 
 import com.devwonder.user_service.entity.Customer;
 import com.devwonder.user_service.repository.CustomerRepository;
+import com.devwonder.user_service.exception.CustomerNotFoundException;
+import com.devwonder.common.exception.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -26,7 +28,7 @@ public class CustomerService {
         
         // Check if customer already exists
         if (customerRepository.existsById(customer.getAccountId())) {
-            throw new RuntimeException("Customer with account ID " + customer.getAccountId() + " already exists");
+            throw new ValidationException("Customer with account ID " + customer.getAccountId() + " already exists");
         }
         
         Customer savedCustomer = customerRepository.save(customer);
@@ -61,11 +63,11 @@ public class CustomerService {
         log.info("Updating customer with account ID: {}", accountId);
         
         Customer customer = customerRepository.findById(accountId)
-            .orElseThrow(() -> new RuntimeException("Customer not found with account ID: " + accountId));
+            .orElseThrow(() -> new CustomerNotFoundException(accountId));
 
         // Validation
         if (customerDetails.getName() == null || customerDetails.getName().trim().isEmpty()) {
-            throw new IllegalArgumentException("Customer name cannot be empty");
+            throw new ValidationException("Customer name cannot be empty");
         }
 
         customer.setName(customerDetails.getName());
@@ -80,10 +82,10 @@ public class CustomerService {
         log.info("Soft deleting customer with account ID: {}", accountId);
         
         Customer customer = customerRepository.findById(accountId)
-            .orElseThrow(() -> new RuntimeException("Customer not found with account ID: " + accountId));
+            .orElseThrow(() -> new CustomerNotFoundException(accountId));
 
         if (customer.getDeletedAt() != null) {
-            throw new IllegalStateException("Customer is already deleted");
+            throw new ValidationException("Customer is already deleted");
         }
 
         customer.setDeletedAt(LocalDateTime.now());
@@ -96,10 +98,10 @@ public class CustomerService {
         log.info("Restoring customer with account ID: {}", accountId);
         
         Customer customer = customerRepository.findById(accountId)
-            .orElseThrow(() -> new RuntimeException("Customer not found with account ID: " + accountId));
+            .orElseThrow(() -> new CustomerNotFoundException(accountId));
 
         if (customer.getDeletedAt() == null) {
-            throw new IllegalStateException("Customer is not deleted");
+            throw new ValidationException("Customer is not deleted");
         }
 
         customer.setDeletedAt(null);
@@ -112,7 +114,7 @@ public class CustomerService {
         log.info("Hard deleting customer with account ID: {}", accountId);
         
         Customer customer = customerRepository.findById(accountId)
-            .orElseThrow(() -> new RuntimeException("Customer not found with account ID: " + accountId));
+            .orElseThrow(() -> new CustomerNotFoundException(accountId));
 
         customerRepository.delete(customer);
         log.info("Customer hard deleted successfully: {}", customer.getName());

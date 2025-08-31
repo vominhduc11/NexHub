@@ -55,15 +55,25 @@ logging:
 # SpringDoc OpenAPI Configuration
 springdoc:
   api-docs:
-    enabled: ${SWAGGER_ENABLED:true}
+    enabled: true
     path: /v3/api-docs
+    groups:
+      enabled: true
   swagger-ui:
-    enabled: ${SWAGGER_UI_ENABLED:true}
+    enabled: true
     path: /swagger-ui.html
+    config-url: /v3/api-docs/swagger-config
+    url: /v3/api-docs
+    disable-swagger-default-url: true
     try-it-out-enabled: true
     persist-authorization: true
     display-request-duration: true
-    config-url: /v3/api-docs/swagger-config
-    url: /v3/api-docs
+    tags-sorter: alpha
+    operations-sorter: alpha
+  show-actuator: false
   packages-to-scan: com.devwonder.notification_service.controller
+  default-produces-media-type: application/json
+  default-consumes-media-type: application/json
+  cache:
+    disabled: true
 

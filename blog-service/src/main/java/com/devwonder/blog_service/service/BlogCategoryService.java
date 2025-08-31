@@ -5,6 +5,8 @@ import com.devwonder.blog_service.dto.BlogCategoryResponse;
 import com.devwonder.blog_service.entity.BlogCategory;
 import com.devwonder.blog_service.mapper.BlogMapper;
 import com.devwonder.blog_service.repository.BlogCategoryRepository;
+import com.devwonder.common.exception.BusinessException;
+import com.devwonder.common.exception.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -89,7 +91,7 @@ public class BlogCategoryService {
         
         // Check if slug already exists
         if (categoryRepository.existsBySlug(request.getSlug())) {
-            throw new IllegalArgumentException("Category with slug '" + request.getSlug() + "' already exists");
+            throw new ValidationException("Category with slug '" + request.getSlug() + "' already exists");
         }
         
         BlogCategory category = blogMapper.toCategoryEntity(request);
@@ -105,11 +107,11 @@ public class BlogCategoryService {
         log.info("Updating blog category with ID: {}", id);
         
         BlogCategory category = categoryRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Category not found with id: " + id));
+            .orElseThrow(() -> new BusinessException("Category not found with id: " + id));
         
         // Check if slug already exists (excluding current category)
         if (!category.getSlug().equals(request.getSlug()) && categoryRepository.existsBySlug(request.getSlug())) {
-            throw new IllegalArgumentException("Category with slug '" + request.getSlug() + "' already exists");
+            throw new ValidationException("Category with slug '" + request.getSlug() + "' already exists");
         }
         
         // Update category fields
@@ -132,11 +134,11 @@ public class BlogCategoryService {
         log.info("Deleting blog category with ID: {}", id);
         
         BlogCategory category = categoryRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Category not found with id: " + id));
+            .orElseThrow(() -> new BusinessException("Category not found with id: " + id));
         
         // Check if category has posts
         if (category.getPostsCount() > 0) {
-            throw new IllegalStateException("Cannot delete category with existing posts. Please move posts to another category first.");
+            throw new ValidationException("Cannot delete category with existing posts. Please move posts to another category first.");
         }
         
         categoryRepository.delete(category);
@@ -149,7 +151,7 @@ public class BlogCategoryService {
         log.info("Toggling visibility for blog category with ID: {}", id);
         
         BlogCategory category = categoryRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Category not found with id: " + id));
+            .orElseThrow(() -> new BusinessException("Category not found with id: " + id));
         
         category.setIsVisible(!category.getIsVisible());
         BlogCategory updatedCategory = categoryRepository.save(category);

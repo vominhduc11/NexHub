@@ -10,7 +10,6 @@ import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.Components;
-
 import java.util.List;
 
 @Configuration

@@ -7,6 +7,8 @@ import com.devwonder.product_service.entity.Product;
 import com.devwonder.product_service.mapper.ProductMapper;
 import com.devwonder.product_service.repository.CategoryRepository;
 import com.devwonder.product_service.repository.ProductRepository;
+import com.devwonder.product_service.exception.ProductNotFoundException;
+import com.devwonder.product_service.exception.CategoryNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -123,7 +125,7 @@ public class ProductService {
         log.info("Updating product with ID: {}", id);
         
         Product product = productRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+            .orElseThrow(() -> new ProductNotFoundException(id));
 
         // Validation
         if (productRequest.getName() == null || productRequest.getName().trim().isEmpty()) {
@@ -132,7 +134,7 @@ public class ProductService {
 
         // Find category
         Category category = categoryRepository.findById(productRequest.getCategoryId())
-            .orElseThrow(() -> new RuntimeException("Category not found with id: " + productRequest.getCategoryId()));
+            .orElseThrow(() -> new CategoryNotFoundException(productRequest.getCategoryId()));
 
         // Update all fields
         updateProductFields(product, productRequest, category);
@@ -147,7 +149,7 @@ public class ProductService {
         log.info("Partially updating product with ID: {}", id);
         
         Product product = productRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+            .orElseThrow(() -> new ProductNotFoundException(id));
 
         // Update only non-null fields
         if (productRequest.getName() != null && !productRequest.getName().trim().isEmpty()) {
@@ -161,7 +163,7 @@ public class ProductService {
         }
         if (productRequest.getCategoryId() != null) {
             Category category = categoryRepository.findById(productRequest.getCategoryId())
-                .orElseThrow(() -> new RuntimeException("Category not found with id: " + productRequest.getCategoryId()));
+                .orElseThrow(() -> new CategoryNotFoundException(productRequest.getCategoryId()));
             product.setCategory(category);
         }
         if (productRequest.getSku() != null) {
@@ -189,7 +191,7 @@ public class ProductService {
         log.info("Hard deleting product with ID: {}", id);
         
         Product product = productRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+            .orElseThrow(() -> new ProductNotFoundException(id));
 
         productRepository.delete(product);
         log.info("Product hard deleted successfully: {}", product.getName());
@@ -200,7 +202,7 @@ public class ProductService {
         log.info("Soft deleting product with ID: {}", id);
         
         Product product = productRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+            .orElseThrow(() -> new ProductNotFoundException(id));
 
         if (product.getDeletedAt() != null) {
             throw new IllegalStateException("Product is already deleted");
@@ -216,7 +218,7 @@ public class ProductService {
         log.info("Restoring product with ID: {}", id);
         
         Product product = productRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+            .orElseThrow(() -> new ProductNotFoundException(id));
 
         if (product.getDeletedAt() == null) {
             throw new IllegalStateException("Product is not deleted");

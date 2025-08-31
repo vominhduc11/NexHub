@@ -2,6 +2,7 @@ package com.devwonder.product_service.controller;
 
 import com.devwonder.common.dto.BaseResponse;
 import com.devwonder.common.annotation.RequireAdminRole;
+import com.devwonder.common.exception.BaseException;
 import com.devwonder.product_service.dto.ProductRequest;
 import com.devwonder.product_service.dto.ProductResponse;
 import com.devwonder.product_service.service.ProductService;
@@ -155,13 +156,10 @@ public class ProductController {
         try {
             ProductResponse updatedProduct = productService.updateProduct(id, productRequest);
             return ResponseEntity.ok(BaseResponse.success(updatedProduct, "Product updated successfully"));
-        } catch (RuntimeException e) {
-            if (e.getMessage().contains("not found")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(BaseResponse.error("Product not found", "NOT_FOUND"));
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(BaseResponse.error(e.getMessage(), "VALIDATION_ERROR"));
+        } catch (BaseException e) {
+            log.error("Error updating product: {}", e.getMessage(), e);
+            return ResponseEntity.status(e.getHttpStatus())
+                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
         } catch (Exception e) {
             log.error("Error updating product: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -187,13 +185,10 @@ public class ProductController {
         try {
             ProductResponse updatedProduct = productService.patchProduct(id, productRequest);
             return ResponseEntity.ok(BaseResponse.success(updatedProduct, "Product partially updated successfully"));
-        } catch (RuntimeException e) {
-            if (e.getMessage().contains("not found")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(BaseResponse.error("Product not found", "NOT_FOUND"));
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(BaseResponse.error(e.getMessage(), "VALIDATION_ERROR"));
+        } catch (BaseException e) {
+            log.error("Error partially updating product: {}", e.getMessage(), e);
+            return ResponseEntity.status(e.getHttpStatus())
+                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
         } catch (Exception e) {
             log.error("Error partially updating product: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -218,17 +213,10 @@ public class ProductController {
         try {
             productService.softDeleteProduct(id);
             return ResponseEntity.ok(BaseResponse.success("Product soft deleted successfully"));
-        } catch (RuntimeException e) {
-            if (e.getMessage().contains("not found")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(BaseResponse.error("Product not found", "NOT_FOUND"));
-            }
-            if (e.getMessage().contains("already deleted")) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(BaseResponse.error("Product is already deleted", "ALREADY_DELETED"));
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(BaseResponse.error(e.getMessage(), "VALIDATION_ERROR"));
+        } catch (BaseException e) {
+            log.error("Error soft deleting product: {}", e.getMessage(), e);
+            return ResponseEntity.status(e.getHttpStatus())
+                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
         } catch (Exception e) {
             log.error("Error soft deleting product: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -252,13 +240,10 @@ public class ProductController {
         try {
             productService.deleteProduct(id);
             return ResponseEntity.ok(BaseResponse.success("Product hard deleted successfully"));
-        } catch (RuntimeException e) {
-            if (e.getMessage().contains("not found")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(BaseResponse.error("Product not found", "NOT_FOUND"));
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(BaseResponse.error(e.getMessage(), "VALIDATION_ERROR"));
+        } catch (BaseException e) {
+            log.error("Error hard deleting product: {}", e.getMessage(), e);
+            return ResponseEntity.status(e.getHttpStatus())
+                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
         } catch (Exception e) {
             log.error("Error hard deleting product: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -283,17 +268,10 @@ public class ProductController {
         try {
             productService.restoreProduct(id);
             return ResponseEntity.ok(BaseResponse.success("Product restored successfully"));
-        } catch (RuntimeException e) {
-            if (e.getMessage().contains("not found")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(BaseResponse.error("Product not found", "NOT_FOUND"));
-            }
-            if (e.getMessage().contains("not deleted")) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(BaseResponse.error("Product is not deleted", "NOT_DELETED"));
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(BaseResponse.error(e.getMessage(), "VALIDATION_ERROR"));
+        } catch (BaseException e) {
+            log.error("Error restoring product: {}", e.getMessage(), e);
+            return ResponseEntity.status(e.getHttpStatus())
+                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
         } catch (Exception e) {
             log.error("Error restoring product: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

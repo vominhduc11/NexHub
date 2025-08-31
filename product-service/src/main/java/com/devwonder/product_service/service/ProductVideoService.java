@@ -6,6 +6,8 @@ import com.devwonder.product_service.entity.Product;
 import com.devwonder.product_service.entity.ProductVideo;
 import com.devwonder.product_service.mapper.ProductVideoMapper;
 import com.devwonder.product_service.repository.ProductRepository;
+import com.devwonder.product_service.exception.ProductNotFoundException;
+import com.devwonder.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,7 +29,7 @@ public class ProductVideoService {
         log.info("Adding video to product ID: {}", productId);
         
         Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
+            .orElseThrow(() -> new ProductNotFoundException(productId));
 
         // Create ProductVideo entity using Builder pattern
         ProductVideo productVideo = ProductVideo.builder()
@@ -46,7 +48,7 @@ public class ProductVideoService {
         ProductVideo savedVideo = savedProduct.getProductVideos().stream()
             .filter(vid -> vid.getUrl().equals(videoRequest.getVideoUrl()))
             .findFirst()
-            .orElseThrow(() -> new RuntimeException("Failed to save product video"));
+            .orElseThrow(() -> new BusinessException("Failed to save product video"));
 
         log.info("Product video added successfully with ID: {}", savedVideo.getId());
         return productVideoMapper.toResponse(savedVideo);
@@ -56,12 +58,12 @@ public class ProductVideoService {
         log.info("Updating video ID: {} for product ID: {}", videoId, productId);
         
         Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
+            .orElseThrow(() -> new ProductNotFoundException(productId));
 
         ProductVideo productVideo = product.getProductVideos().stream()
             .filter(vid -> vid.getId().equals(videoId))
             .findFirst()
-            .orElseThrow(() -> new RuntimeException("Product video not found with id: " + videoId));
+            .orElseThrow(() -> new BusinessException("Product video not found with id: " + videoId));
 
         // Update video fields
         productVideo.setUrl(videoRequest.getVideoUrl());
@@ -79,12 +81,12 @@ public class ProductVideoService {
         log.info("Deleting video ID: {} from product ID: {}", videoId, productId);
         
         Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
+            .orElseThrow(() -> new ProductNotFoundException(productId));
 
         ProductVideo productVideo = product.getProductVideos().stream()
             .filter(vid -> vid.getId().equals(videoId))
             .findFirst()
-            .orElseThrow(() -> new RuntimeException("Product video not found with id: " + videoId));
+            .orElseThrow(() -> new BusinessException("Product video not found with id: " + videoId));
 
         product.getProductVideos().remove(productVideo);
         productRepository.save(product);
@@ -96,7 +98,7 @@ public class ProductVideoService {
         log.info("Fetching videos for product ID: {}", productId);
         
         Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
+            .orElseThrow(() -> new ProductNotFoundException(productId));
 
         return product.getProductVideos().stream()
             .map(productVideoMapper::toResponse)

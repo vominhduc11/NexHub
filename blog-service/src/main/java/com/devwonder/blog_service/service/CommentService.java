@@ -7,6 +7,9 @@ import com.devwonder.blog_service.entity.BlogPost;
 import com.devwonder.blog_service.mapper.BlogMapper;
 import com.devwonder.blog_service.repository.BlogCommentRepository;
 import com.devwonder.blog_service.repository.BlogPostRepository;
+import com.devwonder.blog_service.exception.BlogPostNotFoundException;
+import com.devwonder.common.exception.BusinessException;
+import com.devwonder.common.exception.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -89,17 +92,17 @@ public class CommentService {
         
         // Validate post exists
         BlogPost post = postRepository.findById(postId)
-            .orElseThrow(() -> new IllegalArgumentException("Post not found with ID: " + postId));
+            .orElseThrow(() -> new BlogPostNotFoundException(postId));
         
         // Validate parent comment if provided
         BlogComment parentComment = null;
         if (request.getParentCommentId() != null) {
             parentComment = commentRepository.findById(request.getParentCommentId())
-                .orElseThrow(() -> new IllegalArgumentException("Parent comment not found with ID: " + request.getParentCommentId()));
+                .orElseThrow(() -> new BusinessException("Parent comment not found with ID: " + request.getParentCommentId()));
             
             // Ensure parent comment belongs to the same post
             if (!parentComment.getPost().getId().equals(postId)) {
-                throw new IllegalArgumentException("Parent comment does not belong to the specified post");
+                throw new ValidationException("Parent comment does not belong to the specified post");
             }
         }
         
@@ -116,7 +119,7 @@ public class CommentService {
         log.info("Approving comment with ID: {}", commentId);
         
         BlogComment comment = commentRepository.findById(commentId)
-            .orElseThrow(() -> new RuntimeException("Comment not found with id: " + commentId));
+            .orElseThrow(() -> new BusinessException("Comment not found with id: " + commentId));
         
         comment.setIsApproved(true);
         BlogComment approvedComment = commentRepository.save(comment);
@@ -133,7 +136,7 @@ public class CommentService {
         log.info("Deleting comment with ID: {}", commentId);
         
         BlogComment comment = commentRepository.findById(commentId)
-            .orElseThrow(() -> new RuntimeException("Comment not found with id: " + commentId));
+            .orElseThrow(() -> new BusinessException("Comment not found with id: " + commentId));
         
         Long postId = comment.getPost().getId();
         commentRepository.delete(comment);

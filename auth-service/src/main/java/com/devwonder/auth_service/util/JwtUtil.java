@@ -4,6 +4,7 @@ import io.jsonwebtoken.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import com.devwonder.auth_service.exception.TokenGenerationException;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -32,7 +33,7 @@ public class JwtUtil {
             this.privateKey = (RSAPrivateKey) keyPair.getPrivate();
             this.publicKey = (RSAPublicKey) keyPair.getPublic();
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Error generating RSA key pair", e);
+            throw new TokenGenerationException("Error generating RSA key pair", e);
         }
     }
 
