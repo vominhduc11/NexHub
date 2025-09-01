@@ -38,7 +38,7 @@ public class ResellerController {
         try {
             ResellerResponse response = resellerService.createReseller(request);
             return ResponseEntity.status(HttpStatus.CREATED)
-                .body(BaseResponse.success(response, "Reseller created successfully"));
+                .body(BaseResponse.success("Reseller created successfully", response));
             
         } catch (BaseException e) {
             log.error("Error creating reseller: {}", e.getMessage());
@@ -51,6 +51,6 @@ public class ResellerController {
     @GetMapping("/{accountId}/exists")
     public ResponseEntity<BaseResponse<Boolean>> existsById(@PathVariable Long accountId) {
         boolean exists = resellerService.existsById(accountId);
-        return ResponseEntity.ok(BaseResponse.success(exists, "Reseller existence checked successfully"));
+        return ResponseEntity.ok(BaseResponse.success("Reseller existence checked successfully", exists));
     }
 }

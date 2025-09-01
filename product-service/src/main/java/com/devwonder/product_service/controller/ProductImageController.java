@@ -43,7 +43,7 @@ public class ProductImageController {
         
         try {
             List<ProductImageResponse> images = productImageService.getProductImages(productId);
-            return ResponseEntity.ok(BaseResponse.success(images, "Product images retrieved successfully"));
+            return ResponseEntity.ok(BaseResponse.success("Product images retrieved successfully", images));
         } catch (BaseException e) {
             log.error("Error with product image operation: {}", e.getMessage(), e);
             return ResponseEntity.status(e.getHttpStatus())
@@ -73,7 +73,7 @@ public class ProductImageController {
         try {
             ProductImageResponse addedImage = productImageService.addProductImage(productId, imageRequest);
             return ResponseEntity.status(HttpStatus.CREATED)
-                .body(BaseResponse.success(addedImage, "Product image added successfully"));
+                .body(BaseResponse.success("Product image added successfully", addedImage));
         } catch (BaseException e) {
             log.error("Error with product image operation: {}", e.getMessage(), e);
             return ResponseEntity.status(e.getHttpStatus())
@@ -103,7 +103,7 @@ public class ProductImageController {
         
         try {
             ProductImageResponse updatedImage = productImageService.updateProductImage(productId, imageId, imageRequest);
-            return ResponseEntity.ok(BaseResponse.success(updatedImage, "Product image updated successfully"));
+            return ResponseEntity.ok(BaseResponse.success("Product image updated successfully", updatedImage));
         } catch (BaseException e) {
             log.error("Error updating product image: {}", e.getMessage(), e);
             return ResponseEntity.status(e.getHttpStatus())

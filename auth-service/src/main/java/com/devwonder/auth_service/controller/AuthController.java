@@ -37,7 +37,7 @@ public class AuthController {
         
         try {
             LoginResponse response = authenticationService.login(request);
-            BaseResponse<LoginResponse> apiResponse = BaseResponse.success(response, "Login successful");
+            BaseResponse<LoginResponse> apiResponse = BaseResponse.success("Login successful", response);
             return ResponseEntity.ok(apiResponse);
             
         } catch (BadCredentialsException e) {

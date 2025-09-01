@@ -40,7 +40,7 @@ public class CategoryController {
         try {
             Category savedCategory = categoryService.createCategory(category);
             return ResponseEntity.status(HttpStatus.CREATED)
-                .body(BaseResponse.success(savedCategory, "Category created successfully"));
+                .body(BaseResponse.success("Category created successfully", savedCategory));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(BaseResponse.error(e.getMessage(), "VALIDATION_ERROR"));
@@ -60,7 +60,7 @@ public class CategoryController {
     public ResponseEntity<BaseResponse<List<Category>>> getAllCategories() {
         try {
             List<Category> categories = categoryService.getAllCategories();
-            return ResponseEntity.ok(BaseResponse.success(categories, "Categories retrieved successfully"));
+            return ResponseEntity.ok(BaseResponse.success("Categories retrieved successfully", categories));
         } catch (Exception e) {
             log.error("Error retrieving categories", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -82,7 +82,7 @@ public class CategoryController {
             @RequestBody Category category) {
         try {
             Category updatedCategory = categoryService.updateCategory(id, category);
-            return ResponseEntity.ok(BaseResponse.success(updatedCategory, "Category updated successfully"));
+            return ResponseEntity.ok(BaseResponse.success("Category updated successfully", updatedCategory));
         } catch (BaseException e) {
             log.error("Error updating category: {}", e.getMessage(), e);
             return ResponseEntity.status(e.getHttpStatus())
@@ -183,7 +183,7 @@ public class CategoryController {
         
         try {
             Page<Category> categories = categoryService.getAllActiveCategories(page, size);
-            return ResponseEntity.ok(BaseResponse.success(categories, "Active categories retrieved successfully"));
+            return ResponseEntity.ok(BaseResponse.success("Active categories retrieved successfully", categories));
         } catch (Exception e) {
             log.error("Error retrieving active categories", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

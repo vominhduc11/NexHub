@@ -4,7 +4,11 @@
       "Bash(curl:*)",
       "Bash(cat:*)",
       "Bash(grep:*)",
-      "Bash(./mvnw:*)"
+      "Bash(./mvnw:*)",
+      "Bash(for service in auth-service user-service product-service blog-service warranty-service notification-service)",
+      "Bash(do echo \"=== $service status ===\")",
+      "Bash(done)",
+      "Bash(sed:*)"
     ]
   },
   "outputStyle": "default"

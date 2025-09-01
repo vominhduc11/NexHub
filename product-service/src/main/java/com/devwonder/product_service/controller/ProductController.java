@@ -3,6 +3,7 @@ package com.devwonder.product_service.controller;
 import com.devwonder.common.dto.BaseResponse;
 import com.devwonder.common.annotation.RequireAdminRole;
 import com.devwonder.common.exception.BaseException;
+import com.devwonder.common.util.ResponseUtil;
 import com.devwonder.product_service.dto.ProductRequest;
 import com.devwonder.product_service.dto.ProductResponse;
 import com.devwonder.product_service.service.ProductService;
@@ -45,11 +46,10 @@ public class ProductController {
         
         try {
             Page<ProductResponse> products = productService.getAllProducts(page, size);
-            return ResponseEntity.ok(BaseResponse.success(products, "Products retrieved successfully"));
+            return ResponseUtil.success("Products retrieved successfully", products);
         } catch (Exception e) {
             log.error("Error retrieving products", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving products", "INTERNAL_ERROR"));
+            return ResponseUtil.error("Error retrieving products", "INTERNAL_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -73,11 +73,10 @@ public class ProductController {
         
         try {
             Page<ProductResponse> products = productService.getProductsByCategory(categoryId, page, size);
-            return ResponseEntity.ok(BaseResponse.success(products, "Products by category retrieved successfully"));
+            return ResponseUtil.success("Products by category retrieved successfully", products);
         } catch (Exception e) {
             log.error("Error retrieving products by category", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving products by category", "INTERNAL_ERROR"));
+            return ResponseUtil.error("Error retrieving products by category", "INTERNAL_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -101,11 +100,10 @@ public class ProductController {
         
         try {
             Page<ProductResponse> products = productService.searchProducts(keyword, page, size);
-            return ResponseEntity.ok(BaseResponse.success(products, "Search results retrieved successfully"));
+            return ResponseUtil.success("Search results retrieved successfully", products);
         } catch (Exception e) {
             log.error("Error searching products", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error searching products", "INTERNAL_ERROR"));
+            return ResponseUtil.error("Error searching products", "INTERNAL_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -125,16 +123,13 @@ public class ProductController {
         
         try {
             ProductResponse createdProduct = productService.createProduct(productRequest);
-            return ResponseEntity.status(HttpStatus.CREATED)
-                .body(BaseResponse.success(createdProduct, "Product created successfully"));
+            return ResponseUtil.created("Product created successfully", createdProduct);
         } catch (IllegalArgumentException e) {
             log.error("Invalid request: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(BaseResponse.error(e.getMessage(), "VALIDATION_ERROR"));
+            return ResponseUtil.error(e.getMessage(), "VALIDATION_ERROR", HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             log.error("Error creating product: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error creating product", "INTERNAL_ERROR"));
+            return ResponseUtil.error("Error creating product", "INTERNAL_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -155,15 +150,13 @@ public class ProductController {
         
         try {
             ProductResponse updatedProduct = productService.updateProduct(id, productRequest);
-            return ResponseEntity.ok(BaseResponse.success(updatedProduct, "Product updated successfully"));
+            return ResponseUtil.success("Product updated successfully", updatedProduct);
         } catch (BaseException e) {
             log.error("Error updating product: {}", e.getMessage(), e);
-            return ResponseEntity.status(e.getHttpStatus())
-                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
+            return ResponseUtil.error(e.getMessage(), e.getErrorCode(), e.getHttpStatus());
         } catch (Exception e) {
             log.error("Error updating product: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error updating product", "INTERNAL_ERROR"));
+            return ResponseUtil.error("Error updating product", "INTERNAL_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -184,15 +177,13 @@ public class ProductController {
         
         try {
             ProductResponse updatedProduct = productService.patchProduct(id, productRequest);
-            return ResponseEntity.ok(BaseResponse.success(updatedProduct, "Product partially updated successfully"));
+            return ResponseUtil.success("Product partially updated successfully", updatedProduct);
         } catch (BaseException e) {
             log.error("Error partially updating product: {}", e.getMessage(), e);
-            return ResponseEntity.status(e.getHttpStatus())
-                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
+            return ResponseUtil.error(e.getMessage(), e.getErrorCode(), e.getHttpStatus());
         } catch (Exception e) {
             log.error("Error partially updating product: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error partially updating product", "INTERNAL_ERROR"));
+            return ResponseUtil.error("Error partially updating product", "INTERNAL_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -212,15 +203,13 @@ public class ProductController {
         
         try {
             productService.softDeleteProduct(id);
-            return ResponseEntity.ok(BaseResponse.success("Product soft deleted successfully"));
+            return ResponseUtil.successVoid("Product soft deleted successfully");
         } catch (BaseException e) {
             log.error("Error soft deleting product: {}", e.getMessage(), e);
-            return ResponseEntity.status(e.getHttpStatus())
-                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
+            return ResponseUtil.error(e.getMessage(), e.getErrorCode(), e.getHttpStatus());
         } catch (Exception e) {
             log.error("Error soft deleting product: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error soft deleting product", "INTERNAL_ERROR"));
+            return ResponseUtil.error("Error soft deleting product", "INTERNAL_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -239,15 +228,13 @@ public class ProductController {
         
         try {
             productService.deleteProduct(id);
-            return ResponseEntity.ok(BaseResponse.success("Product hard deleted successfully"));
+            return ResponseUtil.successVoid("Product hard deleted successfully");
         } catch (BaseException e) {
             log.error("Error hard deleting product: {}", e.getMessage(), e);
-            return ResponseEntity.status(e.getHttpStatus())
-                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
+            return ResponseUtil.error(e.getMessage(), e.getErrorCode(), e.getHttpStatus());
         } catch (Exception e) {
             log.error("Error hard deleting product: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error hard deleting product", "INTERNAL_ERROR"));
+            return ResponseUtil.error("Error hard deleting product", "INTERNAL_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -267,15 +254,13 @@ public class ProductController {
         
         try {
             productService.restoreProduct(id);
-            return ResponseEntity.ok(BaseResponse.success("Product restored successfully"));
+            return ResponseUtil.successVoid("Product restored successfully");
         } catch (BaseException e) {
             log.error("Error restoring product: {}", e.getMessage(), e);
-            return ResponseEntity.status(e.getHttpStatus())
-                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
+            return ResponseUtil.error(e.getMessage(), e.getErrorCode(), e.getHttpStatus());
         } catch (Exception e) {
             log.error("Error restoring product: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error restoring product", "INTERNAL_ERROR"));
+            return ResponseUtil.error("Error restoring product", "INTERNAL_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -296,11 +281,10 @@ public class ProductController {
         
         try {
             Page<ProductResponse> products = productService.getAllActiveProducts(page, size);
-            return ResponseEntity.ok(BaseResponse.success(products, "Active products retrieved successfully"));
+            return ResponseUtil.success("Active products retrieved successfully", products);
         } catch (Exception e) {
             log.error("Error retrieving active products", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving active products", "INTERNAL_ERROR"));
+            return ResponseUtil.error("Error retrieving active products", "INTERNAL_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

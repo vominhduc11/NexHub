@@ -1,9 +1,9 @@
-package com.devwonder.notification_service.service;
+package com.devwonder.common.security;
 
-import com.devwonder.notification_service.exception.InvalidTokenSignatureException;
-import com.devwonder.notification_service.exception.JwksRetrievalException;
-import com.devwonder.notification_service.exception.JwtValidationException;
-import com.devwonder.notification_service.exception.TokenExpiredException;
+import com.devwonder.common.exception.InvalidTokenSignatureException;
+import com.devwonder.common.exception.JwksRetrievalException;
+import com.devwonder.common.exception.JwtValidationException;
+import com.devwonder.common.exception.TokenExpiredException;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jose.jwk.JWK;
@@ -23,33 +23,27 @@ import java.util.List;
 @Slf4j
 public class JwtService {
 
-    @Value("${jwt.jwks-uri:http://auth-service:8081/auth/.well-known/jwks.json}")
+    @Value("${nexhub.jwt.jwks-uri:http://auth-service:8081/auth/.well-known/jwks.json}")
     private String jwksUri;
 
     public JWTClaimsSet validateToken(String token) throws JwtValidationException {
         try {
-            // Parse JWT
             SignedJWT signedJWT = SignedJWT.parse(token);
-            
-            // Get claims
             JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
             
-            // Check expiration
             if (claimsSet.getExpirationTime() != null &&
                 claimsSet.getExpirationTime().before(java.util.Date.from(Instant.now()))) {
                 throw new TokenExpiredException("Token expired");
             }
             
-            // Get public key from JWKS
             RSAKey rsaKey = getRSAKey(signedJWT.getHeader().getKeyID());
-            
-            // Verify signature
             JWSVerifier verifier = new RSASSAVerifier(rsaKey);
+            
             if (!signedJWT.verify(verifier)) {
                 throw new InvalidTokenSignatureException("Invalid token signature");
             }
             
-            log.info("Token validated successfully for user: {}", claimsSet.getSubject());
+            log.debug("Token validated successfully for user: {}", claimsSet.getSubject());
             return claimsSet;
             
         } catch (JwtValidationException e) {
@@ -63,11 +57,9 @@ public class JwtService {
 
     private RSAKey getRSAKey(String keyId) throws JwksRetrievalException {
         try {
-            // Fetch JWKS from auth service
             JWKSet jwkSet = JWKSet.load(new URL(jwksUri));
-            
-            // Find key by keyId
             JWK jwk = jwkSet.getKeyByKeyId(keyId);
+            
             if (jwk == null) {
                 throw new JwksRetrievalException("Key not found: " + keyId);
             }

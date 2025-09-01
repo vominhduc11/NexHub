@@ -43,7 +43,7 @@ public class ProductVideoController {
         
         try {
             List<ProductVideoResponse> videos = productVideoService.getProductVideos(productId);
-            return ResponseEntity.ok(BaseResponse.success(videos, "Product videos retrieved successfully"));
+            return ResponseEntity.ok(BaseResponse.success("Product videos retrieved successfully", videos));
         } catch (BaseException e) {
             log.error("Error retrieving product videos: {}", e.getMessage(), e);
             return ResponseEntity.status(e.getHttpStatus())
@@ -73,7 +73,7 @@ public class ProductVideoController {
         try {
             ProductVideoResponse addedVideo = productVideoService.addProductVideo(productId, videoRequest);
             return ResponseEntity.status(HttpStatus.CREATED)
-                .body(BaseResponse.success(addedVideo, "Product video added successfully"));
+                .body(BaseResponse.success("Product video added successfully", addedVideo));
         } catch (BaseException e) {
             log.error("Error retrieving product videos: {}", e.getMessage(), e);
             return ResponseEntity.status(e.getHttpStatus())
@@ -103,7 +103,7 @@ public class ProductVideoController {
         
         try {
             ProductVideoResponse updatedVideo = productVideoService.updateProductVideo(productId, videoId, videoRequest);
-            return ResponseEntity.ok(BaseResponse.success(updatedVideo, "Product video updated successfully"));
+            return ResponseEntity.ok(BaseResponse.success("Product video updated successfully", updatedVideo));
         } catch (BaseException e) {
             log.error("Error updating product video: {}", e.getMessage(), e);
             return ResponseEntity.status(e.getHttpStatus())

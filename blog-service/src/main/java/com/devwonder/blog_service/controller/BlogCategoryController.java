@@ -40,7 +40,7 @@ public class BlogCategoryController {
         
         try {
             List<BlogCategoryResponse> categories = categoryService.getAllVisibleCategories();
-            return ResponseEntity.ok(BaseResponse.success(categories, "Categories retrieved successfully"));
+            return ResponseEntity.ok(BaseResponse.success("Categories retrieved successfully", categories));
         } catch (Exception e) {
             log.error("Error retrieving categories", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -61,7 +61,7 @@ public class BlogCategoryController {
         
         try {
             Page<BlogCategoryResponse> categories = categoryService.getVisibleCategories(page, size);
-            return ResponseEntity.ok(BaseResponse.success(categories, "Categories retrieved successfully"));
+            return ResponseEntity.ok(BaseResponse.success("Categories retrieved successfully", categories));
         } catch (Exception e) {
             log.error("Error retrieving categories", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -79,7 +79,7 @@ public class BlogCategoryController {
         
         try {
             Page<BlogCategoryResponse> categories = categoryService.getAllCategories(page, size);
-            return ResponseEntity.ok(BaseResponse.success(categories, "All categories retrieved successfully"));
+            return ResponseEntity.ok(BaseResponse.success("All categories retrieved successfully", categories));
         } catch (Exception e) {
             log.error("Error retrieving all categories", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -97,7 +97,7 @@ public class BlogCategoryController {
         try {
             Optional<BlogCategoryResponse> category = categoryService.getCategoryBySlug(slug);
             if (category.isPresent()) {
-                return ResponseEntity.ok(BaseResponse.success(category.get(), "Category retrieved successfully"));
+                return ResponseEntity.ok(BaseResponse.success("Category retrieved successfully", category.get()));
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(BaseResponse.error("Category not found", "NOT_FOUND"));
@@ -119,7 +119,7 @@ public class BlogCategoryController {
         try {
             Optional<BlogCategoryResponse> category = categoryService.getCategoryById(id);
             if (category.isPresent()) {
-                return ResponseEntity.ok(BaseResponse.success(category.get(), "Category retrieved successfully"));
+                return ResponseEntity.ok(BaseResponse.success("Category retrieved successfully", category.get()));
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(BaseResponse.error("Category not found", "NOT_FOUND"));
@@ -141,7 +141,7 @@ public class BlogCategoryController {
         try {
             BlogCategoryResponse response = categoryService.createCategory(request);
             return ResponseEntity.status(HttpStatus.CREATED)
-                .body(BaseResponse.success(response, "Category created successfully"));
+                .body(BaseResponse.success("Category created successfully", response));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(BaseResponse.error(e.getMessage(), "VALIDATION_ERROR"));
@@ -162,7 +162,7 @@ public class BlogCategoryController {
         
         try {
             BlogCategoryResponse response = categoryService.updateCategory(id, request);
-            return ResponseEntity.ok(BaseResponse.success(response, "Category updated successfully"));
+            return ResponseEntity.ok(BaseResponse.success("Category updated successfully", response));
         } catch (BaseException e) {
             log.error("Error updating category: {}", e.getMessage(), e);
             return ResponseEntity.status(e.getHttpStatus())
@@ -204,7 +204,7 @@ public class BlogCategoryController {
         
         try {
             BlogCategoryResponse response = categoryService.toggleVisibility(id);
-            return ResponseEntity.ok(BaseResponse.success(response, "Category visibility toggled successfully"));
+            return ResponseEntity.ok(BaseResponse.success("Category visibility toggled successfully", response));
         } catch (BaseException e) {
             log.error("Error toggling category visibility: {}", e.getMessage(), e);
             return ResponseEntity.status(e.getHttpStatus())

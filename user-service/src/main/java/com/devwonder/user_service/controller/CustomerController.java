@@ -20,6 +20,6 @@ public class CustomerController {
     @GetMapping("/{accountId}/exists")
     public ResponseEntity<BaseResponse<Boolean>> existsById(@PathVariable Long accountId) {
         boolean exists = customerService.existsById(accountId);
-        return ResponseEntity.ok(BaseResponse.success(exists, "Customer existence checked successfully"));
+        return ResponseEntity.ok(BaseResponse.success("Customer existence checked successfully", exists));
     }
 }

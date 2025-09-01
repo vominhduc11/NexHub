@@ -39,7 +39,7 @@ public class ResellerController {
         
         try {
             ResellerRegistrationResponse response = resellerService.registerReseller(request);
-            BaseResponse<ResellerRegistrationResponse> apiResponse = BaseResponse.success(response, "Reseller account created successfully");
+            BaseResponse<ResellerRegistrationResponse> apiResponse = BaseResponse.success("Reseller account created successfully", response);
             return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
             
         } catch (UsernameAlreadyExistsException e) {

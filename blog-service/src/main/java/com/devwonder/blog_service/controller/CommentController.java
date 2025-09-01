@@ -42,7 +42,7 @@ public class CommentController {
         
         try {
             List<CommentResponse> comments = commentService.getCommentsByPost(postId);
-            return ResponseEntity.ok(BaseResponse.success(comments, "Comments retrieved successfully"));
+            return ResponseEntity.ok(BaseResponse.success("Comments retrieved successfully", comments));
         } catch (Exception e) {
             log.error("Error retrieving comments for post", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -64,7 +64,7 @@ public class CommentController {
         
         try {
             Page<CommentResponse> comments = commentService.getCommentsByPost(postId, page, size);
-            return ResponseEntity.ok(BaseResponse.success(comments, "Comments retrieved successfully"));
+            return ResponseEntity.ok(BaseResponse.success("Comments retrieved successfully", comments));
         } catch (Exception e) {
             log.error("Error retrieving paginated comments for post", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -83,7 +83,7 @@ public class CommentController {
         
         try {
             Page<CommentResponse> comments = commentService.getAllCommentsByPost(postId, page, size);
-            return ResponseEntity.ok(BaseResponse.success(comments, "All comments retrieved successfully"));
+            return ResponseEntity.ok(BaseResponse.success("All comments retrieved successfully", comments));
         } catch (Exception e) {
             log.error("Error retrieving all comments for post", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -101,7 +101,7 @@ public class CommentController {
         
         try {
             Page<CommentResponse> comments = commentService.getPendingComments(page, size);
-            return ResponseEntity.ok(BaseResponse.success(comments, "Pending comments retrieved successfully"));
+            return ResponseEntity.ok(BaseResponse.success("Pending comments retrieved successfully", comments));
         } catch (Exception e) {
             log.error("Error retrieving pending comments", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -119,7 +119,7 @@ public class CommentController {
         
         try {
             Page<CommentResponse> comments = commentService.getRecentComments(page, size);
-            return ResponseEntity.ok(BaseResponse.success(comments, "Recent comments retrieved successfully"));
+            return ResponseEntity.ok(BaseResponse.success("Recent comments retrieved successfully", comments));
         } catch (Exception e) {
             log.error("Error retrieving recent comments", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -136,7 +136,7 @@ public class CommentController {
         
         try {
             Long count = commentService.getCommentCount(postId);
-            return ResponseEntity.ok(BaseResponse.success(count, "Comment count retrieved successfully"));
+            return ResponseEntity.ok(BaseResponse.success("Comment count retrieved successfully", count));
         } catch (Exception e) {
             log.error("Error retrieving comment count", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -160,7 +160,7 @@ public class CommentController {
         try {
             CommentResponse response = commentService.createComment(postId, request);
             return ResponseEntity.status(HttpStatus.CREATED)
-                .body(BaseResponse.success(response, "Comment created successfully and is pending approval"));
+                .body(BaseResponse.success("Comment created successfully and is pending approval", response));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(BaseResponse.error(e.getMessage(), "VALIDATION_ERROR"));
@@ -180,7 +180,7 @@ public class CommentController {
         
         try {
             CommentResponse response = commentService.approveComment(id);
-            return ResponseEntity.ok(BaseResponse.success(response, "Comment approved successfully"));
+            return ResponseEntity.ok(BaseResponse.success("Comment approved successfully", response));
         } catch (BaseException e) {
             log.error("Error approving comment: {}", e.getMessage(), e);
             return ResponseEntity.status(e.getHttpStatus())

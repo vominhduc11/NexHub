@@ -5,6 +5,6 @@ import org.springframework.http.HttpStatus;
 
 public class EmailAlreadyExistsException extends BaseException {
     public EmailAlreadyExistsException(String message) {
-        super(message, "EMAIL_ALREADY_EXISTS", HttpStatus.CONFLICT);
+        super("EMAIL_ALREADY_EXISTS", message, HttpStatus.CONFLICT.value());
     }
 }

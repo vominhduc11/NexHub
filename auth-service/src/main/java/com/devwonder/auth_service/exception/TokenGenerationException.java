@@ -8,6 +8,6 @@ public class TokenGenerationException extends ConfigurationException {
     }
 
     public TokenGenerationException(String message, Throwable cause) {
-        super("Token generation failed: " + message, cause);
+        super("TOKEN_GENERATION_ERROR", "Token generation failed: " + message, cause);
     }
 }

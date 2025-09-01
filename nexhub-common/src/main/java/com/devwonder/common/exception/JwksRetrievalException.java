@@ -1,10 +1,11 @@
-package com.devwonder.notification_service.exception;
+package com.devwonder.common.exception;
 
-public class JwksRetrievalException extends Exception {
+public class JwksRetrievalException extends JwtValidationException {
+    
     public JwksRetrievalException(String message) {
         super(message);
     }
-
+    
     public JwksRetrievalException(String message, Throwable cause) {
         super(message, cause);
     }

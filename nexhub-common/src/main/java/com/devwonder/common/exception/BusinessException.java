@@ -3,17 +3,16 @@ package com.devwonder.common.exception;
 import org.springframework.http.HttpStatus;
 
 public class BusinessException extends BaseException {
-    private static final String ERROR_CODE = "BUSINESS_RULE_VIOLATION";
-
+    
     public BusinessException(String message) {
-        super(message, ERROR_CODE, HttpStatus.BAD_REQUEST);
+        super("BUSINESS_ERROR", message, HttpStatus.BAD_REQUEST.value());
     }
-
-    public BusinessException(String message, Throwable cause) {
-        super(message, ERROR_CODE, HttpStatus.BAD_REQUEST, cause);
+    
+    public BusinessException(String errorCode, String message) {
+        super(errorCode, message, HttpStatus.BAD_REQUEST.value());
     }
-
-    public BusinessException(String message, String errorCode) {
-        super(message, errorCode, HttpStatus.BAD_REQUEST);
+    
+    public BusinessException(String errorCode, String message, Throwable cause) {
+        super(errorCode, message, HttpStatus.BAD_REQUEST.value(), cause);
     }
 }

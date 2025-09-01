@@ -8,6 +8,6 @@ public class UserServiceIntegrationException extends BusinessException {
     }
 
     public UserServiceIntegrationException(String message, Throwable cause) {
-        super("User service integration failed: " + message, cause);
+        super("USER_SERVICE_INTEGRATION_ERROR", "User service integration failed: " + message, cause);
     }
 }

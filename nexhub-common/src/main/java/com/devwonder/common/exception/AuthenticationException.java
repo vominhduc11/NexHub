@@ -3,13 +3,16 @@ package com.devwonder.common.exception;
 import org.springframework.http.HttpStatus;
 
 public class AuthenticationException extends BaseException {
-    private static final String ERROR_CODE = "AUTHENTICATION_FAILED";
-
+    
     public AuthenticationException(String message) {
-        super(message, ERROR_CODE, HttpStatus.UNAUTHORIZED);
+        super("AUTHENTICATION_FAILED", message, HttpStatus.UNAUTHORIZED.value());
     }
-
-    public AuthenticationException(String message, Throwable cause) {
-        super(message, ERROR_CODE, HttpStatus.UNAUTHORIZED, cause);
+    
+    public AuthenticationException(String errorCode, String message) {
+        super(errorCode, message, HttpStatus.UNAUTHORIZED.value());
+    }
+    
+    public AuthenticationException(String errorCode, String message, Throwable cause) {
+        super(errorCode, message, HttpStatus.UNAUTHORIZED.value(), cause);
     }
 }

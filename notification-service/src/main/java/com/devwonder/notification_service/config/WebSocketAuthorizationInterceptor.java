@@ -1,6 +1,6 @@
 package com.devwonder.notification_service.config;
 
-import com.devwonder.notification_service.service.JwtService;
+import com.devwonder.common.security.JwtService;
 import com.devwonder.common.exception.AuthenticationException;
 import com.devwonder.common.exception.AuthorizationException;
 import com.nimbusds.jwt.JWTClaimsSet;

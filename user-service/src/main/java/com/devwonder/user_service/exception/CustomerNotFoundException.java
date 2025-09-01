@@ -4,10 +4,10 @@ import com.devwonder.common.exception.ResourceNotFoundException;
 
 public class CustomerNotFoundException extends ResourceNotFoundException {
     public CustomerNotFoundException(Long customerId) {
-        super("Customer", "id", customerId);
+        super("Customer", "id", String.valueOf(customerId));
     }
 
     public CustomerNotFoundException(String fieldName, Object fieldValue) {
-        super("Customer", fieldName, fieldValue);
+        super("Customer", fieldName, String.valueOf(fieldValue));
     }
 }

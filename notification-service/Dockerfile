@@ -6,6 +6,8 @@ WORKDIR /app
 
 # First, build nexhub-common library
 COPY nexhub-common/pom.xml nexhub-common/
+COPY nexhub-common/.mvn nexhub-common/.mvn/
+COPY nexhub-common/mvnw* nexhub-common/
 COPY nexhub-common/src nexhub-common/src/
 RUN cd nexhub-common && mvn clean install -DskipTests
 

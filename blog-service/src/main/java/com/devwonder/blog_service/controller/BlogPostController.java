@@ -2,7 +2,7 @@ package com.devwonder.blog_service.controller;
 
 import com.devwonder.common.dto.BaseResponse;
 import com.devwonder.common.exception.BaseException;
-import com.devwonder.common.util.ResponseUtils;
+import com.devwonder.common.util.ResponseUtil;
 import com.devwonder.blog_service.dto.BlogPostRequest;
 import com.devwonder.blog_service.dto.BlogPostResponse;
 import com.devwonder.blog_service.service.BlogPostService;
@@ -47,7 +47,7 @@ public class BlogPostController {
         
         try {
             Page<BlogPostResponse> posts = blogPostService.getAllPublishedPosts(page, size);
-            return ResponseEntity.ok(BaseResponse.success(posts, "Posts retrieved successfully"));
+            return ResponseEntity.ok(BaseResponse.success("Posts retrieved successfully", posts));
         } catch (Exception e) {
             log.error("Error retrieving posts", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -73,7 +73,7 @@ public class BlogPostController {
         
         try {
             Page<BlogPostResponse> posts = blogPostService.getPostsByCategory(categoryId, page, size);
-            return ResponseEntity.ok(BaseResponse.success(posts, "Posts retrieved successfully"));
+            return ResponseEntity.ok(BaseResponse.success("Posts retrieved successfully", posts));
         } catch (Exception e) {
             log.error("Error retrieving posts by category", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -92,7 +92,7 @@ public class BlogPostController {
         
         try {
             Page<BlogPostResponse> posts = blogPostService.getPostsByAuthor(authorId, page, size);
-            return ResponseEntity.ok(BaseResponse.success(posts, "Posts retrieved successfully"));
+            return ResponseEntity.ok(BaseResponse.success("Posts retrieved successfully", posts));
         } catch (Exception e) {
             log.error("Error retrieving posts by author", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -110,10 +110,10 @@ public class BlogPostController {
         
         try {
             Page<BlogPostResponse> posts = blogPostService.getFeaturedPosts(page, size);
-            return ResponseUtils.success(posts, "Featured posts retrieved successfully");
+            return ResponseUtil.success("Featured posts retrieved successfully", posts);
         } catch (Exception e) {
             log.error("Error retrieving featured posts", e);
-            return ResponseUtils.internalError("Error retrieving featured posts");
+            return ResponseUtil.internalError("Error retrieving featured posts");
         }
     }
     
@@ -127,10 +127,10 @@ public class BlogPostController {
         
         try {
             Page<BlogPostResponse> posts = blogPostService.getPopularPosts(page, size);
-            return ResponseUtils.success(posts, "Popular posts retrieved successfully");
+            return ResponseUtil.success("Popular posts retrieved successfully", posts);
         } catch (Exception e) {
             log.error("Error retrieving popular posts", e);
-            return ResponseUtils.internalError("Error retrieving popular posts");
+            return ResponseUtil.internalError("Error retrieving popular posts");
         }
     }
     
@@ -145,7 +145,7 @@ public class BlogPostController {
         
         try {
             Page<BlogPostResponse> posts = blogPostService.searchPosts(keyword, page, size);
-            return ResponseEntity.ok(BaseResponse.success(posts, "Search results retrieved successfully"));
+            return ResponseEntity.ok(BaseResponse.success("Search results retrieved successfully", posts));
         } catch (Exception e) {
             log.error("Error searching posts", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -164,7 +164,7 @@ public class BlogPostController {
         
         try {
             Page<BlogPostResponse> posts = blogPostService.getPostsByTag(tagSlug, page, size);
-            return ResponseEntity.ok(BaseResponse.success(posts, "Posts retrieved successfully"));
+            return ResponseEntity.ok(BaseResponse.success("Posts retrieved successfully", posts));
         } catch (Exception e) {
             log.error("Error retrieving posts by tag", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -182,7 +182,7 @@ public class BlogPostController {
         try {
             Optional<BlogPostResponse> post = blogPostService.getPostBySlug(slug);
             if (post.isPresent()) {
-                return ResponseEntity.ok(BaseResponse.success(post.get(), "Post retrieved successfully"));
+                return ResponseEntity.ok(BaseResponse.success("Post retrieved successfully", post.get()));
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(BaseResponse.error("Post not found", "NOT_FOUND"));
@@ -204,7 +204,7 @@ public class BlogPostController {
         
         try {
             Page<BlogPostResponse> posts = blogPostService.getRelatedPosts(id, limit);
-            return ResponseEntity.ok(BaseResponse.success(posts, "Related posts retrieved successfully"));
+            return ResponseEntity.ok(BaseResponse.success("Related posts retrieved successfully", posts));
         } catch (BaseException e) {
             log.error("Error retrieving related posts: {}", e.getMessage(), e);
             return ResponseEntity.status(e.getHttpStatus())
@@ -226,7 +226,7 @@ public class BlogPostController {
         try {
             BlogPostResponse response = blogPostService.createPost(request);
             return ResponseEntity.status(HttpStatus.CREATED)
-                .body(BaseResponse.success(response, "Post created successfully"));
+                .body(BaseResponse.success("Post created successfully", response));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(BaseResponse.error(e.getMessage(), "VALIDATION_ERROR"));
@@ -247,7 +247,7 @@ public class BlogPostController {
         
         try {
             BlogPostResponse response = blogPostService.updatePost(id, request);
-            return ResponseEntity.ok(BaseResponse.success(response, "Post updated successfully"));
+            return ResponseEntity.ok(BaseResponse.success("Post updated successfully", response));
         } catch (BaseException e) {
             log.error("Error retrieving related posts: {}", e.getMessage(), e);
             return ResponseEntity.status(e.getHttpStatus())
@@ -289,7 +289,7 @@ public class BlogPostController {
         
         try {
             BlogPostResponse response = blogPostService.publishPost(id);
-            return ResponseEntity.ok(BaseResponse.success(response, "Post published successfully"));
+            return ResponseEntity.ok(BaseResponse.success("Post published successfully", response));
         } catch (BaseException e) {
             log.error("Error retrieving related posts: {}", e.getMessage(), e);
             return ResponseEntity.status(e.getHttpStatus())

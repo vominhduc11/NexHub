@@ -13,9 +13,7 @@ import com.devwonder.blog_service.repository.BlogPostRepository;
 import com.devwonder.blog_service.repository.BlogTagRepository;
 import com.devwonder.blog_service.exception.BlogPostNotFoundException;
 import com.devwonder.common.exception.ValidationException;
-import com.devwonder.common.util.RepositoryUtils;
-import com.devwonder.common.util.ValidationUtils;
-import com.devwonder.common.util.LoggingUtils;
+import com.devwonder.common.util.ValidationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -139,9 +137,8 @@ public class BlogPostService {
     public Page<BlogPostResponse> getRelatedPosts(Long postId, int limit) {
         log.info("Fetching related posts for post ID: {}, limit: {}", postId, limit);
         
-        BlogPost currentPost = RepositoryUtils.findOrThrow(
-            postRepository.findById(postId), 
-            () -> new BlogPostNotFoundException(postId));
+        BlogPost currentPost = postRepository.findById(postId)
+            .orElseThrow(() -> new BlogPostNotFoundException(postId));
         
         Pageable pageable = PageRequest.of(0, limit);
         Page<BlogPost> posts = postRepository.findRelatedPosts(currentPost.getCategory().getId(), postId, pageable);
@@ -183,7 +180,7 @@ public class BlogPostService {
         }
         
         BlogPost savedPost = postRepository.save(post);
-        LoggingUtils.logEntityCreation(log, "BlogPost", savedPost.getId());
+        // LoggingUtils.logEntityCreation(log, "BlogPost", savedPost.getId());
         
         // Update category and author post counts
         statsService.updateRelatedCounts(savedPost);
@@ -205,7 +202,7 @@ public class BlogPostService {
         updatePostFields(post, request);
         
         BlogPost updatedPost = postRepository.save(post);
-        LoggingUtils.logEntityUpdate(log, "BlogPost", updatedPost.getId());
+        // LoggingUtils.logEntityUpdate(log, "BlogPost", updatedPost.getId());
         
         statsService.updateRelatedCounts(updatedPost);
         

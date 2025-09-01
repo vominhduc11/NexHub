@@ -35,7 +35,7 @@
 		<dependency>
 			<groupId>com.devwonder</groupId>
 			<artifactId>nexhub-common</artifactId>
-			<version>1.0.0</version>
+			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
