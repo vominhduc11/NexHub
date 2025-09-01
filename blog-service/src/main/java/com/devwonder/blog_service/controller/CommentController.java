@@ -2,6 +2,7 @@ package com.devwonder.blog_service.controller;
 
 import com.devwonder.common.dto.BaseResponse;
 import com.devwonder.common.exception.BaseException;
+import com.devwonder.common.util.ResponseUtil;
 import com.devwonder.blog_service.dto.CommentRequest;
 import com.devwonder.blog_service.dto.CommentResponse;
 import com.devwonder.blog_service.service.CommentService;
@@ -42,11 +43,10 @@ public class CommentController {
         
         try {
             List<CommentResponse> comments = commentService.getCommentsByPost(postId);
-            return ResponseEntity.ok(BaseResponse.success("Comments retrieved successfully", comments));
+            return ResponseUtil.success("Comments retrieved successfully", comments);
         } catch (Exception e) {
             log.error("Error retrieving comments for post", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving comments", "INTERNAL_ERROR"));
+            return ResponseUtil.internalError("Error retrieving comments");
         }
     }
     
@@ -64,11 +64,10 @@ public class CommentController {
         
         try {
             Page<CommentResponse> comments = commentService.getCommentsByPost(postId, page, size);
-            return ResponseEntity.ok(BaseResponse.success("Comments retrieved successfully", comments));
+            return ResponseUtil.success("Comments retrieved successfully", comments);
         } catch (Exception e) {
             log.error("Error retrieving paginated comments for post", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving comments", "INTERNAL_ERROR"));
+            return ResponseUtil.internalError("Error retrieving comments");
         }
     }
     
@@ -83,11 +82,10 @@ public class CommentController {
         
         try {
             Page<CommentResponse> comments = commentService.getAllCommentsByPost(postId, page, size);
-            return ResponseEntity.ok(BaseResponse.success("All comments retrieved successfully", comments));
+            return ResponseUtil.success("All comments retrieved successfully", comments);
         } catch (Exception e) {
             log.error("Error retrieving all comments for post", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving comments", "INTERNAL_ERROR"));
+            return ResponseUtil.internalError("Error retrieving comments");
         }
     }
     
@@ -101,11 +99,10 @@ public class CommentController {
         
         try {
             Page<CommentResponse> comments = commentService.getPendingComments(page, size);
-            return ResponseEntity.ok(BaseResponse.success("Pending comments retrieved successfully", comments));
+            return ResponseUtil.success("Pending comments retrieved successfully", comments);
         } catch (Exception e) {
             log.error("Error retrieving pending comments", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving pending comments", "INTERNAL_ERROR"));
+            return ResponseUtil.internalError("Error retrieving pending comments");
         }
     }
     
@@ -119,11 +116,10 @@ public class CommentController {
         
         try {
             Page<CommentResponse> comments = commentService.getRecentComments(page, size);
-            return ResponseEntity.ok(BaseResponse.success("Recent comments retrieved successfully", comments));
+            return ResponseUtil.success("Recent comments retrieved successfully", comments);
         } catch (Exception e) {
             log.error("Error retrieving recent comments", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving recent comments", "INTERNAL_ERROR"));
+            return ResponseUtil.internalError("Error retrieving recent comments");
         }
     }
     
@@ -136,11 +132,10 @@ public class CommentController {
         
         try {
             Long count = commentService.getCommentCount(postId);
-            return ResponseEntity.ok(BaseResponse.success("Comment count retrieved successfully", count));
+            return ResponseUtil.success("Comment count retrieved successfully", count);
         } catch (Exception e) {
             log.error("Error retrieving comment count", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving comment count", "INTERNAL_ERROR"));
+            return ResponseUtil.internalError("Error retrieving comment count");
         }
     }
     
@@ -159,15 +154,12 @@ public class CommentController {
         
         try {
             CommentResponse response = commentService.createComment(postId, request);
-            return ResponseEntity.status(HttpStatus.CREATED)
-                .body(BaseResponse.success("Comment created successfully and is pending approval", response));
+            return ResponseUtil.created("Comment created successfully and is pending approval", response);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(BaseResponse.error(e.getMessage(), "VALIDATION_ERROR"));
+            return ResponseUtil.badRequest(e.getMessage());
         } catch (Exception e) {
             log.error("Error creating comment", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error creating comment", "INTERNAL_ERROR"));
+            return ResponseUtil.internalError("Error creating comment");
         }
     }
     
@@ -180,15 +172,13 @@ public class CommentController {
         
         try {
             CommentResponse response = commentService.approveComment(id);
-            return ResponseEntity.ok(BaseResponse.success("Comment approved successfully", response));
+            return ResponseUtil.success("Comment approved successfully", response);
         } catch (BaseException e) {
             log.error("Error approving comment: {}", e.getMessage(), e);
-            return ResponseEntity.status(e.getHttpStatus())
-                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
+            return ResponseUtil.error(e.getMessage(), e.getErrorCode(), e.getHttpStatus());
         } catch (Exception e) {
             log.error("Error approving comment", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error approving comment", "INTERNAL_ERROR"));
+            return ResponseUtil.internalError("Error approving comment");
         }
     }
     
@@ -201,15 +191,13 @@ public class CommentController {
         
         try {
             commentService.deleteComment(id);
-            return ResponseEntity.ok(BaseResponse.success("Comment deleted successfully"));
+            return ResponseUtil.successVoid("Comment deleted successfully");
         } catch (BaseException e) {
             log.error("Error deleting comment: {}", e.getMessage(), e);
-            return ResponseEntity.status(e.getHttpStatus())
-                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
+            return ResponseUtil.error(e.getMessage(), e.getErrorCode(), e.getHttpStatus());
         } catch (Exception e) {
             log.error("Error deleting comment", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error deleting comment", "INTERNAL_ERROR"));
+            return ResponseUtil.internalError("Error deleting comment");
         }
     }
 }

@@ -1,7 +1,6 @@
 package com.devwonder.warranty_service.controller;
 
 import com.devwonder.common.dto.BaseResponse;
-import com.devwonder.common.exception.BaseException;
 import com.devwonder.common.util.ResponseUtil;
 import com.devwonder.warranty_service.dto.PurchasedProductRequest;
 import com.devwonder.warranty_service.dto.PurchasedProductResponse;
@@ -16,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -48,13 +46,8 @@ public class PurchasedProductController {
         
         log.info("GET /warranty/purchased-products - page: {}, size: {}", page, size);
         
-        try {
-            Page<PurchasedProductResponse> products = purchasedProductService.getAllPurchasedProducts(page, size);
-            return ResponseUtil.success("Products retrieved successfully", products);
-        } catch (Exception e) {
-            log.error("Error retrieving purchased products", e);
-            return ResponseUtil.error("Error retrieving products", "INTERNAL_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        Page<PurchasedProductResponse> products = purchasedProductService.getAllPurchasedProducts(page, size);
+        return ResponseUtil.success("Products retrieved successfully", products);
     }
     
     @GetMapping("/customer/{customerId}")
@@ -66,13 +59,8 @@ public class PurchasedProductController {
         
         log.info("GET /warranty/purchased-products/customer/{} - page: {}, size: {}", customerId, page, size);
         
-        try {
-            Page<PurchasedProductResponse> products = purchasedProductService.getPurchasedProductsByCustomer(customerId, page, size);
-            return ResponseUtil.success("Customer products retrieved successfully", products);
-        } catch (Exception e) {
-            log.error("Error retrieving customer products", e);
-            return ResponseUtil.error("Error retrieving customer products", "INTERNAL_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        Page<PurchasedProductResponse> products = purchasedProductService.getPurchasedProductsByCustomer(customerId, page, size);
+        return ResponseUtil.success("Customer products retrieved successfully", products);
     }
     
     @GetMapping("/reseller/{resellerId}")
@@ -84,13 +72,8 @@ public class PurchasedProductController {
         
         log.info("GET /warranty/purchased-products/reseller/{} - page: {}, size: {}", resellerId, page, size);
         
-        try {
-            Page<PurchasedProductResponse> products = purchasedProductService.getPurchasedProductsByReseller(resellerId, page, size);
-            return ResponseUtil.success("Reseller products retrieved successfully", products);
-        } catch (Exception e) {
-            log.error("Error retrieving reseller products", e);
-            return ResponseUtil.error("Error retrieving reseller products", "INTERNAL_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        Page<PurchasedProductResponse> products = purchasedProductService.getPurchasedProductsByReseller(resellerId, page, size);
+        return ResponseUtil.success("Reseller products retrieved successfully", products);
     }
     
     @GetMapping("/active")
@@ -101,14 +84,8 @@ public class PurchasedProductController {
         
         log.info("GET /warranty/purchased-products/active - page: {}, size: {}", page, size);
         
-        try {
-            Page<PurchasedProductResponse> products = purchasedProductService.getActiveWarranties(page, size);
-            return ResponseUtil.success("Active warranties retrieved successfully", products);
-        } catch (Exception e) {
-            log.error("Error retrieving active warranties", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving active warranties", "INTERNAL_ERROR"));
-        }
+        Page<PurchasedProductResponse> products = purchasedProductService.getActiveWarranties(page, size);
+        return ResponseUtil.success("Active warranties retrieved successfully", products);
     }
     
     @GetMapping("/expired")
@@ -119,14 +96,8 @@ public class PurchasedProductController {
         
         log.info("GET /warranty/purchased-products/expired - page: {}, size: {}", page, size);
         
-        try {
-            Page<PurchasedProductResponse> products = purchasedProductService.getExpiredWarranties(page, size);
-            return ResponseUtil.success("Expired warranties retrieved successfully", products);
-        } catch (Exception e) {
-            log.error("Error retrieving expired warranties", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving expired warranties", "INTERNAL_ERROR"));
-        }
+        Page<PurchasedProductResponse> products = purchasedProductService.getExpiredWarranties(page, size);
+        return ResponseUtil.success("Expired warranties retrieved successfully", products);
     }
     
     @GetMapping("/expiring-soon")
@@ -138,14 +109,8 @@ public class PurchasedProductController {
         
         log.info("GET /warranty/purchased-products/expiring-soon - days: {}, page: {}, size: {}", days, page, size);
         
-        try {
-            Page<PurchasedProductResponse> products = purchasedProductService.getWarrantiesExpiringSoon(days, page, size);
-            return ResponseUtil.success("Expiring warranties retrieved successfully", products);
-        } catch (Exception e) {
-            log.error("Error retrieving expiring warranties", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving expiring warranties", "INTERNAL_ERROR"));
-        }
+        Page<PurchasedProductResponse> products = purchasedProductService.getWarrantiesExpiringSoon(days, page, size);
+        return ResponseUtil.success("Expiring warranties retrieved successfully", products);
     }
     
     @GetMapping("/date-range")
@@ -163,14 +128,8 @@ public class PurchasedProductController {
         log.info("GET /warranty/purchased-products/date-range - from: {} to: {}, page: {}, size: {}", 
                 startDate, endDate, page, size);
         
-        try {
-            Page<PurchasedProductResponse> products = purchasedProductService.getWarrantiesByDateRange(startDate, endDate, page, size);
-            return ResponseUtil.success("Warranties by date range retrieved successfully", products);
-        } catch (Exception e) {
-            log.error("Error retrieving warranties by date range", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving warranties by date range", "INTERNAL_ERROR"));
-        }
+        Page<PurchasedProductResponse> products = purchasedProductService.getWarrantiesByDateRange(startDate, endDate, page, size);
+        return ResponseUtil.success("Warranties by date range retrieved successfully", products);
     }
     
     @GetMapping("/customer/{customerId}/expiring-soon")
@@ -181,14 +140,8 @@ public class PurchasedProductController {
         
         log.info("GET /warranty/purchased-products/customer/{}/expiring-soon - days: {}", customerId, days);
         
-        try {
-            List<PurchasedProductResponse> products = purchasedProductService.getCustomerWarrantiesExpiringSoon(customerId, days);
-            return ResponseUtil.success("Customer expiring warranties retrieved successfully", products);
-        } catch (Exception e) {
-            log.error("Error retrieving customer expiring warranties", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving customer expiring warranties", "INTERNAL_ERROR"));
-        }
+        List<PurchasedProductResponse> products = purchasedProductService.getCustomerWarrantiesExpiringSoon(customerId, days);
+        return ResponseUtil.success("Customer expiring warranties retrieved successfully", products);
     }
     
     @GetMapping("/{id}")
@@ -198,18 +151,11 @@ public class PurchasedProductController {
         
         log.info("GET /warranty/purchased-products/{}", id);
         
-        try {
-            Optional<PurchasedProductResponse> product = purchasedProductService.getPurchasedProductById(id);
-            if (product.isPresent()) {
-                return ResponseUtil.success("Product retrieved successfully", product.get());
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(BaseResponse.error("Product not found", "NOT_FOUND"));
-            }
-        } catch (Exception e) {
-            log.error("Error retrieving product by ID", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving product", "INTERNAL_ERROR"));
+        Optional<PurchasedProductResponse> product = purchasedProductService.getPurchasedProductById(id);
+        if (product.isPresent()) {
+            return ResponseUtil.success("Product retrieved successfully", product.get());
+        } else {
+            return ResponseUtil.notFound("Product not found");
         }
     }
     
@@ -221,18 +167,11 @@ public class PurchasedProductController {
         
         log.info("GET /warranty/purchased-products/verify - productSerialId: {}, customerId: {}", productSerialId, customerId);
         
-        try {
-            Optional<PurchasedProductResponse> product = purchasedProductService.verifyWarranty(productSerialId, customerId);
-            if (product.isPresent()) {
-                return ResponseUtil.success("Warranty verified successfully", product.get());
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(BaseResponse.error("No warranty found for the specified product and customer", "NOT_FOUND"));
-            }
-        } catch (Exception e) {
-            log.error("Error verifying warranty", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error verifying warranty", "INTERNAL_ERROR"));
+        Optional<PurchasedProductResponse> product = purchasedProductService.verifyWarranty(productSerialId, customerId);
+        if (product.isPresent()) {
+            return ResponseUtil.success("Warranty verified successfully", product.get());
+        } else {
+            return ResponseUtil.notFound("No warranty found for the specified product and customer");
         }
     }
     
@@ -243,18 +182,8 @@ public class PurchasedProductController {
         
         log.info("POST /warranty/purchased-products - Customer: {}", request.getIdCustomer());
         
-        try {
-            PurchasedProductResponse response = purchasedProductService.registerPurchasedProduct(request);
-            return ResponseEntity.status(HttpStatus.CREATED)
-                .body(BaseResponse.success("Product warranty registered successfully", response));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(BaseResponse.error(e.getMessage(), "VALIDATION_ERROR"));
-        } catch (Exception e) {
-            log.error("Error registering purchased product", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error registering product warranty", "INTERNAL_ERROR"));
-        }
+        PurchasedProductResponse response = purchasedProductService.registerPurchasedProduct(request);
+        return ResponseUtil.created("Product warranty registered successfully", response);
     }
     
     @PutMapping("/{id}")
@@ -265,18 +194,8 @@ public class PurchasedProductController {
         
         log.info("PUT /warranty/purchased-products/{} - Updating product", id);
         
-        try {
-            PurchasedProductResponse response = purchasedProductService.updatePurchasedProduct(id, request);
-            return ResponseUtil.success("Product warranty updated successfully", response);
-        } catch (BaseException e) {
-            log.error("Error with purchased product operation: {}", e.getMessage(), e);
-            return ResponseEntity.status(e.getHttpStatus())
-                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
-        } catch (Exception e) {
-            log.error("Error updating purchased product", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error updating product warranty", "INTERNAL_ERROR"));
-        }
+        PurchasedProductResponse response = purchasedProductService.updatePurchasedProduct(id, request);
+        return ResponseUtil.success("Product warranty updated successfully", response);
     }
     
     @DeleteMapping("/{id}")
@@ -286,18 +205,8 @@ public class PurchasedProductController {
         
         log.info("DELETE /warranty/purchased-products/{}", id);
         
-        try {
-            purchasedProductService.deletePurchasedProduct(id);
-            return ResponseUtil.successVoid("Product warranty deleted successfully");
-        } catch (BaseException e) {
-            log.error("Error with purchased product operation: {}", e.getMessage(), e);
-            return ResponseEntity.status(e.getHttpStatus())
-                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
-        } catch (Exception e) {
-            log.error("Error deleting purchased product", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error deleting product warranty", "INTERNAL_ERROR"));
-        }
+        purchasedProductService.deletePurchasedProduct(id);
+        return ResponseUtil.successVoid("Product warranty deleted successfully");
     }
     
     @PatchMapping("/{id}/update-warranty-days")
@@ -307,17 +216,7 @@ public class PurchasedProductController {
         
         log.info("PATCH /warranty/purchased-products/{}/update-warranty-days", id);
         
-        try {
-            purchasedProductService.updateWarrantyRemainingDays(id);
-            return ResponseUtil.successVoid("Warranty days updated successfully");
-        } catch (BaseException e) {
-            log.error("Error with purchased product operation: {}", e.getMessage(), e);
-            return ResponseEntity.status(e.getHttpStatus())
-                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
-        } catch (Exception e) {
-            log.error("Error updating warranty days", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error updating warranty days", "INTERNAL_ERROR"));
-        }
+        purchasedProductService.updateWarrantyRemainingDays(id);
+        return ResponseUtil.successVoid("Warranty days updated successfully");
     }
 }

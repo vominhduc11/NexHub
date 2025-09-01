@@ -1,65 +1,22 @@
 package com.devwonder.user_service.config;
 
-import org.springframework.context.annotation.Bean;
+import com.devwonder.common.config.BaseSecurityConfig;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.expression.WebExpressionAuthorizationManager;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
 
 @Configuration
-@EnableWebSecurity
-public class SecurityConfig {
+public class SecurityConfig extends BaseSecurityConfig {
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-            .csrf(AbstractHttpConfigurer::disable)
-            .httpBasic(AbstractHttpConfigurer::disable)
-            .formLogin(AbstractHttpConfigurer::disable)
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(authorize -> authorize
-                // Actuator health check (always allow for Docker health checks)
-                .requestMatchers("/actuator/health").permitAll()
-                
-                // Inter-service communication - ONLY allow calls from auth-service with valid API key
-                .requestMatchers("/user/reseller", "/user/reseller/**").access(new WebExpressionAuthorizationManager(
-                    "request.getHeader('X-API-Key') == 'AUTH_TO_USER_SERVICE_KEY'"
-                ))
-                
-                // Validation endpoints for cross-service calls (warranty-service)
-                .requestMatchers("/user/reseller/*/exists", "/api/customers/*/exists").access(new WebExpressionAuthorizationManager(
-                    "request.getHeader('X-Gateway-Request') == 'true'"
-                ))
-                
-                // Swagger docs (ONLY via API Gateway)
-                .requestMatchers(
-                    "/swagger-ui.html",
-                    "/swagger-ui/**", 
-                    "/v3/api-docs/**",
-                    "/webjars/**"
-                ).access(new WebExpressionAuthorizationManager(
-                    "request.getHeader('X-Gateway-Request') == 'true'"
-                ))
-                
-                // All other user endpoints - ONLY accessible via API Gateway
-                .requestMatchers("/users/**", "/admins/**", "/customers/**", "/resellers/**").access(new WebExpressionAuthorizationManager(
-                    "request.getHeader('X-Gateway-Request') == 'true'"
-                ))
-                
-                // Block all other direct access
-                .anyRequest().denyAll()
-            );
-
-        return http.build();
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+    @Override
+    protected void configureServiceEndpoints(AuthorizeHttpRequestsConfigurer<org.springframework.security.config.annotation.web.builders.HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
+        auth
+            // Inter-service communication - ONLY allow calls from auth-service with valid API key
+            .requestMatchers("/user/reseller", "/user/reseller/**").access(authApiKeyRequired())
+            
+            // Validation endpoints for cross-service calls (warranty-service)
+            .requestMatchers("/user/reseller/*/exists", "/api/customers/*/exists").access(gatewayHeaderRequired())
+            
+            // All other user endpoints - ONLY accessible via API Gateway
+            .requestMatchers("/users/**", "/admins/**", "/customers/**", "/resellers/**").access(gatewayHeaderRequired());
     }
 }

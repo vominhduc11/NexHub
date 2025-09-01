@@ -1,7 +1,7 @@
 package com.devwonder.warranty_service.controller;
 
 import com.devwonder.common.dto.BaseResponse;
-import com.devwonder.common.exception.BaseException;
+import com.devwonder.common.util.ResponseUtil;
 import com.devwonder.warranty_service.dto.WarrantyClaimRequest;
 import com.devwonder.warranty_service.dto.WarrantyClaimResponse;
 import com.devwonder.warranty_service.dto.WarrantyStatsResponse;
@@ -16,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -48,14 +47,8 @@ public class WarrantyClaimController {
         
         log.info("GET /warranty/claims - page: {}, size: {}", page, size);
         
-        try {
-            Page<WarrantyClaimResponse> claims = warrantyClaimService.getAllClaims(page, size);
-            return ResponseEntity.ok(BaseResponse.success("Claims retrieved successfully", claims));
-        } catch (Exception e) {
-            log.error("Error retrieving warranty claims", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving claims", "INTERNAL_ERROR"));
-        }
+        Page<WarrantyClaimResponse> claims = warrantyClaimService.getAllClaims(page, size);
+        return ResponseUtil.success("Claims retrieved successfully", claims);
     }
     
     @GetMapping("/customer/{customerId}")
@@ -67,14 +60,8 @@ public class WarrantyClaimController {
         
         log.info("GET /warranty/claims/customer/{} - page: {}, size: {}", customerId, page, size);
         
-        try {
-            Page<WarrantyClaimResponse> claims = warrantyClaimService.getClaimsByCustomer(customerId, page, size);
-            return ResponseEntity.ok(BaseResponse.success("Customer claims retrieved successfully", claims));
-        } catch (Exception e) {
-            log.error("Error retrieving customer claims", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving customer claims", "INTERNAL_ERROR"));
-        }
+        Page<WarrantyClaimResponse> claims = warrantyClaimService.getClaimsByCustomer(customerId, page, size);
+        return ResponseUtil.success("Customer claims retrieved successfully", claims);
     }
     
     @GetMapping("/reseller/{resellerId}")
@@ -86,14 +73,8 @@ public class WarrantyClaimController {
         
         log.info("GET /warranty/claims/reseller/{} - page: {}, size: {}", resellerId, page, size);
         
-        try {
-            Page<WarrantyClaimResponse> claims = warrantyClaimService.getClaimsByReseller(resellerId, page, size);
-            return ResponseEntity.ok(BaseResponse.success("Reseller claims retrieved successfully", claims));
-        } catch (Exception e) {
-            log.error("Error retrieving reseller claims", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving reseller claims", "INTERNAL_ERROR"));
-        }
+        Page<WarrantyClaimResponse> claims = warrantyClaimService.getClaimsByReseller(resellerId, page, size);
+        return ResponseUtil.success("Reseller claims retrieved successfully", claims);
     }
     
     @GetMapping("/status/{status}")
@@ -106,14 +87,8 @@ public class WarrantyClaimController {
         
         log.info("GET /warranty/claims/status/{} - page: {}, size: {}", status, page, size);
         
-        try {
-            Page<WarrantyClaimResponse> claims = warrantyClaimService.getClaimsByStatus(status, page, size);
-            return ResponseEntity.ok(BaseResponse.success("Claims by status retrieved successfully", claims));
-        } catch (Exception e) {
-            log.error("Error retrieving claims by status", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving claims by status", "INTERNAL_ERROR"));
-        }
+        Page<WarrantyClaimResponse> claims = warrantyClaimService.getClaimsByStatus(status, page, size);
+        return ResponseUtil.success("Claims by status retrieved successfully", claims);
     }
     
     @GetMapping("/pending")
@@ -124,14 +99,8 @@ public class WarrantyClaimController {
         
         log.info("GET /warranty/claims/pending - page: {}, size: {}", page, size);
         
-        try {
-            Page<WarrantyClaimResponse> claims = warrantyClaimService.getPendingClaims(page, size);
-            return ResponseEntity.ok(BaseResponse.success("Pending claims retrieved successfully", claims));
-        } catch (Exception e) {
-            log.error("Error retrieving pending claims", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving pending claims", "INTERNAL_ERROR"));
-        }
+        Page<WarrantyClaimResponse> claims = warrantyClaimService.getPendingClaims(page, size);
+        return ResponseUtil.success("Pending claims retrieved successfully", claims);
     }
     
     @GetMapping("/recent")
@@ -143,14 +112,8 @@ public class WarrantyClaimController {
         
         log.info("GET /warranty/claims/recent - days: {}, page: {}, size: {}", days, page, size);
         
-        try {
-            Page<WarrantyClaimResponse> claims = warrantyClaimService.getRecentClaims(days, page, size);
-            return ResponseEntity.ok(BaseResponse.success("Recent claims retrieved successfully", claims));
-        } catch (Exception e) {
-            log.error("Error retrieving recent claims", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving recent claims", "INTERNAL_ERROR"));
-        }
+        Page<WarrantyClaimResponse> claims = warrantyClaimService.getRecentClaims(days, page, size);
+        return ResponseUtil.success("Recent claims retrieved successfully", claims);
     }
     
     @GetMapping("/overdue")
@@ -162,14 +125,8 @@ public class WarrantyClaimController {
         
         log.info("GET /warranty/claims/overdue - days: {}, page: {}, size: {}", days, page, size);
         
-        try {
-            Page<WarrantyClaimResponse> claims = warrantyClaimService.getOverdueClaims(days, page, size);
-            return ResponseEntity.ok(BaseResponse.success("Overdue claims retrieved successfully", claims));
-        } catch (Exception e) {
-            log.error("Error retrieving overdue claims", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving overdue claims", "INTERNAL_ERROR"));
-        }
+        Page<WarrantyClaimResponse> claims = warrantyClaimService.getOverdueClaims(days, page, size);
+        return ResponseUtil.success("Overdue claims retrieved successfully", claims);
     }
     
     @GetMapping("/search")
@@ -181,14 +138,8 @@ public class WarrantyClaimController {
         
         log.info("GET /warranty/claims/search - keyword: '{}', page: {}, size: {}", keyword, page, size);
         
-        try {
-            Page<WarrantyClaimResponse> claims = warrantyClaimService.searchClaims(keyword, page, size);
-            return ResponseEntity.ok(BaseResponse.success("Search results retrieved successfully", claims));
-        } catch (Exception e) {
-            log.error("Error searching claims", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error searching claims", "INTERNAL_ERROR"));
-        }
+        Page<WarrantyClaimResponse> claims = warrantyClaimService.searchClaims(keyword, page, size);
+        return ResponseUtil.success("Search results retrieved successfully", claims);
     }
     
     @GetMapping("/date-range")
@@ -206,14 +157,8 @@ public class WarrantyClaimController {
         log.info("GET /warranty/claims/date-range - from: {} to: {}, page: {}, size: {}", 
                 startDate, endDate, page, size);
         
-        try {
-            Page<WarrantyClaimResponse> claims = warrantyClaimService.getClaimsByDateRange(startDate, endDate, page, size);
-            return ResponseEntity.ok(BaseResponse.success("Claims by date range retrieved successfully", claims));
-        } catch (Exception e) {
-            log.error("Error retrieving claims by date range", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving claims by date range", "INTERNAL_ERROR"));
-        }
+        Page<WarrantyClaimResponse> claims = warrantyClaimService.getClaimsByDateRange(startDate, endDate, page, size);
+        return ResponseUtil.success("Claims by date range retrieved successfully", claims);
     }
     
     @GetMapping("/needing-attention")
@@ -221,14 +166,8 @@ public class WarrantyClaimController {
     public ResponseEntity<BaseResponse<List<WarrantyClaimResponse>>> getClaimsNeedingAttention() {
         log.info("GET /warranty/claims/needing-attention");
         
-        try {
-            List<WarrantyClaimResponse> claims = warrantyClaimService.getClaimsNeedingAttention();
-            return ResponseEntity.ok(BaseResponse.success("Claims needing attention retrieved successfully", claims));
-        } catch (Exception e) {
-            log.error("Error retrieving claims needing attention", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving claims needing attention", "INTERNAL_ERROR"));
-        }
+        List<WarrantyClaimResponse> claims = warrantyClaimService.getClaimsNeedingAttention();
+        return ResponseUtil.success("Claims needing attention retrieved successfully", claims);
     }
     
     @GetMapping("/{id}")
@@ -238,18 +177,11 @@ public class WarrantyClaimController {
         
         log.info("GET /warranty/claims/{}", id);
         
-        try {
-            Optional<WarrantyClaimResponse> claim = warrantyClaimService.getClaimById(id);
-            if (claim.isPresent()) {
-                return ResponseEntity.ok(BaseResponse.success("Claim retrieved successfully", claim.get()));
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(BaseResponse.error("Claim not found", "NOT_FOUND"));
-            }
-        } catch (Exception e) {
-            log.error("Error retrieving claim by ID", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving claim", "INTERNAL_ERROR"));
+        Optional<WarrantyClaimResponse> claim = warrantyClaimService.getClaimById(id);
+        if (claim.isPresent()) {
+            return ResponseUtil.success("Claim retrieved successfully", claim.get());
+        } else {
+            return ResponseUtil.notFound("Claim not found");
         }
     }
     
@@ -260,18 +192,11 @@ public class WarrantyClaimController {
         
         log.info("GET /warranty/claims/number/{}", claimNumber);
         
-        try {
-            Optional<WarrantyClaimResponse> claim = warrantyClaimService.getClaimByNumber(claimNumber);
-            if (claim.isPresent()) {
-                return ResponseEntity.ok(BaseResponse.success("Claim retrieved successfully", claim.get()));
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(BaseResponse.error("Claim not found", "NOT_FOUND"));
-            }
-        } catch (Exception e) {
-            log.error("Error retrieving claim by number", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving claim", "INTERNAL_ERROR"));
+        Optional<WarrantyClaimResponse> claim = warrantyClaimService.getClaimByNumber(claimNumber);
+        if (claim.isPresent()) {
+            return ResponseUtil.success("Claim retrieved successfully", claim.get());
+        } else {
+            return ResponseUtil.notFound("Claim not found");
         }
     }
     
@@ -280,14 +205,8 @@ public class WarrantyClaimController {
     public ResponseEntity<BaseResponse<WarrantyStatsResponse>> getWarrantyStats() {
         log.info("GET /warranty/claims/stats");
         
-        try {
-            WarrantyStatsResponse stats = warrantyClaimService.getWarrantyStats();
-            return ResponseEntity.ok(BaseResponse.success("Warranty statistics retrieved successfully", stats));
-        } catch (Exception e) {
-            log.error("Error retrieving warranty statistics", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving statistics", "INTERNAL_ERROR"));
-        }
+        WarrantyStatsResponse stats = warrantyClaimService.getWarrantyStats();
+        return ResponseUtil.success("Warranty statistics retrieved successfully", stats);
     }
     
     @PostMapping
@@ -302,18 +221,8 @@ public class WarrantyClaimController {
         
         log.info("POST /warranty/claims - Creating claim for purchased product: {}", request.getPurchasedProductId());
         
-        try {
-            WarrantyClaimResponse response = warrantyClaimService.createClaim(request);
-            return ResponseEntity.status(HttpStatus.CREATED)
-                .body(BaseResponse.success("Warranty claim submitted successfully", response));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(BaseResponse.error(e.getMessage(), "VALIDATION_ERROR"));
-        } catch (Exception e) {
-            log.error("Error creating warranty claim", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error creating warranty claim", "INTERNAL_ERROR"));
-        }
+        WarrantyClaimResponse response = warrantyClaimService.createClaim(request);
+        return ResponseUtil.created("Warranty claim submitted successfully", response);
     }
     
     @PatchMapping("/{id}/status")
@@ -325,18 +234,8 @@ public class WarrantyClaimController {
         
         log.info("PATCH /warranty/claims/{}/status - New status: {}", id, status);
         
-        try {
-            WarrantyClaimResponse response = warrantyClaimService.updateClaimStatus(id, status, internalNotes);
-            return ResponseEntity.ok(BaseResponse.success("Claim status updated successfully", response));
-        } catch (BaseException e) {
-            log.error("Error with warranty claim operation: {}", e.getMessage(), e);
-            return ResponseEntity.status(e.getHttpStatus())
-                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
-        } catch (Exception e) {
-            log.error("Error updating claim status", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error updating claim status", "INTERNAL_ERROR"));
-        }
+        WarrantyClaimResponse response = warrantyClaimService.updateClaimStatus(id, status, internalNotes);
+        return ResponseUtil.success("Claim status updated successfully", response);
     }
     
     @PatchMapping("/{id}/resolution")
@@ -347,18 +246,8 @@ public class WarrantyClaimController {
         
         log.info("PATCH /warranty/claims/{}/resolution - Adding resolution notes", id);
         
-        try {
-            WarrantyClaimResponse response = warrantyClaimService.addResolutionNotes(id, resolutionNotes);
-            return ResponseEntity.ok(BaseResponse.success("Resolution notes added successfully", response));
-        } catch (BaseException e) {
-            log.error("Error with warranty claim operation: {}", e.getMessage(), e);
-            return ResponseEntity.status(e.getHttpStatus())
-                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
-        } catch (Exception e) {
-            log.error("Error adding resolution notes", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error adding resolution notes", "INTERNAL_ERROR"));
-        }
+        WarrantyClaimResponse response = warrantyClaimService.addResolutionNotes(id, resolutionNotes);
+        return ResponseUtil.success("Resolution notes added successfully", response);
     }
     
     @DeleteMapping("/{id}")
@@ -368,17 +257,7 @@ public class WarrantyClaimController {
         
         log.info("DELETE /warranty/claims/{}", id);
         
-        try {
-            warrantyClaimService.deleteClaim(id);
-            return ResponseEntity.ok(BaseResponse.success("Warranty claim deleted successfully"));
-        } catch (BaseException e) {
-            log.error("Error with warranty claim operation: {}", e.getMessage(), e);
-            return ResponseEntity.status(e.getHttpStatus())
-                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
-        } catch (Exception e) {
-            log.error("Error deleting warranty claim", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error deleting warranty claim", "INTERNAL_ERROR"));
-        }
+        warrantyClaimService.deleteClaim(id);
+        return ResponseUtil.successVoid("Warranty claim deleted successfully");
     }
 }

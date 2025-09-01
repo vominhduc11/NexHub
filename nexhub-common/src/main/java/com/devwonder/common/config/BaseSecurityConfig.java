@@ -1,65 +1,73 @@
 package com.devwonder.common.config;
 
-import com.devwonder.common.constants.SecurityConstants;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.access.expression.WebExpressionAuthorizationManager;
 
 @EnableWebSecurity
 public abstract class BaseSecurityConfig {
 
-    protected abstract void configureService(HttpSecurity http) throws Exception;
+    public static final String GATEWAY_HEADER_EXPRESSION = "request.getHeader('X-Gateway-Request') == 'true'";
+    public static final String AUTH_API_KEY_EXPRESSION = "request.getHeader('X-API-Key') == 'AUTH_TO_USER_SERVICE_KEY'";
+    
+    protected abstract void configureServiceEndpoints(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth);
     
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())
-            .cors(cors -> cors.configure(http))
+            .csrf(AbstractHttpConfigurer::disable)
+            .httpBasic(AbstractHttpConfigurer::disable)
+            .formLogin(AbstractHttpConfigurer::disable)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/actuator/health", "/actuator/info").permitAll()
-                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
-                .requestMatchers("/error").permitAll()
-            );
-            
-        configureService(http);
-        
+            .authorizeHttpRequests(auth -> {
+                // Common endpoints for all services
+                configureCommonEndpoints(auth);
+                
+                // Service-specific endpoints
+                configureServiceEndpoints(auth);
+                
+                // Block all other direct access
+                auth.anyRequest().denyAll();
+            });
+
         return http.build();
     }
     
-    protected void requireGatewayHeader(HttpSecurity http) throws Exception {
-        http.addFilterBefore(new GatewayHeaderFilter(), UsernamePasswordAuthenticationFilter.class);
+    protected void configureCommonEndpoints(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
+        auth
+            // CORS preflight requests
+            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+            
+            // Actuator health check (always allow for Docker health checks)
+            .requestMatchers("/actuator/health").permitAll()
+            
+            // Swagger docs (ONLY via API Gateway)
+            .requestMatchers(
+                "/swagger-ui.html",
+                "/swagger-ui/**",
+                "/v3/api-docs/**",
+                "/webjars/**"
+            ).access(gatewayHeaderRequired());
     }
     
-    private static class GatewayHeaderFilter implements jakarta.servlet.Filter {
-        @Override
-        public void doFilter(jakarta.servlet.ServletRequest request, 
-                           jakarta.servlet.ServletResponse response,
-                           jakarta.servlet.FilterChain chain) 
-                           throws java.io.IOException, jakarta.servlet.ServletException {
-            
-            jakarta.servlet.http.HttpServletRequest httpRequest = (jakarta.servlet.http.HttpServletRequest) request;
-            jakarta.servlet.http.HttpServletResponse httpResponse = (jakarta.servlet.http.HttpServletResponse) response;
-            
-            String path = httpRequest.getRequestURI();
-            if (path.startsWith("/actuator/") || path.startsWith("/swagger-ui/") || 
-                path.startsWith("/v3/api-docs/") || path.equals("/swagger-ui.html") ||
-                path.equals("/error")) {
-                chain.doFilter(request, response);
-                return;
-            }
-            
-            String gatewayHeader = httpRequest.getHeader(SecurityConstants.GATEWAY_HEADER);
-            if (SecurityConstants.GATEWAY_SECRET.equals(gatewayHeader)) {
-                chain.doFilter(request, response);
-            } else {
-                httpResponse.setStatus(jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN);
-                httpResponse.getWriter().write("{\"error\":\"Direct access not allowed\"}");
-            }
-        }
+    protected WebExpressionAuthorizationManager gatewayHeaderRequired() {
+        return new WebExpressionAuthorizationManager(GATEWAY_HEADER_EXPRESSION);
+    }
+    
+    protected WebExpressionAuthorizationManager authApiKeyRequired() {
+        return new WebExpressionAuthorizationManager(AUTH_API_KEY_EXPRESSION);
+    }
+    
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }

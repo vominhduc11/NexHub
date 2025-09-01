@@ -7,6 +7,7 @@ import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
+import io.swagger.v3.oas.models.Components;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 
@@ -14,47 +15,25 @@ import java.util.List;
 
 public abstract class BaseOpenApiConfig {
     
+    public static final String JWT_SECURITY_NAME = "JWT Authentication";
+    public static final String GATEWAY_HEADER_NAME = "Gateway Request";
+    
     @Value("${server.port:8080}")
     private String serverPort;
     
     @Value("${spring.application.name:nexhub-service}")
     private String serviceName;
     
-    protected abstract String getServiceDescription();
-    protected abstract String getServiceVersion();
+    @Value("${openapi.gateway.url:http://localhost:8080/api}")
+    private String gatewayUrl;
     
-    @Bean
-    public OpenAPI customOpenAPI() {
-        return new OpenAPI()
-            .info(new Info()
-                .title(getServiceTitle())
-                .description(getServiceDescription())
-                .version(getServiceVersion())
-                .contact(new Contact()
-                    .name("DevWonder Team")
-                    .email("support@devwonder.com")
-                    .url("https://devwonder.com"))
-                .license(new License()
-                    .name("MIT License")
-                    .url("https://opensource.org/licenses/MIT")))
-            .servers(getServers())
-            .addSecurityItem(new SecurityRequirement()
-                .addList("JWT")
-                .addList("Gateway-Header"))
-            .components(new io.swagger.v3.oas.models.Components()
-                .addSecuritySchemes("JWT", new SecurityScheme()
-                    .type(SecurityScheme.Type.HTTP)
-                    .scheme("bearer")
-                    .bearerFormat("JWT")
-                    .description("JWT token for authentication"))
-                .addSecuritySchemes("Gateway-Header", new SecurityScheme()
-                    .type(SecurityScheme.Type.APIKEY)
-                    .in(SecurityScheme.In.HEADER)
-                    .name("X-Gateway-Request")
-                    .description("Gateway authentication header")));
+    protected abstract String getServiceDescription();
+    
+    protected String getServiceVersion() {
+        return "1.0.0";
     }
     
-    private String getServiceTitle() {
+    protected String getServiceTitle() {
         String[] words = serviceName.replace("-", " ").split(" ");
         StringBuilder title = new StringBuilder();
         for (String word : words) {
@@ -67,14 +46,71 @@ public abstract class BaseOpenApiConfig {
         return title.toString().trim() + " API";
     }
     
-    private List<Server> getServers() {
+    protected Contact getContact() {
+        return new Contact()
+            .name("DevWonder Team")
+            .email("support@devwonder.com")
+            .url("https://devwonder.com");
+    }
+    
+    protected License getLicense() {
+        return new License()
+            .name("MIT License")
+            .url("https://opensource.org/licenses/MIT");
+    }
+    
+    protected List<Server> getServers() {
         return List.of(
             new Server()
-                .url("http://localhost:8080")
-                .description("API Gateway (Production)"),
+                .url(gatewayUrl)
+                .description("Via API Gateway"),
             new Server()
                 .url("http://localhost:" + serverPort)
-                .description("Direct Service Access (Development)")
+                .description("Direct access (dev only)")
         );
+    }
+    
+    protected Components getSecurityComponents() {
+        return new Components()
+            .addSecuritySchemes(JWT_SECURITY_NAME, new SecurityScheme()
+                .type(SecurityScheme.Type.HTTP)
+                .scheme("bearer")
+                .bearerFormat("JWT")
+                .description("Enter JWT Bearer token"))
+            .addSecuritySchemes(GATEWAY_HEADER_NAME, new SecurityScheme()
+                .type(SecurityScheme.Type.APIKEY)
+                .in(SecurityScheme.In.HEADER)
+                .name("X-Gateway-Request")
+                .description("Gateway request header (required for all endpoints)"));
+    }
+    
+    protected List<SecurityRequirement> getSecurityRequirements() {
+        return List.of(
+            new SecurityRequirement().addList(GATEWAY_HEADER_NAME),
+            new SecurityRequirement().addList(JWT_SECURITY_NAME)
+        );
+    }
+    
+    @Bean
+    public OpenAPI customOpenAPI() {
+        OpenAPI openAPI = new OpenAPI()
+            .info(new Info()
+                .title(getServiceTitle())
+                .description(getServiceDescription())
+                .version(getServiceVersion())
+                .contact(getContact())
+                .license(getLicense()))
+            .servers(getServers())
+            .components(getSecurityComponents());
+            
+        // Add security requirements
+        getSecurityRequirements().forEach(openAPI::addSecurityItem);
+        
+        // Allow subclasses to customize
+        return customizeOpenAPI(openAPI);
+    }
+    
+    protected OpenAPI customizeOpenAPI(OpenAPI openAPI) {
+        return openAPI;
     }
 }

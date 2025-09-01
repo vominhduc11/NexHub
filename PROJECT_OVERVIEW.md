@@ -8,7 +8,7 @@
 - **nexhub-common Integration**: Successfully integrated shared library across all 6 business services with auto-configuration
 - **Component Scanning**: All services now properly scan nexhub-common package for shared components and utilities
 - **Centralized Exception Handling**: GlobalExceptionHandler from nexhub-common provides consistent error responses across services
-- **AOP Security Aspects**: AuthorizationAspect enables @RequireAdminRole and @RequireGatewayRequest annotations functionality
+- **Gateway-Based Security**: Authorization handled at API Gateway level with JWT validation and role-based access control
 - **Notification Service Optimization**: Database auto-configuration exclusion for better performance and reduced resource usage
 - **Service Discovery Integration**: All business services now properly register with Eureka discovery service
 - **Advanced Configuration Management**: Centralized configuration with fallback values and environment-specific settings
@@ -34,7 +34,7 @@ NexHub implements a complete microservices architecture with infrastructure serv
 | **Auth Service** | 8081 | nexhub_auth | RSA-256 JWT with JWKS, RBAC, Account management, Reseller registration | Spring Security, JJWT, JPA, Kafka Producer, OpenFeign, nexhub-common integration | ✅ Production Ready |
 | **User Service** | 8082 | nexhub_user | Customer & Reseller CRUD, Profile management, Account integration | Spring Data JPA, Redis caching, MapStruct mapping, nexhub-common integration | ✅ Production Ready |
 | **Notification Service** | 8083 | No Database | Real-time WebSocket messaging, Email notifications, Kafka events, Database-free optimization | Pure WebSocket/STOMP, Kafka Consumer, Spring Mail, nexhub-common integration | ✅ Production Ready |
-| **Product Service** | 8084 | nexhub_product | Product catalog, categories, media management, serial tracking, AOP security | Spring Data JPA, Redis caching, OpenAPI, MapStruct, nexhub-common with @RequireAdminRole | ✅ Production Ready |
+| **Product Service** | 8084 | nexhub_product | Product catalog, categories, media management, serial tracking | Spring Data JPA, Redis caching, OpenAPI, MapStruct, nexhub-common | ✅ Production Ready |
 | **Warranty Service** | 8085 | nexhub_warranty | Warranty tracking, claims management, statistics, service integration | Spring Data JPA, OpenFeign clients, Redis caching, MapStruct, nexhub-common integration | ✅ Production Ready |
 | **Blog Service** | 8086 | nexhub_blog | CMS with posts, categories, comments, authors, tags, SEO optimization | Spring Data JPA, Redis caching, OpenAPI, nexhub-common integration | ✅ Production Ready |
 | **Language Service** | TBD | TBD | Internationalization support (Planned) | Spring Boot | 🚧 In Development |
@@ -43,7 +43,7 @@ NexHub implements a complete microservices architecture with infrastructure serv
 
 | Component | Description | Features | Integration Status |
 |-----------|-------------|----------|-------------------|
-| **nexhub-common** | Centralized shared library with auto-configuration | GlobalExceptionHandler, AuthorizationAspect, JWT utilities, BaseResponse, Custom annotations (@RequireAdminRole, @RequireGatewayRequest), Security utilities, Validation helpers | ✅ Integrated across all 6 business services |
+| **nexhub-common** | Centralized shared library with auto-configuration | GlobalExceptionHandler, JWT utilities, BaseResponse, Security utilities, Validation helpers, BaseOpenApiConfig, BaseSecurityConfig | ✅ Integrated across all 6 business services |
 
 ### 🗄️ Data & Infrastructure
 
@@ -541,7 +541,7 @@ curl http://localhost:8761/eureka/apps
 - Role-based authorization with 15+ granular permissions
 - nexhub-common shared library successfully integrated across all 6 business services
 - Centralized exception handling with consistent error responses
-- AOP-based security aspects with @RequireAdminRole enforcement
+- Gateway-level authorization with JWT validation and role enforcement
 
 **Business Services**:
 - Full CRUD operations across all domain services with nexhub-common integration
@@ -566,7 +566,7 @@ curl http://localhost:8761/eureka/apps
 - Successfully integrated nexhub-common library across all 6 business services
 - Added @ComponentScan configuration to scan nexhub-common package for shared components
 - Centralized GlobalExceptionHandler providing consistent error responses across all services
-- AuthorizationAspect enabling @RequireAdminRole and @RequireGatewayRequest functionality
+- Gateway-based security architecture with JWT validation and microservice header verification
 - Service discovery integration with @EnableDiscoveryClient across business services
 - Notification service optimization with database auto-configuration exclusion
 
@@ -758,7 +758,7 @@ cd nexhub-common && mvn clean install
 - **nexhub-common Integration**: Successfully integrated shared library across all 6 business services
 - **Component Scanning Configuration**: All services properly scan nexhub-common package for shared components
 - **Centralized Exception Handling**: GlobalExceptionHandler provides consistent error responses
-- **AOP Security Aspects**: @RequireAdminRole and @RequireGatewayRequest annotations fully functional
+- **Gateway Security Architecture**: JWT authorization and role-based access control at API Gateway level
 - **Service Discovery Integration**: All business services properly register with Eureka
 - **Notification Service Optimization**: Database auto-configuration excluded for better performance
 - **Enhanced Security Framework**: Unified JWT validation and role-based access control

@@ -2,6 +2,7 @@ package com.devwonder.user_service.controller;
 
 import com.devwonder.common.dto.BaseResponse;
 import com.devwonder.common.exception.BaseException;
+import com.devwonder.common.util.ResponseUtil;
 import com.devwonder.user_service.dto.CreateResellerRequest;
 import com.devwonder.user_service.dto.ResellerResponse;
 import com.devwonder.user_service.service.ResellerService;
@@ -37,13 +38,11 @@ public class ResellerController {
         
         try {
             ResellerResponse response = resellerService.createReseller(request);
-            return ResponseEntity.status(HttpStatus.CREATED)
-                .body(BaseResponse.success("Reseller created successfully", response));
+            return ResponseUtil.created("Reseller created successfully", response);
             
         } catch (BaseException e) {
             log.error("Error creating reseller: {}", e.getMessage());
-            return ResponseEntity.status(e.getHttpStatus())
-                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
+            return ResponseUtil.error(e.getMessage(), e.getErrorCode(), e.getHttpStatus());
         }
     }
 
@@ -51,6 +50,6 @@ public class ResellerController {
     @GetMapping("/{accountId}/exists")
     public ResponseEntity<BaseResponse<Boolean>> existsById(@PathVariable Long accountId) {
         boolean exists = resellerService.existsById(accountId);
-        return ResponseEntity.ok(BaseResponse.success("Reseller existence checked successfully", exists));
+        return ResponseUtil.success("Reseller existence checked successfully", exists);
     }
 }

@@ -1,6 +1,7 @@
 package com.devwonder.auth_service.controller;
 
 import com.devwonder.common.dto.BaseResponse;
+import com.devwonder.common.util.ResponseUtil;
 import com.devwonder.auth_service.dto.LoginRequest;
 import com.devwonder.auth_service.dto.LoginResponse;
 import com.devwonder.auth_service.service.AuthenticationService;
@@ -13,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -35,20 +35,7 @@ public class AuthController {
     public ResponseEntity<BaseResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
         log.info("Login request received for username: {} with userType: {}", request.getUsername(), request.getUserType());
         
-        try {
-            LoginResponse response = authenticationService.login(request);
-            BaseResponse<LoginResponse> apiResponse = BaseResponse.success("Login successful", response);
-            return ResponseEntity.ok(apiResponse);
-            
-        } catch (BadCredentialsException e) {
-            log.error("Authentication failed: {}", e.getMessage());
-            BaseResponse<LoginResponse> errorResponse = BaseResponse.error(e.getMessage(), "AUTHENTICATION_FAILED");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
-            
-        } catch (Exception e) {
-            log.error("Unexpected error during login: {}", e.getMessage(), e);
-            BaseResponse<LoginResponse> errorResponse = BaseResponse.error("An unexpected error occurred", "INTERNAL_SERVER_ERROR");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-        }
+        LoginResponse response = authenticationService.login(request);
+        return ResponseUtil.success("Login successful", response);
     }
 }

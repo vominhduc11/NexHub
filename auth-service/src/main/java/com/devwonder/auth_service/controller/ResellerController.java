@@ -1,11 +1,9 @@
 package com.devwonder.auth_service.controller;
 
 import com.devwonder.common.dto.BaseResponse;
-import com.devwonder.common.exception.BaseException;
+import com.devwonder.common.util.ResponseUtil;
 import com.devwonder.auth_service.dto.ResellerRegistrationRequest;
 import com.devwonder.auth_service.dto.ResellerRegistrationResponse;
-import com.devwonder.auth_service.exception.UsernameAlreadyExistsException;
-import com.devwonder.auth_service.exception.RoleNotFoundException;
 import com.devwonder.auth_service.service.ResellerService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -37,30 +35,7 @@ public class ResellerController {
     public ResponseEntity<BaseResponse<ResellerRegistrationResponse>> registerReseller(@Valid @RequestBody ResellerRegistrationRequest request) {
         log.info("Received reseller registration request for username: {}", request.getUsername());
         
-        try {
-            ResellerRegistrationResponse response = resellerService.registerReseller(request);
-            BaseResponse<ResellerRegistrationResponse> apiResponse = BaseResponse.success("Reseller account created successfully", response);
-            return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
-            
-        } catch (UsernameAlreadyExistsException e) {
-            log.error("Username already exists: {}", e.getMessage());
-            BaseResponse<ResellerRegistrationResponse> errorResponse = BaseResponse.error(e.getMessage(), "USERNAME_EXISTS");
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
-            
-        } catch (RoleNotFoundException e) {
-            log.error("Role not found: {}", e.getMessage());
-            BaseResponse<ResellerRegistrationResponse> errorResponse = BaseResponse.error(e.getMessage(), "ROLE_NOT_FOUND");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-            
-        } catch (BaseException e) {
-            log.error("Base exception: {}", e.getMessage(), e);
-            BaseResponse<ResellerRegistrationResponse> errorResponse = BaseResponse.error(e.getMessage(), e.getErrorCode());
-            return ResponseEntity.status(e.getHttpStatus()).body(errorResponse);
-            
-        } catch (Exception e) {
-            log.error("Unexpected error: {}", e.getMessage(), e);
-            BaseResponse<ResellerRegistrationResponse> errorResponse = BaseResponse.error("An unexpected error occurred", "INTERNAL_SERVER_ERROR");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-        }
+        ResellerRegistrationResponse response = resellerService.registerReseller(request);
+        return ResponseUtil.created("Reseller account created successfully", response);
     }
 }

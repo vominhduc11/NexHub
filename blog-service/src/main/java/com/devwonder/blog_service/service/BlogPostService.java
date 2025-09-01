@@ -13,7 +13,6 @@ import com.devwonder.blog_service.repository.BlogPostRepository;
 import com.devwonder.blog_service.repository.BlogTagRepository;
 import com.devwonder.blog_service.exception.BlogPostNotFoundException;
 import com.devwonder.common.exception.ValidationException;
-import com.devwonder.common.util.ValidationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;

@@ -28,12 +28,7 @@ This library provides common utilities, DTOs, exceptions, and configuration temp
 
 ### ⚙️ Configuration Templates
 - **BaseOpenApiConfig**: OpenAPI/Swagger configuration template
-- **BaseKafkaProducerConfig**: Kafka producer configuration
-- **BaseKafkaConsumerConfig**: Kafka consumer configuration
 
-### ✅ Validation
-- **@ValidPhoneNumber**: Phone number validation annotation
-- **ValidationUtil**: Common validation utilities
 
 ## Usage
 
@@ -145,8 +140,7 @@ nexhub-common/
 │   ├── dto/             # Shared DTOs
 │   ├── exception/       # Common exceptions  
 │   ├── security/        # Security utilities
-│   ├── util/            # Utility classes
-│   └── validation/      # Custom validations
+│   └── util/            # Utility classes
 └── pom.xml              # Dependencies
 ```
 

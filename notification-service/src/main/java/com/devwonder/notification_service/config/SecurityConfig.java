@@ -1,60 +1,29 @@
 package com.devwonder.notification_service.config;
 
-import org.springframework.context.annotation.Bean;
+import com.devwonder.common.config.BaseSecurityConfig;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.expression.WebExpressionAuthorizationManager;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 
 @Configuration
-@EnableWebSecurity
-public class SecurityConfig {
+public class SecurityConfig extends BaseSecurityConfig {
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-            .csrf(AbstractHttpConfigurer::disable)
-            .httpBasic(AbstractHttpConfigurer::disable)
-            .formLogin(AbstractHttpConfigurer::disable)
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(authorize -> authorize
-                // Actuator health check (always allow for Docker health checks)
-                .requestMatchers("/actuator/health").permitAll()
-                
-                // Swagger UI and OpenAPI endpoints
-                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                
-                // Test endpoints - Allow direct access for testing (HIGH PRIORITY)
-                .requestMatchers("/notification/test/**").permitAll()
-                
-                // Health check endpoint - Allow direct access (HIGH PRIORITY)
-                .requestMatchers("/notifications/health").permitAll()
-                
-                // WebSocket endpoints - Allow both direct and Gateway access (HIGHEST PRIORITY)
-                .requestMatchers("/ws/**", "/websocket/**", "/info", "/sockjs-node/**").permitAll()
-                
-                // SockJS specific endpoints
-                .requestMatchers("/**/websocket", "/**/info", "/**/iframe.html").permitAll()
-                
-                // All other notification endpoints - Allow direct access (bypassing Gateway)
-                // Block all REST endpoints since we're using pure WebSocket
-                .requestMatchers("/notifications/**").denyAll()
-                
-                // Block all other direct access
-                .anyRequest().denyAll()
-            );
-
-        return http.build();
+    @Override
+    protected void configureServiceEndpoints(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
+        auth
+            // Test endpoints - Allow direct access for testing (HIGH PRIORITY)
+            .requestMatchers("/notification/test/**").permitAll()
+            
+            // Health check endpoint - Allow direct access (HIGH PRIORITY)
+            .requestMatchers("/notifications/health").permitAll()
+            
+            // WebSocket endpoints - Allow both direct and Gateway access (HIGHEST PRIORITY)
+            .requestMatchers("/ws/**", "/websocket/**", "/info", "/sockjs-node/**").permitAll()
+            
+            // SockJS specific endpoints
+            .requestMatchers("/**/websocket", "/**/info", "/**/iframe.html").permitAll()
+            
+            // All other notification endpoints - Block REST endpoints since we're using pure WebSocket
+            .requestMatchers("/notifications/**").denyAll();
     }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
 }

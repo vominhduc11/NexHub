@@ -6,9 +6,9 @@ import com.devwonder.auth_service.entity.Account;
 import com.devwonder.auth_service.mapper.AuthMapper;
 import com.devwonder.auth_service.repository.AccountRepository;
 import com.devwonder.auth_service.util.JwtUtil;
+import com.devwonder.common.exception.AuthenticationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -28,12 +28,12 @@ public class AuthenticationService {
 
                 // Find account by username
                 Account account = accountRepository.findByUsername(request.getUsername())
-                                .orElseThrow(() -> new BadCredentialsException("Invalid username or password"));
+                                .orElseThrow(() -> new AuthenticationException("Invalid username or password"));
 
                 // Verify password
                 if (!passwordEncoder.matches(request.getPassword(), account.getPassword())) {
                         log.warn("Invalid password for username: {}", request.getUsername());
-                        throw new BadCredentialsException("Invalid username or password");
+                        throw new AuthenticationException("Invalid username or password");
                 }
 
                 // Verify user has the requested role type
@@ -42,7 +42,7 @@ public class AuthenticationService {
 
                 if (!hasRequestedRole) {
                         log.warn("User {} does not have role: {}", request.getUsername(), request.getUserType());
-                        throw new BadCredentialsException("User does not have the requested role");
+                        throw new AuthenticationException("USER_ROLE_MISMATCH", "User does not have the requested role");
                 }
 
                 // Create user info using mapper

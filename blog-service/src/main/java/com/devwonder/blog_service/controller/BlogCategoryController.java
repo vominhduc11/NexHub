@@ -2,6 +2,7 @@ package com.devwonder.blog_service.controller;
 
 import com.devwonder.common.dto.BaseResponse;
 import com.devwonder.common.exception.BaseException;
+import com.devwonder.common.util.ResponseUtil;
 import com.devwonder.blog_service.dto.BlogCategoryRequest;
 import com.devwonder.blog_service.dto.BlogCategoryResponse;
 import com.devwonder.blog_service.service.BlogCategoryService;
@@ -40,11 +41,10 @@ public class BlogCategoryController {
         
         try {
             List<BlogCategoryResponse> categories = categoryService.getAllVisibleCategories();
-            return ResponseEntity.ok(BaseResponse.success("Categories retrieved successfully", categories));
+            return ResponseUtil.success("Categories retrieved successfully", categories);
         } catch (Exception e) {
             log.error("Error retrieving categories", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving categories", "INTERNAL_ERROR"));
+            return ResponseUtil.internalError("Error retrieving categories");
         }
     }
     
@@ -61,11 +61,10 @@ public class BlogCategoryController {
         
         try {
             Page<BlogCategoryResponse> categories = categoryService.getVisibleCategories(page, size);
-            return ResponseEntity.ok(BaseResponse.success("Categories retrieved successfully", categories));
+            return ResponseUtil.success("Categories retrieved successfully", categories);
         } catch (Exception e) {
             log.error("Error retrieving categories", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving categories", "INTERNAL_ERROR"));
+            return ResponseUtil.internalError("Error retrieving categories");
         }
     }
     
@@ -79,11 +78,10 @@ public class BlogCategoryController {
         
         try {
             Page<BlogCategoryResponse> categories = categoryService.getAllCategories(page, size);
-            return ResponseEntity.ok(BaseResponse.success("All categories retrieved successfully", categories));
+            return ResponseUtil.success("All categories retrieved successfully", categories);
         } catch (Exception e) {
             log.error("Error retrieving all categories", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving categories", "INTERNAL_ERROR"));
+            return ResponseUtil.internalError("Error retrieving categories");
         }
     }
     
@@ -97,15 +95,13 @@ public class BlogCategoryController {
         try {
             Optional<BlogCategoryResponse> category = categoryService.getCategoryBySlug(slug);
             if (category.isPresent()) {
-                return ResponseEntity.ok(BaseResponse.success("Category retrieved successfully", category.get()));
+                return ResponseUtil.success("Category retrieved successfully", category.get());
             } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(BaseResponse.error("Category not found", "NOT_FOUND"));
+                return ResponseUtil.notFound("Category not found");
             }
         } catch (Exception e) {
             log.error("Error retrieving category by slug", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving category", "INTERNAL_ERROR"));
+            return ResponseUtil.internalError("Error retrieving category");
         }
     }
     
@@ -119,15 +115,13 @@ public class BlogCategoryController {
         try {
             Optional<BlogCategoryResponse> category = categoryService.getCategoryById(id);
             if (category.isPresent()) {
-                return ResponseEntity.ok(BaseResponse.success("Category retrieved successfully", category.get()));
+                return ResponseUtil.success("Category retrieved successfully", category.get());
             } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(BaseResponse.error("Category not found", "NOT_FOUND"));
+                return ResponseUtil.notFound("Category not found");
             }
         } catch (Exception e) {
             log.error("Error retrieving category by ID", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving category", "INTERNAL_ERROR"));
+            return ResponseUtil.internalError("Error retrieving category");
         }
     }
     
@@ -140,15 +134,12 @@ public class BlogCategoryController {
         
         try {
             BlogCategoryResponse response = categoryService.createCategory(request);
-            return ResponseEntity.status(HttpStatus.CREATED)
-                .body(BaseResponse.success("Category created successfully", response));
+            return ResponseUtil.created("Category created successfully", response);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(BaseResponse.error(e.getMessage(), "VALIDATION_ERROR"));
+            return ResponseUtil.badRequest(e.getMessage());
         } catch (Exception e) {
             log.error("Error creating category", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error creating category", "INTERNAL_ERROR"));
+            return ResponseUtil.internalError("Error creating category");
         }
     }
     
@@ -162,15 +153,13 @@ public class BlogCategoryController {
         
         try {
             BlogCategoryResponse response = categoryService.updateCategory(id, request);
-            return ResponseEntity.ok(BaseResponse.success("Category updated successfully", response));
+            return ResponseUtil.success("Category updated successfully", response);
         } catch (BaseException e) {
             log.error("Error updating category: {}", e.getMessage(), e);
-            return ResponseEntity.status(e.getHttpStatus())
-                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
+            return ResponseUtil.error(e.getMessage(), e.getErrorCode(), e.getHttpStatus());
         } catch (Exception e) {
             log.error("Error updating category", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error updating category", "INTERNAL_ERROR"));
+            return ResponseUtil.internalError("Error updating category");
         }
     }
     
@@ -183,15 +172,13 @@ public class BlogCategoryController {
         
         try {
             categoryService.deleteCategory(id);
-            return ResponseEntity.ok(BaseResponse.success("Category deleted successfully"));
+            return ResponseUtil.successVoid("Category deleted successfully");
         } catch (BaseException e) {
             log.error("Error deleting category: {}", e.getMessage(), e);
-            return ResponseEntity.status(e.getHttpStatus())
-                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
+            return ResponseUtil.error(e.getMessage(), e.getErrorCode(), e.getHttpStatus());
         } catch (Exception e) {
             log.error("Error deleting category", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error deleting category", "INTERNAL_ERROR"));
+            return ResponseUtil.internalError("Error deleting category");
         }
     }
     
@@ -204,15 +191,13 @@ public class BlogCategoryController {
         
         try {
             BlogCategoryResponse response = categoryService.toggleVisibility(id);
-            return ResponseEntity.ok(BaseResponse.success("Category visibility toggled successfully", response));
+            return ResponseUtil.success("Category visibility toggled successfully", response);
         } catch (BaseException e) {
             log.error("Error toggling category visibility: {}", e.getMessage(), e);
-            return ResponseEntity.status(e.getHttpStatus())
-                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
+            return ResponseUtil.error(e.getMessage(), e.getErrorCode(), e.getHttpStatus());
         } catch (Exception e) {
             log.error("Error toggling category visibility", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error toggling category visibility", "INTERNAL_ERROR"));
+            return ResponseUtil.internalError("Error toggling category visibility");
         }
     }
 }
