@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Import;
 /**
  * Configuration to enable NexHub Common AOP aspects
  */
-@Configuration
-@Import(NexHubCommonConfig.class)
+// @Configuration
+// @Import(NexHubCommonConfig.class)
 public class AspectConfig {
 }

@@ -1,5 +1,5 @@
 server:
-  port: ${SERVER_PORT}
+  port: ${SERVER_PORT:8080}
 
 eureka:
   instance:
@@ -87,6 +87,15 @@ spring:
           uri: ${PRODUCT_SERVICE_URI}
           predicates:
             - Path=/api/product/v3/api-docs/**
+          filters:
+            - StripPrefix=2
+            - AddRequestHeader=X-Gateway-Request, true
+          order: 100
+            
+        - id: notification-api-docs
+          uri: ${NOTIFICATION_SERVICE_URI}
+          predicates:
+            - Path=/api/notification/v3/api-docs/**
           filters:
             - StripPrefix=2
             - AddRequestHeader=X-Gateway-Request, true
@@ -181,6 +190,16 @@ spring:
             - StripPrefix=1                   # /api/product/** → /product/**
             - AddRequestHeader=X-Gateway-Request, true
 
+        # Notification Service API Routes
+        - id: notification-service
+          uri: ${NOTIFICATION_SERVICE_URI}
+          order: 200
+          predicates:
+            - Path=/api/notification/**       # Notification management
+          filters:
+            - StripPrefix=1                   # /api/notification/** → /notification/**
+            - AddRequestHeader=X-Gateway-Request, true
+
 
       # ===================================================================================
       # GLOBAL CONFIGURATIONS
@@ -231,5 +250,8 @@ springdoc:
       - url: /api/warranty/v3/api-docs
         name: warranty-service
         display-name: "🛡️ Warranty Service"
+      - url: /api/notification/v3/api-docs
+        name: notification-service
+        display-name: "📧 Notification Service"
   api-docs:
     enabled: ${SWAGGER_API_DOCS_ENABLED:true}

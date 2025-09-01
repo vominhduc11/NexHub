@@ -31,7 +31,7 @@ public class OpenApiConfig {
                                 .email("support@devwonder.com")))
                 .servers(List.of(
                         new Server().url("http://localhost:8080/api").description("Via API Gateway"),
-                        new Server().url("http://localhost:8087").description("Direct access (dev only)")
+                        new Server().url("http://localhost:8086").description("Direct access (dev only)")
                 ))
                 .components(new Components()
                         .addSecuritySchemes(JWT_SECURITY_NAME, new SecurityScheme()

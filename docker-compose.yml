@@ -297,11 +297,11 @@ services:
       dockerfile: product-service/Dockerfile
     container_name: nexhub-product-service
     ports:
-      - "8084:8080"
+      - "8084:8084"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_APPLICATION_NAME=product-service
-      - SERVER_PORT=8080
+      - SERVER_PORT=8084
       - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
       - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
@@ -326,7 +326,7 @@ services:
       - next-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -338,11 +338,11 @@ services:
       dockerfile: blog-service/Dockerfile
     container_name: nexhub-blog-service
     ports:
-      - "8087:8080"
+      - "8086:8086"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_APPLICATION_NAME=blog-service
-      - SERVER_PORT=8080
+      - SERVER_PORT=8086
       - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
       - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
@@ -367,7 +367,7 @@ services:
       - next-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8086/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3
