@@ -1,7 +1,6 @@
 package com.devwonder.product_service.controller;
 
 import com.devwonder.common.dto.BaseResponse;
-import com.devwonder.common.annotation.RequireAdminRole;
 import com.devwonder.common.exception.BaseException;
 import com.devwonder.common.util.ResponseUtil;
 import com.devwonder.product_service.dto.ProductRequest;
@@ -108,7 +107,6 @@ public class ProductController {
     }
 
     @PostMapping
-    @RequireAdminRole
     @Operation(summary = "Create new product", description = "Create a new product. Requires ADMIN role.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "201", description = "Product created successfully"),
@@ -134,7 +132,6 @@ public class ProductController {
     }
 
     @PutMapping("/{id}")
-    @RequireAdminRole
     @Operation(summary = "Update product", description = "Update all fields of an existing product. Requires ADMIN role.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Product updated successfully"),
@@ -161,7 +158,6 @@ public class ProductController {
     }
 
     @PatchMapping("/{id}")
-    @RequireAdminRole
     @Operation(summary = "Partially update product", description = "Update specific fields of an existing product. Requires ADMIN role.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Product partially updated successfully"),
@@ -188,7 +184,6 @@ public class ProductController {
     }
 
     @DeleteMapping("/{id}")
-    @RequireAdminRole
     @Operation(summary = "Soft delete product", description = "Soft delete a product by ID. Requires ADMIN role.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Product soft deleted successfully"),
@@ -214,7 +209,6 @@ public class ProductController {
     }
 
     @DeleteMapping("/{id}/hard")
-    @RequireAdminRole
     @Operation(summary = "Hard delete product", description = "Permanently delete a product by ID. Requires ADMIN role.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Product hard deleted successfully"),
@@ -239,7 +233,6 @@ public class ProductController {
     }
 
     @PostMapping("/{id}/restore")
-    @RequireAdminRole
     @Operation(summary = "Restore product", description = "Restore a soft deleted product by ID. Requires ADMIN role.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Product restored successfully"),

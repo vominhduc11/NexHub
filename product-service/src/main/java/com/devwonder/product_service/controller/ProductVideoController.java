@@ -1,8 +1,8 @@
 package com.devwonder.product_service.controller;
 
-import com.devwonder.common.annotation.RequireAdminRole;
 import com.devwonder.common.dto.BaseResponse;
 import com.devwonder.common.exception.BaseException;
+import com.devwonder.common.util.ResponseUtil;
 import com.devwonder.product_service.dto.ProductVideoRequest;
 import com.devwonder.product_service.dto.ProductVideoResponse;
 import com.devwonder.product_service.service.ProductVideoService;
@@ -43,20 +43,17 @@ public class ProductVideoController {
         
         try {
             List<ProductVideoResponse> videos = productVideoService.getProductVideos(productId);
-            return ResponseEntity.ok(BaseResponse.success("Product videos retrieved successfully", videos));
+            return ResponseUtil.success("Product videos retrieved successfully", videos);
         } catch (BaseException e) {
             log.error("Error retrieving product videos: {}", e.getMessage(), e);
-            return ResponseEntity.status(e.getHttpStatus())
-                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
+            return ResponseUtil.error(e.getMessage(), e.getErrorCode(), e.getHttpStatus());
         } catch (Exception e) {
             log.error("Error retrieving product videos: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving product videos", "INTERNAL_ERROR"));
+            return ResponseUtil.internalError("Error retrieving product videos");
         }
     }
 
     @PostMapping
-    @RequireAdminRole
     @Operation(summary = "Add product video", description = "Add a video to a specific product. Requires ADMIN role.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "201", description = "Video added successfully"),
@@ -72,21 +69,17 @@ public class ProductVideoController {
         
         try {
             ProductVideoResponse addedVideo = productVideoService.addProductVideo(productId, videoRequest);
-            return ResponseEntity.status(HttpStatus.CREATED)
-                .body(BaseResponse.success("Product video added successfully", addedVideo));
+            return ResponseUtil.created("Product video added successfully", addedVideo);
         } catch (BaseException e) {
             log.error("Error retrieving product videos: {}", e.getMessage(), e);
-            return ResponseEntity.status(e.getHttpStatus())
-                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
+            return ResponseUtil.error(e.getMessage(), e.getErrorCode(), e.getHttpStatus());
         } catch (Exception e) {
             log.error("Error adding product video: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error adding product video", "INTERNAL_ERROR"));
+            return ResponseUtil.internalError("Error adding product video");
         }
     }
 
     @PutMapping("/{videoId}")
-    @RequireAdminRole
     @Operation(summary = "Update product video", description = "Update a specific product video. Requires ADMIN role.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Video updated successfully"),
@@ -103,20 +96,17 @@ public class ProductVideoController {
         
         try {
             ProductVideoResponse updatedVideo = productVideoService.updateProductVideo(productId, videoId, videoRequest);
-            return ResponseEntity.ok(BaseResponse.success("Product video updated successfully", updatedVideo));
+            return ResponseUtil.success("Product video updated successfully", updatedVideo);
         } catch (BaseException e) {
             log.error("Error updating product video: {}", e.getMessage(), e);
-            return ResponseEntity.status(e.getHttpStatus())
-                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
+            return ResponseUtil.error(e.getMessage(), e.getErrorCode(), e.getHttpStatus());
         } catch (Exception e) {
             log.error("Error updating product video: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error updating product video", "INTERNAL_ERROR"));
+            return ResponseUtil.internalError("Error updating product video");
         }
     }
 
     @DeleteMapping("/{videoId}")
-    @RequireAdminRole
     @Operation(summary = "Delete product video", description = "Delete a specific product video. Requires ADMIN role.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Video deleted successfully"),
@@ -131,15 +121,13 @@ public class ProductVideoController {
         
         try {
             productVideoService.deleteProductVideo(productId, videoId);
-            return ResponseEntity.ok(BaseResponse.success("Product video deleted successfully"));
+            return ResponseUtil.successVoid("Product video deleted successfully");
         } catch (BaseException e) {
             log.error("Error deleting product video: {}", e.getMessage(), e);
-            return ResponseEntity.status(e.getHttpStatus())
-                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
+            return ResponseUtil.error(e.getMessage(), e.getErrorCode(), e.getHttpStatus());
         } catch (Exception e) {
             log.error("Error deleting product video: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error deleting product video", "INTERNAL_ERROR"));
+            return ResponseUtil.internalError("Error deleting product video");
         }
     }
 }

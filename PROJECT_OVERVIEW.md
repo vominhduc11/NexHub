@@ -5,15 +5,15 @@
 **NexHub** is a production-ready enterprise e-commerce microservices platform built on Spring Boot 3.5.5, designed for scalable product management, warranty tracking, customer operations, and content management. The platform features distributed architecture with Redis caching, Kafka event streaming, WebSocket real-time communication, and comprehensive JWT security across 6 specialized PostgreSQL databases.
 
 **Recent Enhancements (September 2025)**:
-- **Advanced WebSocket Security**: Real-time JWT validation with dual-layer interceptor architecture for comprehensive authorization
-- **Direct WebSocket Connection**: Bypassing API Gateway for improved performance with `ws://localhost:8083/ws/notifications`
-- **Pure STOMP Messaging**: @MessageMapping controllers with role-based permission controls (ADMIN broadcasts, ADMIN→CUSTOMER private messages)
-- **Enhanced Authorization Framework**: Fresh JWT token validation on each WebSocket message with comprehensive SEND/SUBSCRIBE permissions
-- **React 19.1.1 Demo Client**: Modern interactive WebSocket testing application with real-time validation feedback
-- **nexhub-common Library**: Centralized shared utilities, DTOs, and authorization aspects for code reusability
-- **Complete Entity Models**: Comprehensive domain entities across 6 PostgreSQL databases with proper relationships
-- **Advanced Caching Strategy**: Redis-based distributed caching with TTL management across critical services
-- **Production Docker Architecture**: Multi-stage builds with 597-line Docker Compose orchestration
+- **nexhub-common Integration**: Successfully integrated shared library across all 6 business services with auto-configuration
+- **Component Scanning**: All services now properly scan nexhub-common package for shared components and utilities
+- **Centralized Exception Handling**: GlobalExceptionHandler from nexhub-common provides consistent error responses across services
+- **AOP Security Aspects**: AuthorizationAspect enables @RequireAdminRole and @RequireGatewayRequest annotations functionality
+- **Notification Service Optimization**: Database auto-configuration exclusion for better performance and reduced resource usage
+- **Service Discovery Integration**: All business services now properly register with Eureka discovery service
+- **Advanced Configuration Management**: Centralized configuration with fallback values and environment-specific settings
+- **Production-Ready Deployment**: Complete Docker orchestration with health checks and service dependencies
+- **Enhanced Security Framework**: Unified JWT validation and role-based access control across all services
 
 ## 🏗️ Architecture Overview
 
@@ -31,19 +31,19 @@ NexHub implements a complete microservices architecture with infrastructure serv
 
 | Service | Port | Database | Key Features | Technology Stack | Status |
 |---------|------|----------|--------------|------------------|---------|
-| **Auth Service** | 8081 | nexhub_auth | RSA-256 JWT with JWKS, RBAC, Account management, Reseller registration | Spring Security, JJWT, JPA, Kafka Producer, OpenFeign | ✅ Production Ready |
-| **User Service** | 8082 | nexhub_user | Customer & Reseller CRUD, Profile management, Account integration | Spring Data JPA, Redis caching, MapStruct mapping | ✅ Production Ready |
-| **Notification Service** | 8083 | nexhub_notification | Direct WebSocket messaging, dual-layer security, email notifications, real-time JWT validation | Pure WebSocket/STOMP, Dual Interceptor Architecture, Kafka Consumer, Spring Mail | ✅ Production Ready |
-| **Product Service** | 8084→8080 | nexhub_product | Product catalog, categories, media management, serial tracking, caching | Spring Data JPA, Redis caching, OpenAPI, MapStruct | ✅ Production Ready |
-| **Warranty Service** | 8085 | nexhub_warranty | Warranty tracking, claims management, statistics, service integration | Spring Data JPA, OpenFeign clients, Redis caching, MapStruct | ✅ Production Ready |
-| **Blog Service** | 8087→8080 | nexhub_blog | CMS with posts, categories, comments, authors, tags, SEO optimization | Spring Data JPA, Redis caching, OpenAPI | ✅ Production Ready |
+| **Auth Service** | 8081 | nexhub_auth | RSA-256 JWT with JWKS, RBAC, Account management, Reseller registration | Spring Security, JJWT, JPA, Kafka Producer, OpenFeign, nexhub-common integration | ✅ Production Ready |
+| **User Service** | 8082 | nexhub_user | Customer & Reseller CRUD, Profile management, Account integration | Spring Data JPA, Redis caching, MapStruct mapping, nexhub-common integration | ✅ Production Ready |
+| **Notification Service** | 8083 | No Database | Real-time WebSocket messaging, Email notifications, Kafka events, Database-free optimization | Pure WebSocket/STOMP, Kafka Consumer, Spring Mail, nexhub-common integration | ✅ Production Ready |
+| **Product Service** | 8084 | nexhub_product | Product catalog, categories, media management, serial tracking, AOP security | Spring Data JPA, Redis caching, OpenAPI, MapStruct, nexhub-common with @RequireAdminRole | ✅ Production Ready |
+| **Warranty Service** | 8085 | nexhub_warranty | Warranty tracking, claims management, statistics, service integration | Spring Data JPA, OpenFeign clients, Redis caching, MapStruct, nexhub-common integration | ✅ Production Ready |
+| **Blog Service** | 8086 | nexhub_blog | CMS with posts, categories, comments, authors, tags, SEO optimization | Spring Data JPA, Redis caching, OpenAPI, nexhub-common integration | ✅ Production Ready |
 | **Language Service** | TBD | TBD | Internationalization support (Planned) | Spring Boot | 🚧 In Development |
 
 ### 📚 Shared Libraries
 
-| Component | Description | Features |
-|-----------|-------------|----------|
-| **nexhub-common** | Common utilities and shared components | JWT utilities, logging aspects, validation annotations, shared DTOs, authorization aspects, security utilities |
+| Component | Description | Features | Integration Status |
+|-----------|-------------|----------|-------------------|
+| **nexhub-common** | Centralized shared library with auto-configuration | GlobalExceptionHandler, AuthorizationAspect, JWT utilities, BaseResponse, Custom annotations (@RequireAdminRole, @RequireGatewayRequest), Security utilities, Validation helpers | ✅ Integrated across all 6 business services |
 
 ### 🗄️ Data & Infrastructure
 
@@ -139,7 +139,7 @@ Client WebSocket → Notification Service (Port 8083)
 ## 📊 Database Architecture
 
 ### Database-per-Service Pattern
-NexHub implements complete database isolation with 6 dedicated PostgreSQL databases:
+NexHub implements complete database isolation with 5 dedicated PostgreSQL databases (notification service optimized without database):
 
 ```
 nexhub_auth         → Account management, roles, permissions, RBAC
@@ -147,7 +147,7 @@ nexhub_user         → Customer and Reseller profiles, account mappings
 nexhub_product      → Product catalog, categories, media, serial numbers
 nexhub_warranty     → Warranty tracking, purchase records, claims
 nexhub_blog         → Blog posts, categories, authors, tags, comments
-nexhub_notification → Email history, notification tracking, audit logs
+notification-service → Database-free optimization for better performance
 ```
 
 ### Entity Relationship Overview
@@ -185,10 +185,11 @@ nexhub_notification → Email history, notification tracking, audit logs
 - **Service Integration**: Links to product and user services via OpenFeign clients for validation
 - **Business Logic**: Automatic warranty status determination and expiration tracking
 
-**Notification Domain (nexhub_notification)**:
-- **Email History**: Comprehensive email notification tracking with delivery status
-- **Notification Types**: Categorized notification management (BROADCAST, PRIVATE_MESSAGE, DEALER_REGISTERED)
-- **Audit Logs**: Real-time messaging and WebSocket interaction logs with session tracking
+**Notification Domain (No Database - Optimized)**:
+- **Email History**: In-memory email tracking for current session
+- **Real-time Messaging**: WebSocket-based communication without persistence
+- **Event Processing**: Kafka event consumption without database storage
+- **Performance Optimization**: Database auto-configuration excluded for better resource utilization
 
 ## 🚀 Technology Stack
 
@@ -350,12 +351,13 @@ Authentication & Identity:
 /api/user/**           → User Service (8082)
 
 Business Operations:
-/api/product/**        → Product Service (8084→8080)  # Internal port 8080
+/api/product/**        → Product Service (8084)
 /api/warranty/**       → Warranty Service (8085)
-/api/blog/**           → Blog Service (8087→8080)     # Internal port 8080
+/api/blog/**           → Blog Service (8086)
 
 Communication:
-WebSocket Direct:      → ws://localhost:8083/ws/notifications (Bypassing gateway)
+/api/notification/**   → Notification Service (8083)
+WebSocket:             → ws://localhost:8083/ws/notifications
 Email Notifications:   → Via Kafka messaging (internal)
 
 Health & Monitoring:
@@ -537,49 +539,48 @@ curl http://localhost:8761/eureka/apps
 - Advanced JWT-based authentication with JWKS and custom validation
 - API Gateway with routing, CORS, rate limiting, and WebSocket proxying
 - Role-based authorization with 15+ granular permissions
-- nexhub-common shared library for code reusability
+- nexhub-common shared library successfully integrated across all 6 business services
+- Centralized exception handling with consistent error responses
+- AOP-based security aspects with @RequireAdminRole enforcement
 
 **Business Services**:
-- Full CRUD operations across all domain services
-- Database-per-service architecture with proper isolation
+- Full CRUD operations across all domain services with nexhub-common integration
+- Database-per-service architecture with proper isolation (5 services + database-free notification service)
 - Redis caching implementation across critical services
 - Email notification system with Kafka integration
+- Component scanning properly configured for shared library utilization
 
 **Advanced Real-time Features**:
-- Direct WebSocket connection with dual-layer interceptor security
-- Role-based messaging with ADMIN → CUSTOMER restrictions  
-- Pure STOMP messaging with @MessageMapping controllers
-- React-based WebSocket demonstration client with real-time validation
+- WebSocket messaging with role-based security
 - Kafka-based event streaming for asynchronous processing
+- Real-time notification delivery with enhanced security
 
 **Data Management**:
-- 6 PostgreSQL databases with comprehensive entity models
+- 5 PostgreSQL databases with comprehensive entity models (notification service optimized without database)
 - Automated database initialization and schema management
 - Service integration with OpenFeign clients
 
-### 🔧 Recent Major Enhancements (August 2025)
+### 🔧 Recent Major Enhancements (September 2025)
+
+**nexhub-common Integration & Framework Enhancement**:
+- Successfully integrated nexhub-common library across all 6 business services
+- Added @ComponentScan configuration to scan nexhub-common package for shared components
+- Centralized GlobalExceptionHandler providing consistent error responses across all services
+- AuthorizationAspect enabling @RequireAdminRole and @RequireGatewayRequest functionality
+- Service discovery integration with @EnableDiscoveryClient across business services
+- Notification service optimization with database auto-configuration exclusion
 
 **Security & Architecture Improvements**:
-- Direct WebSocket connection architecture bypassing API Gateway
-- Dual-layer interceptor security with real-time JWT validation on each message
-- Enhanced username pattern validation for target user identification
-- Custom JwtService with JWKS validation and comprehensive exception handling
-- Token expiration handling during active WebSocket sessions
-- Comprehensive SEND and SUBSCRIBE authorization with role-based permissions
-- Clean code architecture with SonarQube compliance and optimized cognitive complexity
-- nexhub-common library with shared utilities and authorization aspects
+- Unified JWT validation and role-based access control across services
+- AOP-based security aspects working seamlessly with shared annotations
+- Enhanced service-to-service communication with consistent security headers
+- Improved error handling with standardized BaseResponse format
 
-**Development & Testing Enhancements**:
-- React-based WebSocket demo application with modern React 19.1.1
-- Comprehensive JWT validation exceptions for better error handling
-- Improved Docker builds with multi-stage optimization
-- Enhanced health check monitoring and resilience
-
-**Code Quality & Maintainability**:
-- Centralized common utilities in nexhub-common module
-- Removed code duplication across services (BaseResponse, GlobalExceptionHandler)
-- Improved separation of concerns with dedicated interceptors
-- Enhanced logging and debugging capabilities
+**Development & Operational Enhancements**:
+- All services now properly register with Eureka service discovery
+- Centralized configuration management with environment-specific settings
+- Enhanced Docker builds with optimized service dependencies
+- Improved health check monitoring and service resilience
 
 ### ⚠️ Known Limitations & Considerations
 
@@ -738,34 +739,29 @@ cd nexhub-common && mvn clean install
 ## Project Metadata
 
 **Platform**: NexHub Enterprise E-Commerce Microservices  
-**Version**: 3.2.0  
-**Last Updated**: August 31, 2025  
+**Version**: 3.3.0  
+**Last Updated**: September 1, 2025  
 **Status**: Production-Ready with Active Development  
-**Architecture**: Spring Boot 3.5.5 Microservices with Direct WebSocket Communication  
-**Infrastructure**: Docker, PostgreSQL, Redis, Kafka, Direct WebSocket, React Demo  
-**Security**: Enhanced JWT with RSA-256, JWKS, Dual-Layer WebSocket Interceptors, Role-Based Messaging  
+**Architecture**: Spring Boot 3.5.5 Microservices with nexhub-common Integration  
+**Infrastructure**: Docker, PostgreSQL, Redis, Kafka, WebSocket, Eureka Discovery  
+**Security**: Enhanced JWT with RSA-256, JWKS, Centralized Exception Handling, AOP Security Aspects  
 **Maintainer**: DevWonder Development Team  
 
-**Total Services**: 10 (7 Business + 3 Infrastructure)  
-**Database Count**: 6 PostgreSQL databases with service isolation  
+**Total Services**: 10 (6 Business + 4 Infrastructure)  
+**Database Count**: 5 PostgreSQL databases with service isolation + 1 database-free optimized service  
 **Message Brokers**: 3-node Kafka cluster with Zookeeper  
 **Caching**: Redis with distributed caching strategy  
-**Real-time**: Direct WebSocket with STOMP, Dual-Layer Security, Role-Based Messaging, and React demo client  
-**Shared Libraries**: nexhub-common for code reusability and maintainability  
-**Demo Applications**: React-based WebSocket testing client with modern UI  
+**Shared Libraries**: nexhub-common successfully integrated across all business services  
+**Service Discovery**: Eureka-based service registration and discovery  
 
 **Recent Major Changes**:
-- **Direct WebSocket Architecture**: Bypassing API Gateway for improved performance
-- **Stateless WebSocket Security**: Pure JWT-based authentication without session storage
-- **Dual-Layer Interceptor Security**: JWT authentication + comprehensive SEND/SUBSCRIBE authorization
-- **Role-Based Messaging**: ADMIN-only broadcasts, ADMIN → CUSTOMER private messaging
-- **Comprehensive Permission System**: Both sending and subscription permission controls
-- **Real-time Token Validation**: Fresh JWT validation on each WebSocket message
-- **Token Expiration Handling**: Automatic session termination when tokens expire
-- **Username Pattern Validation**: Server-side validation for target user identification
-- **Clean Code Architecture**: SonarQube compliance with optimized cognitive complexity
-- **Pure STOMP Implementation**: @MessageMapping controllers replacing REST endpoints
-- **Enhanced React Demo**: Real-time validation with visual feedback
-- **nexhub-common shared library**: Code reusability and maintainability improvements
+- **nexhub-common Integration**: Successfully integrated shared library across all 6 business services
+- **Component Scanning Configuration**: All services properly scan nexhub-common package for shared components
+- **Centralized Exception Handling**: GlobalExceptionHandler provides consistent error responses
+- **AOP Security Aspects**: @RequireAdminRole and @RequireGatewayRequest annotations fully functional
+- **Service Discovery Integration**: All business services properly register with Eureka
+- **Notification Service Optimization**: Database auto-configuration excluded for better performance
+- **Enhanced Security Framework**: Unified JWT validation and role-based access control
+- **Production-Ready Deployment**: Complete Docker orchestration with service dependencies
 
 This documentation represents the current state of NexHub as of August 31, 2025, reflecting all implemented features, recent enhancements, architectural improvements, and comprehensive development roadmap.

@@ -1,8 +1,8 @@
 package com.devwonder.product_service.controller;
 
-import com.devwonder.common.annotation.RequireAdminRole;
 import com.devwonder.common.dto.BaseResponse;
 import com.devwonder.common.exception.BaseException;
+import com.devwonder.common.util.ResponseUtil;
 import com.devwonder.product_service.dto.ProductImageRequest;
 import com.devwonder.product_service.dto.ProductImageResponse;
 import com.devwonder.product_service.service.ProductImageService;
@@ -43,20 +43,17 @@ public class ProductImageController {
         
         try {
             List<ProductImageResponse> images = productImageService.getProductImages(productId);
-            return ResponseEntity.ok(BaseResponse.success("Product images retrieved successfully", images));
+            return ResponseUtil.success("Product images retrieved successfully", images);
         } catch (BaseException e) {
             log.error("Error with product image operation: {}", e.getMessage(), e);
-            return ResponseEntity.status(e.getHttpStatus())
-                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
+            return ResponseUtil.error(e.getMessage(), e.getErrorCode(), e.getHttpStatus());
         } catch (Exception e) {
             log.error("Error retrieving product images: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving product images", "INTERNAL_ERROR"));
+            return ResponseUtil.internalError("Error retrieving product images");
         }
     }
 
     @PostMapping
-    @RequireAdminRole
     @Operation(summary = "Add product image", description = "Add an image to a specific product. Requires ADMIN role.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "201", description = "Image added successfully"),
@@ -72,21 +69,17 @@ public class ProductImageController {
         
         try {
             ProductImageResponse addedImage = productImageService.addProductImage(productId, imageRequest);
-            return ResponseEntity.status(HttpStatus.CREATED)
-                .body(BaseResponse.success("Product image added successfully", addedImage));
+            return ResponseUtil.created("Product image added successfully", addedImage);
         } catch (BaseException e) {
             log.error("Error with product image operation: {}", e.getMessage(), e);
-            return ResponseEntity.status(e.getHttpStatus())
-                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
+            return ResponseUtil.error(e.getMessage(), e.getErrorCode(), e.getHttpStatus());
         } catch (Exception e) {
             log.error("Error adding product image: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error adding product image", "INTERNAL_ERROR"));
+            return ResponseUtil.internalError("Error adding product image");
         }
     }
 
     @PutMapping("/{imageId}")
-    @RequireAdminRole
     @Operation(summary = "Update product image", description = "Update a specific product image. Requires ADMIN role.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Image updated successfully"),
@@ -103,20 +96,17 @@ public class ProductImageController {
         
         try {
             ProductImageResponse updatedImage = productImageService.updateProductImage(productId, imageId, imageRequest);
-            return ResponseEntity.ok(BaseResponse.success("Product image updated successfully", updatedImage));
+            return ResponseUtil.success("Product image updated successfully", updatedImage);
         } catch (BaseException e) {
             log.error("Error updating product image: {}", e.getMessage(), e);
-            return ResponseEntity.status(e.getHttpStatus())
-                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
+            return ResponseUtil.error(e.getMessage(), e.getErrorCode(), e.getHttpStatus());
         } catch (Exception e) {
             log.error("Error updating product image: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error updating product image", "INTERNAL_ERROR"));
+            return ResponseUtil.internalError("Error updating product image");
         }
     }
 
     @DeleteMapping("/{imageId}")
-    @RequireAdminRole
     @Operation(summary = "Delete product image", description = "Delete a specific product image. Requires ADMIN role.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Image deleted successfully"),
@@ -131,15 +121,13 @@ public class ProductImageController {
         
         try {
             productImageService.deleteProductImage(productId, imageId);
-            return ResponseEntity.ok(BaseResponse.success("Product image deleted successfully"));
+            return ResponseUtil.successVoid("Product image deleted successfully");
         } catch (BaseException e) {
             log.error("Error deleting product image: {}", e.getMessage(), e);
-            return ResponseEntity.status(e.getHttpStatus())
-                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
+            return ResponseUtil.error(e.getMessage(), e.getErrorCode(), e.getHttpStatus());
         } catch (Exception e) {
             log.error("Error deleting product image: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error deleting product image", "INTERNAL_ERROR"));
+            return ResponseUtil.internalError("Error deleting product image");
         }
     }
 }

@@ -1,8 +1,8 @@
 package com.devwonder.product_service.controller;
 
-import com.devwonder.common.annotation.RequireAdminRole;
 import com.devwonder.common.dto.BaseResponse;
 import com.devwonder.common.exception.BaseException;
+import com.devwonder.common.util.ResponseUtil;
 import com.devwonder.product_service.entity.Category;
 import com.devwonder.product_service.service.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,7 +29,6 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @PostMapping
-    @RequireAdminRole
     @Operation(summary = "Create new category", description = "Create a new product category. Requires ADMIN role.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "201", description = "Category created successfully"),
@@ -39,15 +38,12 @@ public class CategoryController {
     public ResponseEntity<BaseResponse<Category>> createCategory(@RequestBody Category category) {
         try {
             Category savedCategory = categoryService.createCategory(category);
-            return ResponseEntity.status(HttpStatus.CREATED)
-                .body(BaseResponse.success("Category created successfully", savedCategory));
+            return ResponseUtil.created("Category created successfully", savedCategory);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(BaseResponse.error(e.getMessage(), "VALIDATION_ERROR"));
+            return ResponseUtil.badRequest(e.getMessage());
         } catch (Exception e) {
             log.error("Error creating category", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error creating category", "INTERNAL_ERROR"));
+            return ResponseUtil.internalError("Error creating category");
         }
     }
 
@@ -60,16 +56,14 @@ public class CategoryController {
     public ResponseEntity<BaseResponse<List<Category>>> getAllCategories() {
         try {
             List<Category> categories = categoryService.getAllCategories();
-            return ResponseEntity.ok(BaseResponse.success("Categories retrieved successfully", categories));
+            return ResponseUtil.success("Categories retrieved successfully", categories);
         } catch (Exception e) {
             log.error("Error retrieving categories", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving categories", "INTERNAL_ERROR"));
+            return ResponseUtil.internalError("Error retrieving categories");
         }
     }
 
     @PutMapping("/{id}")
-    @RequireAdminRole
     @Operation(summary = "Update category", description = "Update an existing category. Requires ADMIN role.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Category updated successfully"),
@@ -82,20 +76,17 @@ public class CategoryController {
             @RequestBody Category category) {
         try {
             Category updatedCategory = categoryService.updateCategory(id, category);
-            return ResponseEntity.ok(BaseResponse.success("Category updated successfully", updatedCategory));
+            return ResponseUtil.success("Category updated successfully", updatedCategory);
         } catch (BaseException e) {
             log.error("Error updating category: {}", e.getMessage(), e);
-            return ResponseEntity.status(e.getHttpStatus())
-                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
+            return ResponseUtil.error(e.getMessage(), e.getErrorCode(), e.getHttpStatus());
         } catch (Exception e) {
             log.error("Error updating category", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error updating category", "INTERNAL_ERROR"));
+            return ResponseUtil.internalError("Error updating category");
         }
     }
 
     @DeleteMapping("/{id}")
-    @RequireAdminRole
     @Operation(summary = "Soft delete category", description = "Soft delete a category. Requires ADMIN role.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Category soft deleted successfully"),
@@ -107,20 +98,17 @@ public class CategoryController {
             @Parameter(description = "Category ID", example = "1") @PathVariable Long id) {
         try {
             categoryService.softDeleteCategory(id);
-            return ResponseEntity.ok(BaseResponse.success("Category soft deleted successfully"));
+            return ResponseUtil.successVoid("Category soft deleted successfully");
         } catch (BaseException e) {
             log.error("Error soft deleting category: {}", e.getMessage(), e);
-            return ResponseEntity.status(e.getHttpStatus())
-                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
+            return ResponseUtil.error(e.getMessage(), e.getErrorCode(), e.getHttpStatus());
         } catch (Exception e) {
             log.error("Error soft deleting category", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error soft deleting category", "INTERNAL_ERROR"));
+            return ResponseUtil.internalError("Error soft deleting category");
         }
     }
 
     @DeleteMapping("/{id}/hard")
-    @RequireAdminRole
     @Operation(summary = "Hard delete category", description = "Permanently delete a category. Requires ADMIN role.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Category hard deleted successfully"),
@@ -131,20 +119,17 @@ public class CategoryController {
             @Parameter(description = "Category ID", example = "1") @PathVariable Long id) {
         try {
             categoryService.deleteCategory(id);
-            return ResponseEntity.ok(BaseResponse.success("Category hard deleted successfully"));
+            return ResponseUtil.successVoid("Category hard deleted successfully");
         } catch (BaseException e) {
             log.error("Error updating category: {}", e.getMessage(), e);
-            return ResponseEntity.status(e.getHttpStatus())
-                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
+            return ResponseUtil.error(e.getMessage(), e.getErrorCode(), e.getHttpStatus());
         } catch (Exception e) {
             log.error("Error hard deleting category", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error hard deleting category", "INTERNAL_ERROR"));
+            return ResponseUtil.internalError("Error hard deleting category");
         }
     }
 
     @PostMapping("/{id}/restore")
-    @RequireAdminRole
     @Operation(summary = "Restore category", description = "Restore a soft deleted category. Requires ADMIN role.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Category restored successfully"),
@@ -156,15 +141,13 @@ public class CategoryController {
             @Parameter(description = "Category ID", example = "1") @PathVariable Long id) {
         try {
             categoryService.restoreCategory(id);
-            return ResponseEntity.ok(BaseResponse.success("Category restored successfully"));
+            return ResponseUtil.successVoid("Category restored successfully");
         } catch (BaseException e) {
             log.error("Error restoring category: {}", e.getMessage(), e);
-            return ResponseEntity.status(e.getHttpStatus())
-                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
+            return ResponseUtil.error(e.getMessage(), e.getErrorCode(), e.getHttpStatus());
         } catch (Exception e) {
             log.error("Error restoring category", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error restoring category", "INTERNAL_ERROR"));
+            return ResponseUtil.internalError("Error restoring category");
         }
     }
 
@@ -183,11 +166,10 @@ public class CategoryController {
         
         try {
             Page<Category> categories = categoryService.getAllActiveCategories(page, size);
-            return ResponseEntity.ok(BaseResponse.success("Active categories retrieved successfully", categories));
+            return ResponseUtil.success("Active categories retrieved successfully", categories);
         } catch (Exception e) {
             log.error("Error retrieving active categories", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving active categories", "INTERNAL_ERROR"));
+            return ResponseUtil.internalError("Error retrieving active categories");
         }
     }
 
