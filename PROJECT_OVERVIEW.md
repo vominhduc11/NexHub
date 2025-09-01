@@ -4,13 +4,16 @@
 
 **NexHub** is a production-ready enterprise e-commerce microservices platform built on Spring Boot 3.5.5, designed for scalable product management, warranty tracking, customer operations, and content management. The platform features distributed architecture with Redis caching, Kafka event streaming, WebSocket real-time communication, and comprehensive JWT security across 6 specialized PostgreSQL databases.
 
-**Recent Enhancements (August 2025)**:
-- Direct WebSocket connection bypassing API Gateway for improved performance
-- Advanced role-based authorization with dual-layer interceptor architecture (JWT + Permissions)
-- Pure STOMP messaging with @MessageMapping controllers (no REST endpoints for messaging)
-- Enhanced WebSocket security with username pattern validation for target users
-- React-based WebSocket demonstration client with real-time validation
-- Shared nexhub-common library for code reusability and maintainability
+**Recent Enhancements (September 2025)**:
+- **Advanced WebSocket Security**: Real-time JWT validation with dual-layer interceptor architecture for comprehensive authorization
+- **Direct WebSocket Connection**: Bypassing API Gateway for improved performance with `ws://localhost:8083/ws/notifications`
+- **Pure STOMP Messaging**: @MessageMapping controllers with role-based permission controls (ADMIN broadcasts, ADMIN→CUSTOMER private messages)
+- **Enhanced Authorization Framework**: Fresh JWT token validation on each WebSocket message with comprehensive SEND/SUBSCRIBE permissions
+- **React 19.1.1 Demo Client**: Modern interactive WebSocket testing application with real-time validation feedback
+- **nexhub-common Library**: Centralized shared utilities, DTOs, and authorization aspects for code reusability
+- **Complete Entity Models**: Comprehensive domain entities across 6 PostgreSQL databases with proper relationships
+- **Advanced Caching Strategy**: Redis-based distributed caching with TTL management across critical services
+- **Production Docker Architecture**: Multi-stage builds with 597-line Docker Compose orchestration
 
 ## 🏗️ Architecture Overview
 
@@ -28,12 +31,12 @@ NexHub implements a complete microservices architecture with infrastructure serv
 
 | Service | Port | Database | Key Features | Technology Stack | Status |
 |---------|------|----------|--------------|------------------|---------|
-| **Auth Service** | 8081 | nexhub_auth | RSA-256 JWT with JWKS, RBAC, Account management | Spring Security, JJWT, JPA, Kafka Producer | ✅ Production Ready |
-| **User Service** | 8082 | nexhub_user | Customer & Reseller CRUD, Profile management | Spring Data JPA, Redis, MapStruct | ✅ Production Ready |
-| **Notification Service** | 8083 | nexhub_notification | Direct WebSocket messaging, role-based permissions, email notifications, STOMP messaging | Pure WebSocket/STOMP, Dual Interceptor Architecture, Kafka Consumer, Spring Mail | ✅ Production Ready |
-| **Product Service** | 8084→8080 | nexhub_product | Product catalog, categories, media, serial tracking | Spring Data JPA, Redis caching, OpenAPI | ✅ Production Ready |
-| **Warranty Service** | 8085 | nexhub_warranty | Warranty tracking, claims management, statistics | Spring Data JPA, OpenFeign, Redis | ✅ Production Ready |
-| **Blog Service** | 8087→8080 | nexhub_blog | CMS with posts, categories, comments, SEO | Spring Data JPA, SEO optimization | ✅ Production Ready |
+| **Auth Service** | 8081 | nexhub_auth | RSA-256 JWT with JWKS, RBAC, Account management, Reseller registration | Spring Security, JJWT, JPA, Kafka Producer, OpenFeign | ✅ Production Ready |
+| **User Service** | 8082 | nexhub_user | Customer & Reseller CRUD, Profile management, Account integration | Spring Data JPA, Redis caching, MapStruct mapping | ✅ Production Ready |
+| **Notification Service** | 8083 | nexhub_notification | Direct WebSocket messaging, dual-layer security, email notifications, real-time JWT validation | Pure WebSocket/STOMP, Dual Interceptor Architecture, Kafka Consumer, Spring Mail | ✅ Production Ready |
+| **Product Service** | 8084→8080 | nexhub_product | Product catalog, categories, media management, serial tracking, caching | Spring Data JPA, Redis caching, OpenAPI, MapStruct | ✅ Production Ready |
+| **Warranty Service** | 8085 | nexhub_warranty | Warranty tracking, claims management, statistics, service integration | Spring Data JPA, OpenFeign clients, Redis caching, MapStruct | ✅ Production Ready |
+| **Blog Service** | 8087→8080 | nexhub_blog | CMS with posts, categories, comments, authors, tags, SEO optimization | Spring Data JPA, Redis caching, OpenAPI | ✅ Production Ready |
 | **Language Service** | TBD | TBD | Internationalization support (Planned) | Spring Boot | 🚧 In Development |
 
 ### 📚 Shared Libraries
@@ -150,82 +153,94 @@ nexhub_notification → Email history, notification tracking, audit logs
 ### Entity Relationship Overview
 
 **Authentication Domain (nexhub_auth)**:
-- **Accounts**: Core authentication entities with username/password
-- **Roles**: ADMIN, DEALER, CUSTOMER with Many-to-Many mapping to accounts
-- **Permissions**: Granular permissions with Many-to-Many mapping to roles
-- **Junction Tables**: account_roles, role_permissions for flexible RBAC
+- **Accounts**: Core authentication entities with username/password, account lifecycle management
+- **Roles**: ADMIN, DEALER, CUSTOMER with Many-to-Many mapping to accounts, hierarchical permissions
+- **Permissions**: 15+ granular permissions (USER_*, PRODUCT_*, BLOG_*, WARRANTY_*, NOTIFICATION_ACCESS) with Many-to-Many mapping to roles
+- **Junction Tables**: account_roles, role_permissions for flexible RBAC implementation
 
 **User Management Domain (nexhub_user)**:
-- **Customers**: Customer profiles linked to auth accounts
-- **Resellers**: Dealer profiles with business information
-- **Account Integration**: Foreign key references to auth service account IDs
+- **Customers**: Customer profiles with personal information, linked to auth accounts via accountId
+- **Resellers**: Dealer profiles with business information (name, address, phone, email, district, city)
+- **Account Integration**: Foreign key references to auth service account IDs for seamless authentication
+- **Soft Delete**: Proper deletion tracking with deletedAt timestamps
 
 **Product Catalog Domain (nexhub_product)**:
-- **Products**: Core product entities with specifications and pricing
-- **Categories**: Hierarchical product categorization
-- **ProductImages/Videos**: Media management with display ordering
-- **ProductSerials**: Individual product serial tracking
-- **ProductFeatures**: Dynamic feature management
+- **Products**: Core product entities with specifications, pricing, warranty information, SEO fields
+- **Categories**: Hierarchical product categorization with slug-based URLs and soft delete support
+- **ProductImages**: Media management with display ordering, alt text, and type classification
+- **ProductVideos**: Video content with thumbnails, duration tracking, and type management
+- **ProductSerials**: Individual product serial number tracking for warranty purposes
+- **ProductFeatures**: Dynamic feature management with icons, images, and detailed descriptions
 
 **Blog/CMS Domain (nexhub_blog)**:
-- **BlogPosts**: Content management with SEO optimization fields
-- **BlogCategories**: Content categorization and organization
-- **BlogAuthors**: Author management and attribution
-- **BlogTags**: Tag-based content classification
-- **BlogComments**: Nested comment system with approval workflow
+- **BlogPosts**: Content management with SEO optimization, featured images, publication status (DRAFT, PUBLISHED, SCHEDULED, ARCHIVED)
+- **BlogCategories**: Content categorization with color coding, icons, and visibility controls
+- **BlogAuthors**: Author management with social media links, bio, and article count tracking
+- **BlogTags**: Tag-based content classification with color coding and usage statistics
+- **BlogComments**: Nested comment system with approval workflow and author information
 
 **Warranty Domain (nexhub_warranty)**:
-- **WarrantyRecords**: Purchase tracking with expiration calculations
-- **WarrantyClaims**: Claims management with status workflow
-- **Integration**: Links to product and user services via Feign clients
+- **PurchasedProducts**: Purchase tracking with warranty expiration calculations and remaining days
+- **WarrantyClaims**: Claims management with status workflow (PENDING, IN_PROGRESS, COMPLETED, REJECTED)
+- **Service Integration**: Links to product and user services via OpenFeign clients for validation
+- **Business Logic**: Automatic warranty status determination and expiration tracking
 
 **Notification Domain (nexhub_notification)**:
-- **Email History**: Comprehensive email notification tracking
-- **Notification Types**: Categorized notification management
-- **Audit Logs**: Real-time messaging and WebSocket interaction logs
+- **Email History**: Comprehensive email notification tracking with delivery status
+- **Notification Types**: Categorized notification management (BROADCAST, PRIVATE_MESSAGE, DEALER_REGISTERED)
+- **Audit Logs**: Real-time messaging and WebSocket interaction logs with session tracking
 
 ## 🚀 Technology Stack
 
 ### Core Platform Technologies
 | Category | Technology | Version | Purpose |
 |----------|------------|---------|---------|
-| **Runtime** | Java | 17 | Application runtime and language |
-| **Framework** | Spring Boot | 3.5.5 | Microservices framework and dependency injection |
-| **Build Tool** | Maven | 3.9+ | Dependency management and build automation |
-| **Database** | PostgreSQL | 15-alpine | Primary relational data storage |
-| **Caching** | Redis | 7-alpine | Distributed caching and session management |
-| **Messaging** | Apache Kafka | 7.4.0 | Event streaming and asynchronous communication |
-| **Service Discovery** | Netflix Eureka | 2025.0.0 | Service registration and discovery |
-| **API Gateway** | Spring Cloud Gateway | 2024.0.0 | API routing, security, and rate limiting |
-| **Documentation** | SpringDoc OpenAPI | 2.2.0 | API documentation and Swagger UI |
+| **Runtime** | Eclipse Temurin Java | 17 | Application runtime environment |
+| **Framework** | Spring Boot | 3.5.5 | Microservices foundation with auto-configuration |
+| **Cloud Platform** | Spring Cloud | 2024.0.0 | Distributed system patterns and service mesh |
+| **Build Tool** | Apache Maven | 3.9+ | Multi-module build automation and dependency management |
+| **Database** | PostgreSQL | 15-alpine | ACID-compliant relational data storage |
+| **Caching** | Redis | 7-alpine | In-memory data structure store with persistence |
+| **Message Broker** | Apache Kafka | 7.4.0 | Distributed event streaming platform |
+| **Coordination** | Apache Zookeeper | 3.8.4 | Distributed configuration and coordination service |
+| **Service Discovery** | Netflix Eureka | 2025.0.0 | Dynamic service registration and health monitoring |
+| **API Gateway** | Spring Cloud Gateway | 2024.0.0 | Reactive API gateway with routing and filtering |
+| **Documentation** | SpringDoc OpenAPI | 2.2.0 | OpenAPI 3.0 documentation with Swagger UI |
 
 ### Service Communication & Integration
-| Category | Technology | Purpose |
-|----------|------------|---------|
-| **Inter-Service Communication** | OpenFeign | Type-safe HTTP client for service-to-service calls |
-| **Load Balancing** | Spring Cloud LoadBalancer | Client-side load balancing for service discovery |
-| **Circuit Breaker** | Built-in resilience patterns | Fault tolerance and resilience |
-| **Message Broker** | Apache Kafka with Zookeeper | Event-driven architecture and async processing |
-| **Real-time Communication** | WebSocket with STOMP | Real-time notifications and messaging |
-| **Email Services** | Spring Mail with Gmail SMTP | Email notification delivery |
+| Category | Technology | Version | Purpose |
+|----------|------------|---------|---------|
+| **HTTP Client** | OpenFeign | 4.2.0 | Declarative REST client with load balancing |
+| **Circuit Breaker** | Spring Cloud Circuit Breaker | 3.1.2 | Fault tolerance and resilience patterns |
+| **Load Balancing** | Spring Cloud LoadBalancer | 4.1.4 | Client-side load balancing with health checks |
+| **Configuration** | Spring Cloud Config | 4.1.3 | Centralized configuration management |
+| **Message Queue** | Apache Kafka | 7.4.0 | Event-driven architecture with partitioning |
+| **WebSocket** | Spring WebSocket + STOMP | 6.1.12 | Real-time bidirectional communication |
+| **Email Integration** | Spring Boot Mail + Gmail SMTP | 3.5.5 | Transactional email delivery |
+| **Template Engine** | Thymeleaf | 3.1.2 | Server-side email template rendering |
 
-### Data Management & Caching
-| Category | Technology | Configuration |
-|----------|------------|---------------|
-| **ORM** | Spring Data JPA with Hibernate | Entity management and database abstraction |
-| **Database Migration** | DDL Auto (update) | Schema evolution and database initialization |
-| **Caching Strategy** | Redis with Spring Cache | Distributed caching with 10-minute TTL |
-| **Data Validation** | Bean Validation (Hibernate Validator) | Request/response validation |
-| **Data Mapping** | MapStruct | Type-safe entity-to-DTO mapping |
+### Data Management & Persistence
+| Category | Technology | Version | Configuration Details |
+|----------|------------|---------|----------------------|
+| **ORM Framework** | Hibernate (via Spring Data JPA) | 6.6.0 | Entity lifecycle management with lazy loading |
+| **Database Driver** | PostgreSQL JDBC | 42.7.4 | High-performance database connectivity |
+| **Schema Management** | JPA DDL Auto (update) | 6.6.0 | Automatic schema evolution and validation |
+| **Caching Layer** | Redis with Spring Cache | 3.5.5 | Distributed caching with 600-second TTL |
+| **Cache Abstraction** | Spring Cache | 6.1.12 | Annotation-driven caching with custom key generation |
+| **Data Validation** | Hibernate Validator | 8.0.1 | Bean validation with custom constraint annotations |
+| **Object Mapping** | MapStruct | 1.5.5 | Compile-time type-safe entity-to-DTO mapping |
+| **Database Pooling** | HikariCP | 5.1.0 | High-performance connection pooling (default) |
 
 ### Security & Authentication
-| Category | Technology | Implementation |
-|----------|------------|----------------|
-| **Authentication** | JWT with JJWT 0.11.5 | RSA-256 signed tokens with JWKS |
-| **Authorization** | Spring Security + Custom Aspects | RBAC with roles and permissions |
-| **Password Encryption** | BCrypt | Secure password hashing |
-| **CORS** | Spring Security CORS | Cross-origin resource sharing |
-| **Rate Limiting** | Custom Global Filter | API rate limiting and throttling |
+| Category | Technology | Version | Implementation Details |
+|----------|------------|---------|------------------------|
+| **JWT Library** | JJWT | 0.11.5 | RSA-256 signed tokens with JWKS endpoint |
+| **Authentication** | Spring Security | 6.3.3 | Multi-layer security with custom interceptors |
+| **Authorization** | Custom RBAC + Aspects | 1.0.0 | Role-based access control with granular permissions |
+| **Password Security** | BCrypt | Built-in | Adaptive hashing with configurable strength |
+| **CORS Management** | Spring Security CORS | 6.3.3 | Fine-grained cross-origin resource sharing |
+| **Rate Limiting** | Custom Filter Chain | 1.0.0 | API throttling with Redis-backed counters |
+| **WebSocket Security** | Dual Interceptor Chain | 1.0.0 | Authentication + Authorization for real-time connections |
 
 ### Frontend & Development Tools
 | Category | Technology | Version | Purpose |

@@ -18,10 +18,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private static final Logger log = LoggerFactory.getLogger(WebSocketConfig.class);
     
     @Autowired
-    private WebSocketJwtChannelInterceptor jwtChannelInterceptor;
+    private WebSocketAuthenticationInterceptor authenticationInterceptor;
     
     @Autowired
-    private WebSocketRoleChannelInterceptor roleChannelInterceptor;
+    private WebSocketAuthorizationInterceptor authorizationInterceptor;
 
     @Override
     public void configureMessageBroker(@NonNull MessageBrokerRegistry config) {
@@ -43,6 +43,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void configureClientInboundChannel(@NonNull ChannelRegistration registration) {
         // Add JWT authentication interceptor for STOMP CONNECT frames
         // Add role-based authorization interceptor for STOMP SEND frames
-        registration.interceptors(jwtChannelInterceptor, roleChannelInterceptor);
+        registration.interceptors(authenticationInterceptor, authorizationInterceptor);
     }
 }

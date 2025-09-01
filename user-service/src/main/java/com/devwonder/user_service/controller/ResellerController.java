@@ -1,5 +1,6 @@
 package com.devwonder.user_service.controller;
 
+import com.devwonder.common.dto.BaseResponse;
 import com.devwonder.common.exception.BaseException;
 import com.devwonder.user_service.dto.CreateResellerRequest;
 import com.devwonder.user_service.dto.ResellerResponse;
@@ -31,23 +32,25 @@ public class ResellerController {
         @ApiResponse(responseCode = "400", description = "Invalid input data"),
         @ApiResponse(responseCode = "409", description = "Reseller already exists")
     })
-    public ResponseEntity<ResellerResponse> createReseller(@Valid @RequestBody CreateResellerRequest request) {
+    public ResponseEntity<BaseResponse<ResellerResponse>> createReseller(@Valid @RequestBody CreateResellerRequest request) {
         log.info("Received create reseller request for account ID: {}", request.getAccountId());
         
         try {
             ResellerResponse response = resellerService.createReseller(request);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            return ResponseEntity.status(HttpStatus.CREATED)
+                .body(BaseResponse.success(response, "Reseller created successfully"));
             
         } catch (BaseException e) {
             log.error("Error creating reseller: {}", e.getMessage());
-            return ResponseEntity.status(e.getHttpStatus()).build();
+            return ResponseEntity.status(e.getHttpStatus())
+                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
         }
     }
 
     @Operation(summary = "Check if reseller exists by account ID")
     @GetMapping("/{accountId}/exists")
-    public ResponseEntity<Boolean> existsById(@PathVariable Long accountId) {
+    public ResponseEntity<BaseResponse<Boolean>> existsById(@PathVariable Long accountId) {
         boolean exists = resellerService.existsById(accountId);
-        return ResponseEntity.ok(exists);
+        return ResponseEntity.ok(BaseResponse.success(exists, "Reseller existence checked successfully"));
     }
 }

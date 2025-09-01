@@ -1,5 +1,6 @@
 package com.devwonder.product_service.controller;
 
+import com.devwonder.common.dto.BaseResponse;
 import com.devwonder.product_service.service.ProductSerialService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -17,8 +18,8 @@ public class ProductSerialController {
     
     @Operation(summary = "Check if product serial exists by ID")
     @GetMapping("/{id}/exists")
-    public ResponseEntity<Boolean> existsById(@PathVariable Long id) {
+    public ResponseEntity<BaseResponse<Boolean>> existsById(@PathVariable Long id) {
         boolean exists = productSerialService.existsById(id);
-        return ResponseEntity.ok(exists);
+        return ResponseEntity.ok(BaseResponse.success(exists, "Product serial existence checked successfully"));
     }
 }

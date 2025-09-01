@@ -36,16 +36,21 @@ public class NotificationWebSocketController {
     public void sendPrivateNotification(String username, String notificationType, String message) {
         log.info("Sending private notification to user: {}", username);
         
-        messagingTemplate.convertAndSendToUser(username, "/queue/private", new DealerNotification(
+        DealerNotification notification = new DealerNotification(
             notificationType,
             username,
             "", // name not needed for private notification
             "",
             message,
             System.currentTimeMillis()
-        ));
+        );
         
-        log.info("Private notification sent to user: {}", username);
+        log.info("Message details - User: {}, Type: {}, Message: {}", username, notificationType, message);
+        log.info("Full destination will be: /user/{}/queue/private", username);
+        
+        messagingTemplate.convertAndSendToUser(username, "/queue/private", notification);
+        
+        log.info("Private notification sent successfully to user: {} at destination: /user/{}/queue/private", username, username);
     }
     
     // Send broadcast notification to all users

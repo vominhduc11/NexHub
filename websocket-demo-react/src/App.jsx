@@ -268,21 +268,25 @@ function App() {
   const subscribeToTopics = (stompClient) => {
     const subs = []
     
+    // Prepare headers with token for subscriptions
+    const subscribeHeaders = {
+      'Authorization': `Bearer ${token}`
+    }
+    
     // Subscribe to broadcast notifications (all users can receive)
     const broadcastSub = stompClient.subscribe('/topic/notifications', (message) => {
       addMessage(message.body, 'Broadcast Notification', '/topic/notifications')
-    })
+    }, subscribeHeaders)
     subs.push(broadcastSub)
     addLog('📡 Subscribed to broadcast notifications', 'success')
     
     // Subscribe to private messages for current user
-    if (loginForm.username) {
-      const privateSub = stompClient.subscribe(`/user/${loginForm.username}/queue/private`, (message) => {
-        addMessage(message.body, 'Private Message', `/user/${loginForm.username}/queue/private`)
-      })
-      subs.push(privateSub)
-      addLog(`📡 Subscribed to private messages for ${loginForm.username}`, 'success')
-    }
+    // Spring will automatically resolve '/user/queue/private' to '/user/{current-username}/queue/private'
+    const privateSub = stompClient.subscribe('/user/queue/private', (message) => {
+      addMessage(message.body, 'Private Message', '/user/queue/private')
+    }, subscribeHeaders)
+    subs.push(privateSub)
+    addLog(`📡 Subscribed to private messages (Spring will route to current user)`, 'success')
     
     setSubscriptions(subs)
   }
@@ -321,14 +325,13 @@ function App() {
       return
     }
 
-    // Check if user is ADMIN
-    if (userRole !== 'ADMIN') {
-      addLog(`❌ Access denied: Only ADMIN can send broadcast messages (you are ${userRole})`, 'error')
-      return
-    }
+    // Server will validate ADMIN permission
 
     try {
-      stompClientRef.current.send('/app/broadcast', {}, broadcastMessage)
+      const headers = {
+        'Authorization': `Bearer ${token}`
+      }
+      stompClientRef.current.send('/app/broadcast', headers, broadcastMessage)
       addLog('📢 Broadcast sent to all users via WebSocket', 'success')
       setBroadcastMessage('')
     } catch (error) {
@@ -351,20 +354,15 @@ function App() {
       return
     }
 
-    // Check if user is ADMIN
-    if (userRole !== 'ADMIN') {
-      addLog(`❌ Access denied: Only ADMIN can send private messages (you are ${userRole})`, 'error')
-      return
-    }
+    // Server will validate ADMIN permission
 
-    // Check if target is valid customer
-    if (!isCustomerUsername(targetUsername)) {
-      addLog(`❌ Invalid target: '${targetUsername}' is not identified as a CUSTOMER username`, 'error')
-      return
-    }
+    // Server will validate if target is a valid customer
 
     try {
-      stompClientRef.current.send(`/app/private/${targetUsername}`, {}, privateMessage)
+      const headers = {
+        'Authorization': `Bearer ${token}`
+      }
+      stompClientRef.current.send(`/app/private/${targetUsername}`, headers, privateMessage)
       addLog(`📧 Private message sent to CUSTOMER ${targetUsername} via WebSocket`, 'success')
       setPrivateMessage('')
       setTargetUsername('')
@@ -499,14 +497,12 @@ function App() {
               <div className="messaging-section">
                 <h3>📨 Send Messages</h3>
                 
-                {/* Broadcast to All - Only for ADMIN */}
+                {/* Broadcast to All */}
                 <div className="message-form">
-                  <h4>📢 Broadcast to All Users (ADMIN only)</h4>
-                  {userRole !== 'ADMIN' && (
-                    <div style={{color: '#ff6b6b', marginBottom: '10px', fontSize: '14px'}}>
-                      ⚠️ Only ADMIN users can send broadcast messages to all users
-                    </div>
-                  )}
+                  <h4>📢 Broadcast to All Users</h4>
+                  <div style={{color: '#4a90e2', marginBottom: '10px', fontSize: '12px'}}>
+                    💡 Only ADMIN can send broadcast messages to all users
+                  </div>
                   <div className="form-group">
                     <input
                       type="text"
@@ -515,11 +511,10 @@ function App() {
                       className="form-input"
                       placeholder="Enter broadcast message for all users"
                       onKeyPress={(e) => e.key === 'Enter' && sendBroadcast()}
-                      disabled={userRole !== 'ADMIN'}
                     />
                     <button 
                       onClick={sendBroadcast}
-                      disabled={userRole !== 'ADMIN' || !broadcastMessage.trim()}
+                      disabled={!broadcastMessage.trim()}
                       className="btn btn-send"
                     >
                       📢 Send Broadcast
@@ -527,16 +522,11 @@ function App() {
                   </div>
                 </div>
 
-                {/* Private Message - Only for ADMIN */}
+                {/* Private Message */}
                 <div className="message-form">
                   <h4>📧 Private Message (ADMIN → CUSTOMER only)</h4>
-                  {userRole !== 'ADMIN' && (
-                    <div style={{color: '#ff6b6b', marginBottom: '10px', fontSize: '14px'}}>
-                      ⚠️ Only ADMIN users can send private messages to CUSTOMER users
-                    </div>
-                  )}
                   <div style={{color: '#4a90e2', marginBottom: '10px', fontSize: '12px'}}>
-                    💡 Target username must be identifiable as CUSTOMER (e.g., 'customer', 'user123', 'client_name')
+                    💡 Only ADMIN can send private messages to CUSTOMER users
                   </div>
                   <div className="form-group">
                     <input
@@ -547,15 +537,9 @@ function App() {
                         setTargetUsername(value)
                         setIsValidCustomer(isCustomerUsername(value))
                       }}
-                      className={`form-input ${!isValidCustomer && targetUsername.trim() ? 'invalid-input' : ''}`}
-                      placeholder="CUSTOMER username (e.g., customer123, user456, client_name)"
-                      disabled={userRole !== 'ADMIN'}
+                      className="form-input"
+                      placeholder="Enter target CUSTOMER username"
                     />
-                    {!isValidCustomer && targetUsername.trim() && (
-                      <div style={{color: '#ff6b6b', fontSize: '12px', marginTop: '4px'}}>
-                        ⚠️ Username '{targetUsername}' might not be recognized as CUSTOMER
-                      </div>
-                    )}
                     <input
                       type="text"
                       value={privateMessage}
@@ -563,11 +547,10 @@ function App() {
                       className="form-input"
                       placeholder="Enter private message for CUSTOMER"
                       onKeyPress={(e) => e.key === 'Enter' && sendPrivateMessage()}
-                      disabled={userRole !== 'ADMIN'}
                     />
                     <button 
                       onClick={sendPrivateMessage}
-                      disabled={userRole !== 'ADMIN' || !privateMessage.trim() || !targetUsername.trim() || !isValidCustomer}
+                      disabled={!privateMessage.trim() || !targetUsername.trim()}
                       className="btn btn-send"
                     >
                       📧 Send Private Message

@@ -6,6 +6,7 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Controller;
+import java.security.Principal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,17 +38,29 @@ public class NotificationController {
     public void sendPrivateNotification(
             @DestinationVariable String targetUser,
             @Payload String message,
-            SimpMessageHeaderAccessor headerAccessor) {
+            Principal principal) {
         
         try {
-            String senderUsername = headerAccessor.getUser() != null ? headerAccessor.getUser().getName() : "Anonymous";
-            log.info("ADMIN {} sending private notification to CUSTOMER {}: {}", senderUsername, targetUser, message);
+            // Check if user principal exists
+            if (principal == null) {
+                log.error("❌ No authenticated user found in WebSocket session");
+                return;
+            }
+            
+            String senderUsername = principal.getName();
+            log.info("✅ Authenticated user found: {}", senderUsername);
+            log.info("📧 ADMIN {} sending private notification to CUSTOMER {}: {}", senderUsername, targetUser, message);
             
             String privateMessage = String.format("[Private from ADMIN %s]: %s", senderUsername, message);
+            
+            // Log before sending
+            log.info("🚀 About to send message via WebSocket controller...");
             webSocketController.sendPrivateNotification(targetUser, "PRIVATE_MESSAGE", privateMessage);
+            log.info("✅ Message sent successfully via WebSocket controller");
             
         } catch (Exception e) {
-            log.error("Private message failed: {}", e.getMessage(), e);
+            log.error("❌ Private message failed: {}", e.getMessage(), e);
+            e.printStackTrace();
         }
     }
 }

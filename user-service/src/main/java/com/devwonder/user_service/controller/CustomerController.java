@@ -1,5 +1,6 @@
 package com.devwonder.user_service.controller;
 
+import com.devwonder.common.dto.BaseResponse;
 import com.devwonder.user_service.service.CustomerService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -17,8 +18,8 @@ public class CustomerController {
     
     @Operation(summary = "Check if customer exists by account ID")
     @GetMapping("/{accountId}/exists")
-    public ResponseEntity<Boolean> existsById(@PathVariable Long accountId) {
+    public ResponseEntity<BaseResponse<Boolean>> existsById(@PathVariable Long accountId) {
         boolean exists = customerService.existsById(accountId);
-        return ResponseEntity.ok(exists);
+        return ResponseEntity.ok(BaseResponse.success(exists, "Customer existence checked successfully"));
     }
 }
