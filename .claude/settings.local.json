@@ -8,7 +8,8 @@
       "Bash(for service in auth-service user-service product-service blog-service warranty-service notification-service)",
       "Bash(do echo \"=== $service status ===\")",
       "Bash(done)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(git add:*)"
     ]
   },
   "outputStyle": "default"

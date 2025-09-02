@@ -9,6 +9,8 @@ import com.devwonder.common.exception.TokenExpiredException;
 import com.devwonder.common.exception.JwtValidationException;
 import com.devwonder.common.exception.InvalidTokenSignatureException;
 import com.devwonder.common.util.ResponseUtil;
+
+import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +32,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
-@RestControllerAdvice
+@RestControllerAdvice(basePackages = "com.devwonder")
+@Hidden
 public class BaseControllerAdvice {
 
     @ExceptionHandler(BaseException.class)
@@ -141,11 +144,6 @@ public class BaseControllerAdvice {
         return ResponseUtil.error(e.getMessage(), "INVALID_ARGUMENT", HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<BaseResponse<Object>> handleGenericException(Exception e) {
-        log.error("Unexpected error occurred: {}", e.getMessage(), e);
-        return ResponseUtil.internalError("An unexpected error occurred");
-    }
 
     protected ResponseEntity<BaseResponse<Object>> handleCustomException(String message, String errorCode, HttpStatus status) {
         return ResponseUtil.error(message, errorCode, status);

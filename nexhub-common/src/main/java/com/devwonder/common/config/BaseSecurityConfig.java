@@ -57,6 +57,7 @@ public abstract class BaseSecurityConfig {
                 "/webjars/**"
             ).access(gatewayHeaderRequired());
     }
+
     
     protected WebExpressionAuthorizationManager gatewayHeaderRequired() {
         return new WebExpressionAuthorizationManager(GATEWAY_HEADER_EXPRESSION);

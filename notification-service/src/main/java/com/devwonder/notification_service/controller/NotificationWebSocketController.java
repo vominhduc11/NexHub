@@ -1,5 +1,6 @@
 package com.devwonder.notification_service.controller;
 
+import com.devwonder.common.exception.BaseException;
 import com.devwonder.notification_service.dto.DealerNotification;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -15,7 +16,7 @@ public class NotificationWebSocketController {
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
 
-    public void broadcastDealerRegistration(String dealerUsername, String dealerName, String dealerEmail) {
+    public void broadcastDealerRegistration(String dealerUsername, String dealerName, String dealerEmail) throws BaseException {
         log.info("Broadcasting dealer registration notification for: {}", dealerUsername);
         
         String message = String.format("New dealer registered: %s (%s)", dealerName, dealerUsername);
@@ -33,7 +34,7 @@ public class NotificationWebSocketController {
     }
 
     // Send private notification to specific user
-    public void sendPrivateNotification(String username, String notificationType, String message) {
+    public void sendPrivateNotification(String username, String notificationType, String message) throws BaseException {
         log.info("Sending private notification to user: {}", username);
         
         DealerNotification notification = new DealerNotification(
@@ -54,7 +55,7 @@ public class NotificationWebSocketController {
     }
     
     // Send broadcast notification to all users
-    public void broadcastToAllUsers(String message) {
+    public void broadcastToAllUsers(String message) throws BaseException {
         log.info("Broadcasting to all users: {}", message);
         
         messagingTemplate.convertAndSend("/topic/notifications", new DealerNotification(

@@ -1,6 +1,7 @@
 package com.devwonder.warranty_service.controller;
 
 import com.devwonder.common.dto.BaseResponse;
+import com.devwonder.common.exception.BaseException;
 import com.devwonder.common.util.ResponseUtil;
 import com.devwonder.warranty_service.dto.WarrantyClaimRequest;
 import com.devwonder.warranty_service.dto.WarrantyClaimResponse;
@@ -43,7 +44,7 @@ public class WarrantyClaimController {
             @RequestParam(defaultValue = "0") int page,
             
             @Parameter(description = "Page size", example = "10")
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size) throws BaseException {
         
         log.info("GET /warranty/claims - page: {}, size: {}", page, size);
         
@@ -56,7 +57,7 @@ public class WarrantyClaimController {
     public ResponseEntity<BaseResponse<Page<WarrantyClaimResponse>>> getClaimsByCustomer(
             @Parameter(description = "Customer ID", example = "1") @PathVariable Long customerId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size) throws BaseException {
         
         log.info("GET /warranty/claims/customer/{} - page: {}, size: {}", customerId, page, size);
         
@@ -69,7 +70,7 @@ public class WarrantyClaimController {
     public ResponseEntity<BaseResponse<Page<WarrantyClaimResponse>>> getClaimsByReseller(
             @Parameter(description = "Reseller ID", example = "1") @PathVariable Long resellerId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size) throws BaseException {
         
         log.info("GET /warranty/claims/reseller/{} - page: {}, size: {}", resellerId, page, size);
         
@@ -83,7 +84,7 @@ public class WarrantyClaimController {
             @Parameter(description = "Claim status", example = "PENDING") 
             @PathVariable WarrantyClaimResponse.ClaimStatus status,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size) throws BaseException {
         
         log.info("GET /warranty/claims/status/{} - page: {}, size: {}", status, page, size);
         
@@ -95,7 +96,7 @@ public class WarrantyClaimController {
     @Operation(summary = "Get pending claims", description = "Retrieve pending warranty claims ordered by priority")
     public ResponseEntity<BaseResponse<Page<WarrantyClaimResponse>>> getPendingClaims(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size) throws BaseException {
         
         log.info("GET /warranty/claims/pending - page: {}, size: {}", page, size);
         
@@ -108,7 +109,7 @@ public class WarrantyClaimController {
     public ResponseEntity<BaseResponse<Page<WarrantyClaimResponse>>> getRecentClaims(
             @Parameter(description = "Number of days", example = "7") @RequestParam(defaultValue = "7") int days,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size) throws BaseException {
         
         log.info("GET /warranty/claims/recent - days: {}, page: {}, size: {}", days, page, size);
         
@@ -121,7 +122,7 @@ public class WarrantyClaimController {
     public ResponseEntity<BaseResponse<Page<WarrantyClaimResponse>>> getOverdueClaims(
             @Parameter(description = "Number of days", example = "7") @RequestParam(defaultValue = "7") int days,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size) throws BaseException {
         
         log.info("GET /warranty/claims/overdue - days: {}, page: {}, size: {}", days, page, size);
         
@@ -134,7 +135,7 @@ public class WarrantyClaimController {
     public ResponseEntity<BaseResponse<Page<WarrantyClaimResponse>>> searchClaims(
             @Parameter(description = "Search keyword") @RequestParam String keyword,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size) throws BaseException {
         
         log.info("GET /warranty/claims/search - keyword: '{}', page: {}, size: {}", keyword, page, size);
         
@@ -152,7 +153,7 @@ public class WarrantyClaimController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
             
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size) throws BaseException {
         
         log.info("GET /warranty/claims/date-range - from: {} to: {}, page: {}, size: {}", 
                 startDate, endDate, page, size);
@@ -163,7 +164,7 @@ public class WarrantyClaimController {
     
     @GetMapping("/needing-attention")
     @Operation(summary = "Get claims needing attention", description = "Get high priority pending claims")
-    public ResponseEntity<BaseResponse<List<WarrantyClaimResponse>>> getClaimsNeedingAttention() {
+    public ResponseEntity<BaseResponse<List<WarrantyClaimResponse>>> getClaimsNeedingAttention() throws BaseException {
         log.info("GET /warranty/claims/needing-attention");
         
         List<WarrantyClaimResponse> claims = warrantyClaimService.getClaimsNeedingAttention();
@@ -173,7 +174,7 @@ public class WarrantyClaimController {
     @GetMapping("/{id}")
     @Operation(summary = "Get claim by ID", description = "Retrieve a specific warranty claim")
     public ResponseEntity<BaseResponse<WarrantyClaimResponse>> getClaimById(
-            @Parameter(description = "Claim ID", example = "1") @PathVariable Long id) {
+            @Parameter(description = "Claim ID", example = "1") @PathVariable Long id) throws BaseException {
         
         log.info("GET /warranty/claims/{}", id);
         
@@ -188,7 +189,7 @@ public class WarrantyClaimController {
     @GetMapping("/number/{claimNumber}")
     @Operation(summary = "Get claim by number", description = "Retrieve a warranty claim by claim number")
     public ResponseEntity<BaseResponse<WarrantyClaimResponse>> getClaimByNumber(
-            @Parameter(description = "Claim number", example = "WC-2024-001") @PathVariable String claimNumber) {
+            @Parameter(description = "Claim number", example = "WC-2024-001") @PathVariable String claimNumber) throws BaseException {
         
         log.info("GET /warranty/claims/number/{}", claimNumber);
         
@@ -202,7 +203,7 @@ public class WarrantyClaimController {
     
     @GetMapping("/stats")
     @Operation(summary = "Get warranty statistics", description = "Get comprehensive warranty and claims statistics")
-    public ResponseEntity<BaseResponse<WarrantyStatsResponse>> getWarrantyStats() {
+    public ResponseEntity<BaseResponse<WarrantyStatsResponse>> getWarrantyStats() throws BaseException {
         log.info("GET /warranty/claims/stats");
         
         WarrantyStatsResponse stats = warrantyClaimService.getWarrantyStats();
@@ -217,7 +218,7 @@ public class WarrantyClaimController {
         @ApiResponse(responseCode = "404", description = "Purchased product not found")
     })
     public ResponseEntity<BaseResponse<WarrantyClaimResponse>> createClaim(
-            @Valid @RequestBody WarrantyClaimRequest request) {
+            @Valid @RequestBody WarrantyClaimRequest request) throws BaseException {
         
         log.info("POST /warranty/claims - Creating claim for purchased product: {}", request.getPurchasedProductId());
         
@@ -230,7 +231,7 @@ public class WarrantyClaimController {
     public ResponseEntity<BaseResponse<WarrantyClaimResponse>> updateClaimStatus(
             @Parameter(description = "Claim ID", example = "1") @PathVariable Long id,
             @Parameter(description = "New status") @RequestParam WarrantyClaimResponse.ClaimStatus status,
-            @Parameter(description = "Internal notes") @RequestParam(required = false) String internalNotes) {
+            @Parameter(description = "Internal notes") @RequestParam(required = false) String internalNotes) throws BaseException {
         
         log.info("PATCH /warranty/claims/{}/status - New status: {}", id, status);
         
@@ -242,7 +243,7 @@ public class WarrantyClaimController {
     @Operation(summary = "Add resolution notes", description = "Add resolution notes to a warranty claim. Requires ADMIN role.")
     public ResponseEntity<BaseResponse<WarrantyClaimResponse>> addResolutionNotes(
             @Parameter(description = "Claim ID", example = "1") @PathVariable Long id,
-            @Parameter(description = "Resolution notes") @RequestParam String resolutionNotes) {
+            @Parameter(description = "Resolution notes") @RequestParam String resolutionNotes) throws BaseException {
         
         log.info("PATCH /warranty/claims/{}/resolution - Adding resolution notes", id);
         
@@ -253,7 +254,7 @@ public class WarrantyClaimController {
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete warranty claim", description = "Delete a warranty claim. Requires ADMIN role.")
     public ResponseEntity<BaseResponse<Void>> deleteClaim(
-            @Parameter(description = "Claim ID", example = "1") @PathVariable Long id) {
+            @Parameter(description = "Claim ID", example = "1") @PathVariable Long id) throws BaseException {
         
         log.info("DELETE /warranty/claims/{}", id);
         

@@ -1,6 +1,7 @@
 package com.devwonder.auth_service.controller;
 
 import com.devwonder.common.dto.BaseResponse;
+import com.devwonder.common.exception.BaseException;
 import com.devwonder.common.util.ResponseUtil;
 import com.devwonder.auth_service.dto.LoginRequest;
 import com.devwonder.auth_service.dto.LoginResponse;
@@ -32,7 +33,7 @@ public class AuthController {
         @ApiResponse(responseCode = "400", description = "Invalid input data"),
         @ApiResponse(responseCode = "401", description = "Invalid credentials or unauthorized role")
     })
-    public ResponseEntity<BaseResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<BaseResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) throws BaseException {
         log.info("Login request received for username: {} with userType: {}", request.getUsername(), request.getUserType());
         
         LoginResponse response = authenticationService.login(request);

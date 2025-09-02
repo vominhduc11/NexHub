@@ -1,5 +1,6 @@
 package com.devwonder.notification_service.controller;
 
+import com.devwonder.common.exception.BaseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -21,7 +22,7 @@ public class NotificationController {
 
 
     @MessageMapping("/broadcast")
-    public void broadcastToAll(@Payload String message, SimpMessageHeaderAccessor headerAccessor) {
+    public void broadcastToAll(@Payload String message, SimpMessageHeaderAccessor headerAccessor) throws BaseException {
         try {
             String username = headerAccessor.getUser() != null ? headerAccessor.getUser().getName() : "Anonymous";
             log.info("ADMIN {} broadcasting to all users: {}", username, message);
@@ -38,7 +39,7 @@ public class NotificationController {
     public void sendPrivateNotification(
             @DestinationVariable String targetUser,
             @Payload String message,
-            Principal principal) {
+            Principal principal) throws BaseException {
         
         try {
             // Check if user principal exists

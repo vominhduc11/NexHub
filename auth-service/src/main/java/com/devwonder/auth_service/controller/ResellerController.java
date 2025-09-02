@@ -1,6 +1,7 @@
 package com.devwonder.auth_service.controller;
 
 import com.devwonder.common.dto.BaseResponse;
+import com.devwonder.common.exception.BaseException;
 import com.devwonder.common.util.ResponseUtil;
 import com.devwonder.auth_service.dto.ResellerRegistrationRequest;
 import com.devwonder.auth_service.dto.ResellerRegistrationResponse;
@@ -32,7 +33,7 @@ public class ResellerController {
         @ApiResponse(responseCode = "400", description = "Invalid input data"),
         @ApiResponse(responseCode = "409", description = "Username already exists")
     })
-    public ResponseEntity<BaseResponse<ResellerRegistrationResponse>> registerReseller(@Valid @RequestBody ResellerRegistrationRequest request) {
+    public ResponseEntity<BaseResponse<ResellerRegistrationResponse>> registerReseller(@Valid @RequestBody ResellerRegistrationRequest request) throws BaseException {
         log.info("Received reseller registration request for username: {}", request.getUsername());
         
         ResellerRegistrationResponse response = resellerService.registerReseller(request);

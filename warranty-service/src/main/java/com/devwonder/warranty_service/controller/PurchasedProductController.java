@@ -1,6 +1,7 @@
 package com.devwonder.warranty_service.controller;
 
 import com.devwonder.common.dto.BaseResponse;
+import com.devwonder.common.exception.BaseException;
 import com.devwonder.common.util.ResponseUtil;
 import com.devwonder.warranty_service.dto.PurchasedProductRequest;
 import com.devwonder.warranty_service.dto.PurchasedProductResponse;
@@ -42,7 +43,7 @@ public class PurchasedProductController {
             @RequestParam(defaultValue = "0") int page,
             
             @Parameter(description = "Page size", example = "10")
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size) throws BaseException {
         
         log.info("GET /warranty/purchased-products - page: {}, size: {}", page, size);
         
@@ -55,7 +56,7 @@ public class PurchasedProductController {
     public ResponseEntity<BaseResponse<Page<PurchasedProductResponse>>> getPurchasedProductsByCustomer(
             @Parameter(description = "Customer ID", example = "1") @PathVariable Long customerId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size) throws BaseException {
         
         log.info("GET /warranty/purchased-products/customer/{} - page: {}, size: {}", customerId, page, size);
         
@@ -68,7 +69,7 @@ public class PurchasedProductController {
     public ResponseEntity<BaseResponse<Page<PurchasedProductResponse>>> getPurchasedProductsByReseller(
             @Parameter(description = "Reseller ID", example = "1") @PathVariable Long resellerId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size) throws BaseException {
         
         log.info("GET /warranty/purchased-products/reseller/{} - page: {}, size: {}", resellerId, page, size);
         
@@ -80,7 +81,7 @@ public class PurchasedProductController {
     @Operation(summary = "Get active warranties", description = "Retrieve products with active warranties")
     public ResponseEntity<BaseResponse<Page<PurchasedProductResponse>>> getActiveWarranties(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size) throws BaseException {
         
         log.info("GET /warranty/purchased-products/active - page: {}, size: {}", page, size);
         
@@ -92,7 +93,7 @@ public class PurchasedProductController {
     @Operation(summary = "Get expired warranties", description = "Retrieve products with expired warranties")
     public ResponseEntity<BaseResponse<Page<PurchasedProductResponse>>> getExpiredWarranties(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size) throws BaseException {
         
         log.info("GET /warranty/purchased-products/expired - page: {}, size: {}", page, size);
         
@@ -105,7 +106,7 @@ public class PurchasedProductController {
     public ResponseEntity<BaseResponse<Page<PurchasedProductResponse>>> getWarrantiesExpiringSoon(
             @Parameter(description = "Number of days", example = "30") @RequestParam(defaultValue = "30") int days,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size) throws BaseException {
         
         log.info("GET /warranty/purchased-products/expiring-soon - days: {}, page: {}, size: {}", days, page, size);
         
@@ -123,7 +124,7 @@ public class PurchasedProductController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size) throws BaseException {
         
         log.info("GET /warranty/purchased-products/date-range - from: {} to: {}, page: {}, size: {}", 
                 startDate, endDate, page, size);
@@ -136,7 +137,7 @@ public class PurchasedProductController {
     @Operation(summary = "Get customer warranties expiring soon", description = "Get specific customer warranties expiring within days (for notifications)")
     public ResponseEntity<BaseResponse<List<PurchasedProductResponse>>> getCustomerWarrantiesExpiringSoon(
             @Parameter(description = "Customer ID", example = "1") @PathVariable Long customerId,
-            @Parameter(description = "Number of days", example = "30") @RequestParam(defaultValue = "30") int days) {
+            @Parameter(description = "Number of days", example = "30") @RequestParam(defaultValue = "30") int days) throws BaseException {
         
         log.info("GET /warranty/purchased-products/customer/{}/expiring-soon - days: {}", customerId, days);
         
@@ -147,7 +148,7 @@ public class PurchasedProductController {
     @GetMapping("/{id}")
     @Operation(summary = "Get purchased product by ID", description = "Retrieve a specific purchased product")
     public ResponseEntity<BaseResponse<PurchasedProductResponse>> getPurchasedProductById(
-            @Parameter(description = "Product ID", example = "1") @PathVariable Long id) {
+            @Parameter(description = "Product ID", example = "1") @PathVariable Long id) throws BaseException {
         
         log.info("GET /warranty/purchased-products/{}", id);
         
@@ -163,7 +164,7 @@ public class PurchasedProductController {
     @Operation(summary = "Verify warranty", description = "Verify warranty by product serial and customer")
     public ResponseEntity<BaseResponse<PurchasedProductResponse>> verifyWarranty(
             @Parameter(description = "Product Serial ID", example = "1") @RequestParam Long productSerialId,
-            @Parameter(description = "Customer ID", example = "1") @RequestParam Long customerId) {
+            @Parameter(description = "Customer ID", example = "1") @RequestParam Long customerId) throws BaseException {
         
         log.info("GET /warranty/purchased-products/verify - productSerialId: {}, customerId: {}", productSerialId, customerId);
         
@@ -178,7 +179,7 @@ public class PurchasedProductController {
     @PostMapping
     @Operation(summary = "Register new purchased product", description = "Register a new purchased product warranty")
     public ResponseEntity<BaseResponse<PurchasedProductResponse>> registerPurchasedProduct(
-            @Valid @RequestBody PurchasedProductRequest request) {
+            @Valid @RequestBody PurchasedProductRequest request) throws BaseException {
         
         log.info("POST /warranty/purchased-products - Customer: {}", request.getIdCustomer());
         
@@ -190,7 +191,7 @@ public class PurchasedProductController {
     @Operation(summary = "Update purchased product", description = "Update an existing purchased product warranty")
     public ResponseEntity<BaseResponse<PurchasedProductResponse>> updatePurchasedProduct(
             @Parameter(description = "Product ID", example = "1") @PathVariable Long id,
-            @Valid @RequestBody PurchasedProductRequest request) {
+            @Valid @RequestBody PurchasedProductRequest request) throws BaseException {
         
         log.info("PUT /warranty/purchased-products/{} - Updating product", id);
         
@@ -201,7 +202,7 @@ public class PurchasedProductController {
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete purchased product", description = "Delete a purchased product warranty. Requires ADMIN role.")
     public ResponseEntity<BaseResponse<Void>> deletePurchasedProduct(
-            @Parameter(description = "Product ID", example = "1") @PathVariable Long id) {
+            @Parameter(description = "Product ID", example = "1") @PathVariable Long id) throws BaseException {
         
         log.info("DELETE /warranty/purchased-products/{}", id);
         
@@ -212,7 +213,7 @@ public class PurchasedProductController {
     @PatchMapping("/{id}/update-warranty-days")
     @Operation(summary = "Update warranty remaining days", description = "Recalculate warranty remaining days for a product")
     public ResponseEntity<BaseResponse<Void>> updateWarrantyRemainingDays(
-            @Parameter(description = "Product ID", example = "1") @PathVariable Long id) {
+            @Parameter(description = "Product ID", example = "1") @PathVariable Long id) throws BaseException {
         
         log.info("PATCH /warranty/purchased-products/{}/update-warranty-days", id);
         
