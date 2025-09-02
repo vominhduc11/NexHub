@@ -2,6 +2,7 @@ package com.devwonder.notification_service.service;
 
 import com.devwonder.notification_service.controller.NotificationWebSocketController;
 import com.devwonder.notification_service.dto.NotificationEvent;
+import com.devwonder.notification_service.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -14,6 +15,7 @@ public class EmailNotificationConsumer {
 
     private final EmailService emailService;
     private final NotificationWebSocketController webSocketController;
+    private final NotificationService notificationService;
 
     @KafkaListener(topics = "${kafka.topic.email:email-notifications}", containerFactory = "notificationEventKafkaListenerContainerFactory")
     public void consumeEmailNotification(NotificationEvent event) {
@@ -44,12 +46,18 @@ public class EmailNotificationConsumer {
                     event.getAccountId());
 
             if ("WEBSOCKET_DEALER_REGISTRATION".equals(event.getEventType())) {
-                // Send private notification to the specific user
-                webSocketController.sendPrivateNotification(
-                        event.getUsername(),
-                        "DEALER_REGISTRATION_CONFIRMATION",
-                        "Your dealer registration has been completed successfully. Welcome to NexHub!");
-                log.info("Private WebSocket dealer registration notification sent to user: {}", event.getUsername());
+                
+                // 1. Save notification to database
+                String dealerName = event.getName() != null ? event.getName() : event.getUsername();
+                
+                notificationService.createDealerRegistrationNotification(dealerName, event.getUsername());
+                log.info("✅ Saved dealer registration notification to database for: {}", event.getUsername());
+                
+                // 2. Send notification to ADMIN users only
+                webSocketController.sendBroadcastNotification(
+                        "DEALER_REGISTRATION",
+                        String.format("Đại lý mới '%s' đã đăng ký thành công", dealerName));
+                log.info("✅ Dealer registration notification sent to ADMIN users for: {}", dealerName);
             } else {
                 log.warn("Unknown WebSocket event type: {}, skipping", event.getEventType());
             }

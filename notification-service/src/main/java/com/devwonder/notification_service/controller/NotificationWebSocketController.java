@@ -69,5 +69,21 @@ public class NotificationWebSocketController {
         
         log.info("Broadcast notification sent to all users");
     }
+    
+    // Send broadcast notification to ADMIN users only
+    public void sendBroadcastNotification(String notificationType, String message) throws BaseException {
+        log.info("Broadcasting notification to ADMIN users - Type: {}, Message: {}", notificationType, message);
+        
+        messagingTemplate.convertAndSend("/topic/dealer-registrations", new DealerNotification(
+            notificationType,
+            "system",
+            "System",
+            "",
+            message,
+            System.currentTimeMillis()
+        ));
+        
+        log.info("Notification sent to ADMIN users successfully - Type: {}", notificationType);
+    }
 
 }

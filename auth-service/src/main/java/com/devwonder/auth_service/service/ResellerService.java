@@ -119,8 +119,8 @@ public class ResellerService {
             notificationService.sendNotificationEvent(webSocketEvent);
             
             return new ResellerRegistrationResponse(
-                savedAccount.getId(), 
-                savedAccount.getUsername(), 
+                savedAccount.getId(),
+                savedAccount.getUsername(),
                 "Reseller account created successfully"
             );
             

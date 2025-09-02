@@ -18,8 +18,8 @@ import java.time.LocalDateTime;
 public class NotificationEvent {
     
     @NotBlank(message = "Event type is required")
-    @Pattern(regexp = "REGISTRATION|LOGIN|ORDER|NOTIFICATION|SYSTEM|SEND_EMAIL", 
-             message = "Event type must be REGISTRATION, LOGIN, ORDER, NOTIFICATION, SYSTEM, or SEND_EMAIL")
+    @Pattern(regexp = "REGISTRATION|LOGIN|ORDER|NOTIFICATION|SYSTEM|SEND_EMAIL|WEBSOCKET_DEALER_REGISTRATION", 
+             message = "Event type must be REGISTRATION, LOGIN, ORDER, NOTIFICATION, SYSTEM, SEND_EMAIL, or WEBSOCKET_DEALER_REGISTRATION")
     private String eventType;
     @NotNull(message = "Account ID is required")
     @Positive(message = "Account ID must be positive")
