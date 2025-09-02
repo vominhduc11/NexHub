@@ -1,49 +1,68 @@
 server:
   port: ${SERVER_PORT:8085}
 
+eureka:
+  instance:
+    hostname: ${EUREKA_INSTANCE_HOSTNAME:warranty-service}
+    prefer-ip-address: ${EUREKA_INSTANCE_PREFER_IP:false}
+  client:
+    register-with-eureka: ${EUREKA_CLIENT_REGISTER_WITH_EUREKA:true}
+    fetch-registry: ${EUREKA_CLIENT_FETCH_REGISTRY:true}
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE:http://discovery-service:8761/eureka/}
+  server:
+    enable-self-preservation: ${EUREKA_SERVER_ENABLE_SELF_PRESERVATION:false}
+    eviction-interval-timer-in-ms: ${EUREKA_SERVER_EVICTION_INTERVAL:10000}
+
 spring:
   datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/nexhub_warranty}
-    username: ${DATABASE_USERNAME:nexhub}
-    password: ${DATABASE_PASSWORD:nexhub123}
-    driver-class-name: org.postgresql.Driver
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.postgresql.Driver}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://nexhub-postgres:5432/nexhub_warranty}
+    username: ${SPRING_DATASOURCE_USERNAME:nexhub}
+    password: ${SPRING_DATASOURCE_PASSWORD:voduc123}
+  
   jpa:
+    database-platform: ${SPRING_JPA_DATABASE_PLATFORM:org.hibernate.dialect.PostgreSQLDialect}
     hibernate:
-      ddl-auto: ${DDL_AUTO:update}
-    show-sql: ${SHOW_SQL:false}
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          time_zone: ${SPRING_JPA_PROPERTIES_HIBERNATE_JDBC_TIME_ZONE:UTC}
+        format_sql: ${SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL:true}
+    show-sql: ${SPRING_JPA_SHOW_SQL:false}
+  
   data:
     redis:
-      host: ${REDIS_HOST:redis}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:voduc123}
+      host: ${SPRING_REDIS_HOST:nexhub_redis}
+      port: ${SPRING_REDIS_PORT:6379}
+      password: ${SPRING_REDIS_PASSWORD:voduc123}
+      timeout: ${SPRING_REDIS_TIMEOUT:2000ms}
+      lettuce:
+        pool:
+          max-active: ${SPRING_REDIS_LETTUCE_POOL_MAX_ACTIVE:10}
+          max-idle: ${SPRING_REDIS_LETTUCE_POOL_MAX_IDLE:10}
+          min-idle: ${SPRING_REDIS_LETTUCE_POOL_MIN_IDLE:1}
+          max-wait: ${SPRING_REDIS_LETTUCE_POOL_MAX_WAIT:5000ms}
+  
+  cache:
+    type: ${SPRING_CACHE_TYPE:redis}
+    redis:
+      time-to-live: ${SPRING_CACHE_REDIS_TTL:600000}  # 10 minutes default TTL
 
 # SpringDoc OpenAPI Configuration
 springdoc:
   api-docs:
-    enabled: ${SWAGGER_ENABLED:true}
     path: /v3/api-docs
+    enabled: ${SWAGGER_API_DOCS_ENABLED:true}
   swagger-ui:
-    enabled: ${SWAGGER_UI_ENABLED:true}
     path: /swagger-ui.html
-    try-it-out-enabled: true
-    persist-authorization: true
+    enabled: ${SWAGGER_UI_ENABLED:true}
     display-request-duration: true
-    config-url: /v3/api-docs/swagger-config
-    url: /v3/api-docs
-  packages-to-scan: com.devwonder.warranty_service.controller
-
-eureka:
-  instance:
-    hostname: ${EUREKA_INSTANCE_HOSTNAME}
-    prefer-ip-address: ${EUREKA_INSTANCE_PREFER_IP}
-  client:
-    register-with-eureka: ${EUREKA_CLIENT_REGISTER_WITH_EUREKA}
-    fetch-registry: ${EUREKA_CLIENT_FETCH_REGISTRY}
-    service-url:
-      defaultZone: ${EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE}
-  server:
-    enable-self-preservation: ${EUREKA_SERVER_ENABLE_SELF_PRESERVATION}
-    eviction-interval-timer-in-ms: ${EUREKA_SERVER_EVICTION_INTERVAL}
+    groups-order: DESC
+    operationsSorter: method
+    disable-swagger-default-url: true
+    use-root-path: true
+  show-actuator: false
+  cache:
+    disabled: true

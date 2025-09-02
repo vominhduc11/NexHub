@@ -18,9 +18,9 @@ Tài liệu demo dữ liệu gửi và nhận của API đăng ký làm đại l
 ### Dealer Registration Request
 ```json
 {
-  "username": "dealer_vn001",
+  "username": "dealervn001",
   "password": "securePassword123",
-  "name": "Nguyễn Văn A",
+  "name": "4thitek",
   "address": "123 Đường ABC, Phường XYZ",
   "phone": "0901234567",
   "email": "dealer@company.com",
@@ -30,16 +30,14 @@ Tài liệu demo dữ liệu gửi và nhận của API đăng ký làm đại l
 ```
 
 ### Required Fields
-- **username**: 6-50 characters, must start with letter, contain letters/numbers/underscore
-- **password**: 6-100 characters
-- **name**: 2-100 characters (full name)
-- **email**: Valid email format
-
-### Optional Fields
-- **address**: Up to 255 characters
-- **phone**: 10-15 digits (with formatting allowed)
-- **district**: Up to 100 characters
-- **city**: Up to 100 characters
+- **username**: 5-20 characters
+- **password**: At least 8 characters
+- **name**: Company name (cannot be empty)
+- **address**: Address (cannot be empty)
+- **phone**: 10 digits, must start with 0
+- **email**: Valid email format (cannot be empty)
+- **district**: District (cannot be empty)
+- **city**: City (cannot be empty)
 
 ---
 
@@ -149,47 +147,47 @@ Tài liệu demo dữ liệu gửi và nhận của API đăng ký làm đại l
 ### Username Validation
 - **Required**: Yes
 - **Type**: String
-- **Length**: 6-50 characters
-- **Pattern**: Must start with letter, contain letters/numbers/underscore only
-- **Regex**: `^[a-zA-Z][a-zA-Z0-9_]*$`
+- **Length**: 5-20 characters
+- **Message**: "Username không được để trống", "Username phải từ 5-20 ký tự"
 
 ### Password Validation
-- **Required**: Yes  
-- **Type**: String
-- **Length**: 6-100 characters
-
-### Name Validation (Full Name)
 - **Required**: Yes
 - **Type**: String
-- **Length**: 2-100 characters
+- **Length**: At least 8 characters
+- **Message**: "Password không được để trống", "Password phải có ít nhất 8 ký tự"
+
+### Name Validation (Company Name)
+- **Required**: Yes
+- **Type**: String
+- **Message**: "Tên công ty không được để trống"
+
+### Address Validation
+- **Required**: Yes
+- **Type**: String
+- **Message**: "Địa chỉ không được để trống"
+
+### Phone Validation
+- **Required**: Yes
+- **Type**: String
+- **Pattern**: Must start with 0 and have exactly 10 digits
+- **Regex**: `^(0[0-9]{9})$`
+- **Message**: "Số điện thoại không hợp lệ (phải bắt đầu bằng 0 và đủ 10 số)"
 
 ### Email Validation
 - **Required**: Yes
 - **Type**: String (Email format)
-- **Length**: Max 100 characters
 - **Format**: Valid email format (example@domain.com)
-
-### Phone Validation
-- **Required**: No
-- **Type**: String
-- **Length**: 10-15 characters
-- **Pattern**: Numbers, spaces, hyphens, parentheses, plus sign allowed
-- **Regex**: `^[\d\-\+\(\)\s]+$`
-
-### Address Validation
-- **Required**: No
-- **Type**: String
-- **Length**: Max 255 characters
+- **Message**: "Email không được để trống", "Email không hợp lệ"
 
 ### District Validation
-- **Required**: No
-- **Type**: String  
-- **Length**: Max 100 characters
+- **Required**: Yes
+- **Type**: String
+- **Message**: "Quận không được để trống"
 
 ### City Validation
-- **Required**: No
+- **Required**: Yes
 - **Type**: String
-- **Length**: Max 100 characters
+- **Message**: "Thành phố không được để trống"
 
 ---
 

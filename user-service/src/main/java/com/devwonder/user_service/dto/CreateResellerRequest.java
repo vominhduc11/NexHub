@@ -15,26 +15,30 @@ public class CreateResellerRequest {
     @Positive(message = "Account ID must be positive")
     private Long accountId;
     
-    @NotBlank(message = "Full name is required")
-    @Size(min = 2, max = 100, message = "Full name must be between 2 and 100 characters")
-    @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s]+$", message = "Name can only contain letters and spaces")
+    @NotBlank(message = "Username không được để trống")
+    @Size(min = 5, max = 20, message = "Username phải từ 5-20 ký tự")
+    private String username;
+
+    @NotBlank(message = "Password không được để trống")
+    @Size(min = 8, message = "Password phải có ít nhất 8 ký tự")
+    private String password;
+
+    @NotBlank(message = "Tên công ty không được để trống")
     private String name;
-    
-    @Size(max = 255, message = "Address cannot exceed 255 characters")
+
+    @NotBlank(message = "Địa chỉ không được để trống")
     private String address;
-    
-    @Pattern(regexp = "^[\\d\\-\\+\\(\\)\\s]+$", message = "Phone number format is invalid")
-    @Size(min = 10, max = 15, message = "Phone number must be between 10 and 15 characters")
+
+    @Pattern(regexp = "^(0[0-9]{9})$", message = "Số điện thoại không hợp lệ (phải bắt đầu bằng 0 và đủ 10 số)")
     private String phone;
-    
-    @NotBlank(message = "Email is required")
-    @Email(message = "Invalid email format")
-    @Size(max = 100, message = "Email cannot exceed 100 characters")
+
+    @Email(message = "Email không hợp lệ")
+    @NotBlank(message = "Email không được để trống")
     private String email;
-    
-    @Size(max = 100, message = "District cannot exceed 100 characters")
+
+    @NotBlank(message = "Quận không được để trống")
     private String district;
-    
-    @Size(max = 100, message = "City cannot exceed 100 characters")
+
+    @NotBlank(message = "Thành phố không được để trống")
     private String city;
 }

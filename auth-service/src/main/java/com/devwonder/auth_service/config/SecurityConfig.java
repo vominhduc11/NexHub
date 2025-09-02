@@ -3,7 +3,6 @@ package com.devwonder.auth_service.config;
 import com.devwonder.common.config.BaseSecurityConfig;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
 
 @Configuration
 public class SecurityConfig extends BaseSecurityConfig {
@@ -18,8 +17,8 @@ public class SecurityConfig extends BaseSecurityConfig {
             .requestMatchers("/eureka/**").permitAll()
             .requestMatchers("/info").permitAll()
             
-            // JWKS endpoint (publicly accessible for JWT validation)
-            .requestMatchers("/auth/.well-known/jwks.json").permitAll()
+            // JWKS endpoint (ONLY accessible via API Gateway)
+            .requestMatchers("/auth/.well-known/jwks.json").access(gatewayHeaderRequired())
             
             // All auth endpoints - ONLY accessible via API Gateway
             .requestMatchers("/auth/**").access(gatewayHeaderRequired());

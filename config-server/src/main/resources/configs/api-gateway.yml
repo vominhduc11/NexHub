@@ -3,16 +3,16 @@ server:
 
 eureka:
   instance:
-    hostname: ${EUREKA_INSTANCE_HOSTNAME}
-    prefer-ip-address: ${EUREKA_INSTANCE_PREFER_IP}
+    hostname: ${EUREKA_INSTANCE_HOSTNAME:api-gateway}
+    prefer-ip-address: ${EUREKA_INSTANCE_PREFER_IP:false}
   client:
-    register-with-eureka: ${EUREKA_CLIENT_REGISTER_WITH_EUREKA}
-    fetch-registry: ${EUREKA_CLIENT_FETCH_REGISTRY}
+    register-with-eureka: ${EUREKA_CLIENT_REGISTER_WITH_EUREKA:true}
+    fetch-registry: ${EUREKA_CLIENT_FETCH_REGISTRY:true}
     service-url:
-      defaultZone: ${EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE}
+      defaultZone: ${EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE:http://discovery-service:8761/eureka/}
   server:
-    enable-self-preservation: ${EUREKA_SERVER_ENABLE_SELF_PRESERVATION}
-    eviction-interval-timer-in-ms: ${EUREKA_SERVER_EVICTION_INTERVAL}
+    enable-self-preservation: ${EUREKA_SERVER_ENABLE_SELF_PRESERVATION:false}
+    eviction-interval-timer-in-ms: ${EUREKA_SERVER_EVICTION_INTERVAL:10000}
 
 spring:
   cloud:
@@ -105,6 +105,15 @@ spring:
         # ===================================================================================
         # JWT/JWKS ENDPOINT
         # ===================================================================================
+        - id: auth-service-jwks-api
+          uri: ${AUTH_SERVICE_URI}
+          predicates:
+            - Path=/api/auth/.well-known/jwks.json
+          filters:
+            - StripPrefix=1                    # /api/auth/.well-known/jwks.json → /auth/.well-known/jwks.json
+            - AddRequestHeader=X-Gateway-Request, true
+          order: 50
+            
         - id: auth-service-jwks
           uri: ${AUTH_SERVICE_URI}
           predicates:

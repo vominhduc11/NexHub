@@ -11,61 +11,51 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Slf4j
 public class EmailNotificationConsumer {
-    
+
     private final EmailService emailService;
     private final NotificationWebSocketController webSocketController;
-    
-    @KafkaListener(
-        topics = "${kafka.topic.email:email-notifications}",
-        containerFactory = "notificationEventKafkaListenerContainerFactory"
-    )
+
+    @KafkaListener(topics = "${kafka.topic.email:email-notifications}", containerFactory = "notificationEventKafkaListenerContainerFactory")
     public void consumeEmailNotification(NotificationEvent event) {
         try {
-            log.info("Received email notification event: {} for account ID: {}", 
-                    event.getEventType(), event.getAccountId());
-            
+            log.info("Received email notification event: {} for account ID: {}", event.getEventType(),
+                    event.getAccountId());
+
             if ("SEND_EMAIL".equals(event.getEventType())) {
                 emailService.sendEmail(
-                    event.getEmail(),
-                    event.getSubject(),
-                    event.getMessage()
-                );
-                
+                        event.getEmail(),
+                        event.getSubject(),
+                        event.getMessage());
+
                 log.info("Email notification processed for account ID: {}", event.getAccountId());
             } else {
                 log.warn("Unknown event type: {}, skipping", event.getEventType());
             }
-            
+
         } catch (Exception e) {
-            log.error("Failed to process email notification for account ID: {}", 
-                     event.getAccountId(), e);
+            log.error("Failed to process email notification for account ID: {}", event.getAccountId(), e);
         }
     }
-    
-    @KafkaListener(
-        topics = "${kafka.topic.websocket:websocket-notifications}",
-        containerFactory = "websocketNotificationKafkaListenerContainerFactory"
-    )
+
+    @KafkaListener(topics = "${kafka.topic.websocket:websocket-notifications}", containerFactory = "websocketNotificationKafkaListenerContainerFactory")
     public void consumeWebSocketNotification(NotificationEvent event) {
         try {
-            log.info("Received WebSocket notification event: {} for account ID: {}", 
-                    event.getEventType(), event.getAccountId());
-            
+            log.info("Received WebSocket notification event: {} for account ID: {}", event.getEventType(),
+                    event.getAccountId());
+
             if ("WEBSOCKET_DEALER_REGISTRATION".equals(event.getEventType())) {
                 // Send private notification to the specific user
                 webSocketController.sendPrivateNotification(
-                    event.getUsername(),
-                    "DEALER_REGISTRATION_CONFIRMATION",
-                    "Your dealer registration has been completed successfully. Welcome to NexHub!"
-                );
+                        event.getUsername(),
+                        "DEALER_REGISTRATION_CONFIRMATION",
+                        "Your dealer registration has been completed successfully. Welcome to NexHub!");
                 log.info("Private WebSocket dealer registration notification sent to user: {}", event.getUsername());
             } else {
                 log.warn("Unknown WebSocket event type: {}, skipping", event.getEventType());
             }
-            
+
         } catch (Exception e) {
-            log.error("Failed to process WebSocket notification for account ID: {}", 
-                     event.getAccountId(), e);
+            log.error("Failed to process WebSocket notification for account ID: {}", event.getAccountId(), e);
         }
     }
 }

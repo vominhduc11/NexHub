@@ -117,14 +117,15 @@ services:
       - EUREKA_INSTANCE_PREFER_IP=false
       - LOGGING_LEVEL_ROOT=INFO
       - LOGGING_LEVEL_COM_DEVWONDER_AUTH_SERVICE=DEBUG
-      - DATABASE_URL=jdbc:postgresql://postgres:5432/nexhub_auth
-      - DATABASE_USERNAME=nexhub
-      - DATABASE_PASSWORD=nexhub123
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://nexhub-postgres:5432/nexhub_auth
+      - SPRING_DATASOURCE_USERNAME=nexhub
+      - SPRING_DATASOURCE_PASSWORD=voduc123
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka1:9092,kafka2:9093,kafka3:9094
       - KAFKA_TOPIC_EMAIL=email-notifications
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=voduc123
+      - KAFKA_TOPIC_WEBSOCKET=websocket-notifications
+      - SPRING_REDIS_HOST=nexhub_redis
+      - SPRING_REDIS_PORT=6379
+      - SPRING_REDIS_PASSWORD=voduc123
     depends_on:
       config-server:
         condition: service_healthy
@@ -169,14 +170,12 @@ services:
       - EUREKA_INSTANCE_PREFER_IP=false
       - LOGGING_LEVEL_ROOT=INFO
       - LOGGING_LEVEL_COM_DEVWONDER_USER_SERVICE=DEBUG
-      - DATABASE_URL=jdbc:postgresql://postgres:5432/nexhub_user
-      - DATABASE_USERNAME=nexhub
-      - DATABASE_PASSWORD=nexhub123
-      - DDL_AUTO=update
-      - SHOW_SQL=false
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=voduc123
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://nexhub-postgres:5432/nexhub_user
+      - SPRING_DATASOURCE_USERNAME=nexhub
+      - SPRING_DATASOURCE_PASSWORD=voduc123
+      - SPRING_REDIS_HOST=nexhub_redis
+      - SPRING_REDIS_PORT=6379
+      - SPRING_REDIS_PASSWORD=voduc123
     depends_on:
       config-server:
         condition: service_healthy
@@ -213,22 +212,28 @@ services:
       - EUREKA_INSTANCE_PREFER_IP=false
       - LOGGING_LEVEL_ROOT=INFO
       - LOGGING_LEVEL_COM_DEVWONDER_NOTIFICATION_SERVICE=DEBUG
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://nexhub-postgres:5432/nexhub_notification
+      - SPRING_DATASOURCE_USERNAME=nexhub
+      - SPRING_DATASOURCE_PASSWORD=voduc123
+      - SPRING_REDIS_HOST=nexhub_redis
+      - SPRING_REDIS_PORT=6379
+      - SPRING_REDIS_PASSWORD=voduc123
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka1:9092,kafka2:9093,kafka3:9094
       - KAFKA_TOPIC_EMAIL=email-notifications
-      - KAFKA_CONSUMER_GROUP_ID=notification-service-group
-      - KAFKA_AUTO_OFFSET_RESET=earliest
+      - KAFKA_TOPIC_WEBSOCKET=websocket-notifications
       - MAIL_HOST=smtp.gmail.com
       - MAIL_PORT=587
       - MAIL_USERNAME=vominhduc760@gmail.com
       - MAIL_PASSWORD=agcbtolwkdbbjwoi
-      - JWT_SECRET=nexhubSecretKey2024ForNotificationService
-      - JWT_EXPIRATION=86400000
-      - WEBSOCKET_REQUIRED_ROLE=ADMIN
     depends_on:
       config-server:
         condition: service_healthy
       discovery-service:
         condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
       kafka1:
         condition: service_started
       kafka2:
@@ -264,14 +269,12 @@ services:
       - EUREKA_INSTANCE_PREFER_IP=false
       - LOGGING_LEVEL_ROOT=INFO
       - LOGGING_LEVEL_COM_DEVWONDER_WARRANTY_SERVICE=DEBUG
-      - DATABASE_URL=jdbc:postgresql://postgres:5432/nexhub_warranty
-      - DATABASE_USERNAME=nexhub
-      - DATABASE_PASSWORD=nexhub123
-      - DDL_AUTO=update
-      - SHOW_SQL=false
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=voduc123
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://nexhub-postgres:5432/nexhub_warranty
+      - SPRING_DATASOURCE_USERNAME=nexhub
+      - SPRING_DATASOURCE_PASSWORD=voduc123
+      - SPRING_REDIS_HOST=nexhub_redis
+      - SPRING_REDIS_PORT=6379
+      - SPRING_REDIS_PASSWORD=voduc123
     depends_on:
       config-server:
         condition: service_healthy
@@ -310,11 +313,12 @@ services:
       - EUREKA_INSTANCE_PREFER_IP=false
       - LOGGING_LEVEL_ROOT=INFO
       - LOGGING_LEVEL_COM_DEVWONDER_PRODUCT_SERVICE=DEBUG
-      - DATABASE_URL=jdbc:postgresql://postgres:5432/nexhub_product
-      - DATABASE_USERNAME=nexhub
-      - DATABASE_PASSWORD=nexhub123
-      - DDL_AUTO=update
-      - SHOW_SQL=false
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://nexhub-postgres:5432/nexhub_product
+      - SPRING_DATASOURCE_USERNAME=nexhub
+      - SPRING_DATASOURCE_PASSWORD=voduc123
+      - SPRING_REDIS_HOST=nexhub_redis
+      - SPRING_REDIS_PORT=6379
+      - SPRING_REDIS_PASSWORD=voduc123
     depends_on:
       config-server:
         condition: service_healthy
@@ -322,6 +326,8 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_started
     networks:
       - next-network
     restart: unless-stopped
@@ -338,11 +344,11 @@ services:
       dockerfile: blog-service/Dockerfile
     container_name: nexhub-blog-service
     ports:
-      - "8086:8086"
+      - "8087:8087"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_APPLICATION_NAME=blog-service
-      - SERVER_PORT=8086
+      - SERVER_PORT=8087
       - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://discovery-service:8761/eureka/
       - EUREKA_CLIENT_REGISTER_WITH_EUREKA=true
@@ -351,11 +357,12 @@ services:
       - EUREKA_INSTANCE_PREFER_IP=false
       - LOGGING_LEVEL_ROOT=INFO
       - LOGGING_LEVEL_COM_DEVWONDER_BLOG_SERVICE=DEBUG
-      - DATABASE_URL=jdbc:postgresql://postgres:5432/nexhub_blog
-      - DATABASE_USERNAME=nexhub
-      - DATABASE_PASSWORD=nexhub123
-      - DDL_AUTO=update
-      - SHOW_SQL=false
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://nexhub-postgres:5432/nexhub_blog
+      - SPRING_DATASOURCE_USERNAME=nexhub
+      - SPRING_DATASOURCE_PASSWORD=voduc123
+      - SPRING_REDIS_HOST=nexhub_redis
+      - SPRING_REDIS_PORT=6379
+      - SPRING_REDIS_PASSWORD=voduc123
     depends_on:
       config-server:
         condition: service_healthy
@@ -363,11 +370,13 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_started
     networks:
       - next-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8086/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8087/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -381,7 +390,7 @@ services:
     environment:
       - POSTGRES_DB=nexhub_auth
       - POSTGRES_USER=nexhub
-      - POSTGRES_PASSWORD=nexhub123
+      - POSTGRES_PASSWORD=voduc123
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
