@@ -60,8 +60,8 @@ public class BaseControllerAdvice {
         return ResponseUtil.error(e.getMessage(), e.getErrorCode(), HttpStatus.valueOf(e.getHttpStatus()));
     }
 
-    @ExceptionHandler({TokenExpiredException.class, JwtValidationException.class, 
-                      InvalidTokenSignatureException.class})
+    @ExceptionHandler({ TokenExpiredException.class, JwtValidationException.class,
+            InvalidTokenSignatureException.class })
     public ResponseEntity<BaseResponse<Object>> handleJwtException(RuntimeException e) {
         log.error("JWT Exception occurred: {}", e.getMessage(), e);
         return ResponseUtil.error(e.getMessage(), "JWT_VALIDATION_ERROR", HttpStatus.UNAUTHORIZED);
@@ -70,14 +70,14 @@ public class BaseControllerAdvice {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<BaseResponse<Object>> handleValidationErrors(MethodArgumentNotValidException e) {
         log.error("Validation failed: {}", e.getMessage(), e);
-        
+
         Map<String, String> errors = new HashMap<>();
         e.getBindingResult().getAllErrors().forEach(error -> {
             String fieldName = ((FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
         });
-        
+
         String message = "Validation failed for fields: " + String.join(", ", errors.keySet());
         return ResponseUtil.error(message, "VALIDATION_FAILED", HttpStatus.BAD_REQUEST);
     }
@@ -85,14 +85,14 @@ public class BaseControllerAdvice {
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<BaseResponse<Object>> handleConstraintViolation(ConstraintViolationException e) {
         log.error("Constraint violation: {}", e.getMessage(), e);
-        
+
         String violations = e.getConstraintViolations()
                 .stream()
                 .map(ConstraintViolation::getMessage)
                 .collect(Collectors.joining(", "));
-        
-        return ResponseUtil.error("Validation constraints violated: " + violations, 
-                                "CONSTRAINT_VIOLATION", HttpStatus.BAD_REQUEST);
+
+        return ResponseUtil.error("Validation constraints violated: " + violations,
+                "CONSTRAINT_VIOLATION", HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
@@ -105,24 +105,24 @@ public class BaseControllerAdvice {
     public ResponseEntity<BaseResponse<Object>> handleTypeMismatch(MethodArgumentTypeMismatchException e) {
         log.error("Type mismatch for parameter {}: {}", e.getName(), e.getMessage(), e);
         String requiredType = Optional.ofNullable(e.getRequiredType())
-                                     .map(Class::getSimpleName)
-                                     .orElse("unknown");
-        String message = String.format("Invalid value for parameter '%s': expected %s", 
-                                      e.getName(), requiredType);
+                .map(Class::getSimpleName)
+                .orElse("unknown");
+        String message = String.format("Invalid value for parameter '%s': expected %s",
+                e.getName(), requiredType);
         return ResponseUtil.error(message, "TYPE_MISMATCH", HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<BaseResponse<Object>> handleDataIntegrityViolation(DataIntegrityViolationException e) {
         log.error("Data integrity violation: {}", e.getMessage(), e);
-        
+
         String message = "Data integrity constraint violated";
         if (e.getMessage().contains("Duplicate entry")) {
             message = "Duplicate entry - record already exists";
         } else if (e.getMessage().contains("foreign key constraint")) {
             message = "Cannot delete/update - record is referenced by other data";
         }
-        
+
         return ResponseUtil.error(message, "DATA_INTEGRITY_VIOLATION", HttpStatus.CONFLICT);
     }
 
@@ -144,12 +144,37 @@ public class BaseControllerAdvice {
         return ResponseUtil.error(e.getMessage(), "INVALID_ARGUMENT", HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<BaseResponse<Object>> handleIllegalStateException(IllegalStateException e) {
+        log.error("Illegal state: {}", e.getMessage(), e);
+        return ResponseUtil.error(e.getMessage(), "ILLEGAL_STATE", HttpStatus.CONFLICT);
+    }
 
-    protected ResponseEntity<BaseResponse<Object>> handleCustomException(String message, String errorCode, HttpStatus status) {
+    @ExceptionHandler(NullPointerException.class)
+    public ResponseEntity<BaseResponse<Object>> handleNullPointerException(NullPointerException e) {
+        log.error("Null pointer exception: {}", e.getMessage(), e);
+        return ResponseUtil.error("An unexpected null value was encountered", "NULL_POINTER", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(UnsupportedOperationException.class)
+    public ResponseEntity<BaseResponse<Object>> handleUnsupportedOperationException(UnsupportedOperationException e) {
+        log.error("Unsupported operation: {}", e.getMessage(), e);
+        return ResponseUtil.error("Operation not supported", "UNSUPPORTED_OPERATION", HttpStatus.NOT_IMPLEMENTED);
+    }
+
+    @ExceptionHandler(NumberFormatException.class)
+    public ResponseEntity<BaseResponse<Object>> handleNumberFormatException(NumberFormatException e) {
+        log.error("Number format exception: {}", e.getMessage(), e);
+        return ResponseUtil.error("Invalid number format", "INVALID_NUMBER_FORMAT", HttpStatus.BAD_REQUEST);
+    }
+
+    protected ResponseEntity<BaseResponse<Object>> handleCustomException(String message, String errorCode,
+            HttpStatus status) {
         return ResponseUtil.error(message, errorCode, status);
     }
 
-    protected ResponseEntity<BaseResponse<Object>> handleCustomExceptionWithData(String message, String errorCode, HttpStatus status, Object data) {
+    protected ResponseEntity<BaseResponse<Object>> handleCustomExceptionWithData(String message, String errorCode,
+            HttpStatus status, Object data) {
         // Log the data for debugging purposes
         log.debug("Additional error data: {}", data);
         return ResponseUtil.error(message, errorCode, status);

@@ -5,9 +5,13 @@
 **NexHub** is a production-ready enterprise e-commerce microservices platform built on Spring Boot 3.5.5, designed for scalable product management, warranty tracking, customer operations, and content management. The platform features distributed architecture with Redis caching, Kafka event streaming, WebSocket real-time communication, and comprehensive JWT security across 6 specialized PostgreSQL databases.
 
 **Recent Enhancements (September 2025)**:
-- **nexhub-common Integration**: Successfully integrated shared library across all 6 business services with auto-configuration
+- **BaseException Integration**: Successfully implemented BaseException across all controllers with proper exception handling
+- **Enhanced Exception Architecture**: BaseControllerAdvice with scope-limited `basePackages = "com.devwonder"` and `@Hidden` annotation for clean Swagger UI
+- **Swagger Documentation Optimization**: Fixed Swagger UI conflicts by removing generic Exception.class handlers and implementing proper security controls  
+- **Security Hardening**: Swagger endpoints now only accessible via API Gateway with `X-Gateway-Request` header requirement
+- **nexhub-common Integration**: Successfully integrated shared library across all 8 business services with auto-configuration
 - **Component Scanning**: All services now properly scan nexhub-common package for shared components and utilities
-- **Centralized Exception Handling**: GlobalExceptionHandler from nexhub-common provides consistent error responses across services
+- **Centralized Exception Handling**: BaseControllerAdvice provides consistent error responses while maintaining Swagger functionality
 - **Gateway-Based Security**: Authorization handled at API Gateway level with JWT validation and role-based access control
 - **Notification Service Optimization**: Database auto-configuration exclusion for better performance and reduced resource usage
 - **Service Discovery Integration**: All business services now properly register with Eureka discovery service
@@ -31,19 +35,20 @@ NexHub implements a complete microservices architecture with infrastructure serv
 
 | Service | Port | Database | Key Features | Technology Stack | Status |
 |---------|------|----------|--------------|------------------|---------|
-| **Auth Service** | 8081 | nexhub_auth | RSA-256 JWT with JWKS, RBAC, Account management, Reseller registration | Spring Security, JJWT, JPA, Kafka Producer, OpenFeign, nexhub-common integration | ✅ Production Ready |
-| **User Service** | 8082 | nexhub_user | Customer & Reseller CRUD, Profile management, Account integration | Spring Data JPA, Redis caching, MapStruct mapping, nexhub-common integration | ✅ Production Ready |
-| **Notification Service** | 8083 | No Database | Real-time WebSocket messaging, Email notifications, Kafka events, Database-free optimization | Pure WebSocket/STOMP, Kafka Consumer, Spring Mail, nexhub-common integration | ✅ Production Ready |
-| **Product Service** | 8084 | nexhub_product | Product catalog, categories, media management, serial tracking | Spring Data JPA, Redis caching, OpenAPI, MapStruct, nexhub-common | ✅ Production Ready |
-| **Warranty Service** | 8085 | nexhub_warranty | Warranty tracking, claims management, statistics, service integration | Spring Data JPA, OpenFeign clients, Redis caching, MapStruct, nexhub-common integration | ✅ Production Ready |
-| **Blog Service** | 8086 | nexhub_blog | CMS with posts, categories, comments, authors, tags, SEO optimization | Spring Data JPA, Redis caching, OpenAPI, nexhub-common integration | ✅ Production Ready |
-| **Language Service** | TBD | TBD | Internationalization support (Planned) | Spring Boot | 🚧 In Development |
+| **Auth Service** | 8081 | nexhub_auth | RSA-256 JWT with JWKS, RBAC, Account management, Reseller registration, BaseException integration | Spring Security, JJWT, JPA, Kafka Producer, OpenFeign, nexhub-common, BaseControllerAdvice | ✅ Production Ready |
+| **User Service** | 8082 | nexhub_user | Customer & Reseller CRUD, Profile management, Account integration, BaseException handling | Spring Data JPA, Redis caching, MapStruct mapping, nexhub-common, BaseControllerAdvice | ✅ Production Ready |
+| **Notification Service** | 8083 | No Database | Real-time WebSocket messaging, Email notifications, Kafka events, BaseException integration | Pure WebSocket/STOMP, Kafka Consumer, Spring Mail, nexhub-common, BaseControllerAdvice | ✅ Production Ready |
+| **Product Service** | 8084 | nexhub_product | Product catalog, categories, media management, serial tracking, BaseException handling | Spring Data JPA, Redis caching, OpenAPI, MapStruct, nexhub-common, BaseControllerAdvice | ✅ Production Ready |
+| **Warranty Service** | 8085 | nexhub_warranty | Warranty tracking, claims management, statistics, service integration, BaseException support | Spring Data JPA, OpenFeign clients, Redis caching, MapStruct, nexhub-common, BaseControllerAdvice | ✅ Production Ready |
+| **Blog Service** | 8083 | nexhub_blog | CMS with posts, categories, comments, authors, tags, SEO optimization, BaseException integration | Spring Data JPA, Redis caching, OpenAPI, nexhub-common, BaseControllerAdvice | ✅ Production Ready |
+| **Language Service** | TBD | TBD | Internationalization support (Planned) | Spring Boot, nexhub-common (when implemented) | 🚧 In Development |
+| **Discovery Service** | 8761 | No Database | Service registry and discovery, health monitoring | Spring Cloud Netflix Eureka | ✅ Production Ready |
 
 ### 📚 Shared Libraries
 
 | Component | Description | Features | Integration Status |
 |-----------|-------------|----------|-------------------|
-| **nexhub-common** | Centralized shared library with auto-configuration | GlobalExceptionHandler, JWT utilities, BaseResponse, Security utilities, Validation helpers, BaseOpenApiConfig, BaseSecurityConfig | ✅ Integrated across all 6 business services |
+| **nexhub-common** | Centralized shared library with auto-configuration | BaseControllerAdvice (@Hidden), BaseException hierarchy, JWT utilities, BaseResponse, Security utilities, Validation helpers, BaseOpenApiConfig, BaseSecurityConfig | ✅ Integrated across all 8 business services |
 
 ### 🗄️ Data & Infrastructure
 
@@ -747,21 +752,26 @@ cd nexhub-common && mvn clean install
 **Security**: Enhanced JWT with RSA-256, JWKS, Centralized Exception Handling, AOP Security Aspects  
 **Maintainer**: DevWonder Development Team  
 
-**Total Services**: 10 (6 Business + 4 Infrastructure)  
+**Total Services**: 11 (8 Business + 3 Infrastructure)  
 **Database Count**: 5 PostgreSQL databases with service isolation + 1 database-free optimized service  
 **Message Brokers**: 3-node Kafka cluster with Zookeeper  
 **Caching**: Redis with distributed caching strategy  
+**Exception Handling**: BaseException integrated across all controllers with BaseControllerAdvice (@Hidden)
 **Shared Libraries**: nexhub-common successfully integrated across all business services  
-**Service Discovery**: Eureka-based service registration and discovery  
+**Service Discovery**: Eureka-based service registration and discovery
+**Documentation**: Swagger UI with proper security controls and clean interface  
 
 **Recent Major Changes**:
-- **nexhub-common Integration**: Successfully integrated shared library across all 6 business services
-- **Component Scanning Configuration**: All services properly scan nexhub-common package for shared components
-- **Centralized Exception Handling**: GlobalExceptionHandler provides consistent error responses
+- **BaseException Architecture**: Successfully implemented BaseException across all 8 services with proper exception handling
+- **Enhanced Swagger Integration**: BaseControllerAdvice with @Hidden annotation for clean Swagger UI, scope-limited with basePackages
+- **Security Hardening**: Swagger endpoints secured with API Gateway-only access using X-Gateway-Request header
+- **nexhub-common Integration**: Successfully integrated shared library across all 8 business services
+- **Component Scanning Configuration**: All services properly scan nexhub-common package for shared components  
+- **Centralized Exception Handling**: BaseControllerAdvice provides consistent error responses while maintaining Swagger functionality
 - **Gateway Security Architecture**: JWT authorization and role-based access control at API Gateway level
 - **Service Discovery Integration**: All business services properly register with Eureka
 - **Notification Service Optimization**: Database auto-configuration excluded for better performance
 - **Enhanced Security Framework**: Unified JWT validation and role-based access control
 - **Production-Ready Deployment**: Complete Docker orchestration with service dependencies
 
-This documentation represents the current state of NexHub as of August 31, 2025, reflecting all implemented features, recent enhancements, architectural improvements, and comprehensive development roadmap.
+This documentation represents the current state of NexHub as of September 2, 2025, reflecting all implemented features, recent enhancements, BaseException integration, enhanced Swagger documentation, architectural improvements, and comprehensive development roadmap.
