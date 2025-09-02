@@ -48,6 +48,12 @@ public class AuthenticationService {
                 // Create user info using mapper
                 LoginResponse.UserInfo userInfo = authMapper.toUserInfo(account, request.getUserType());
 
+                // Debug: Check if roles and permissions have values
+                log.info("UserInfo roles: {}", userInfo.getRoles());
+                log.info("UserInfo permissions: {}", userInfo.getPermissions());
+                log.info("UserInfo roles count: {}", userInfo.getRoles() != null ? userInfo.getRoles().size() : 0);
+                log.info("UserInfo permissions count: {}", userInfo.getPermissions() != null ? userInfo.getPermissions().size() : 0);
+
                 // Generate JWT token
                 String token = jwtUtil.generateToken(
                                 account.getId(),

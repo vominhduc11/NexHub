@@ -1,5 +1,36 @@
 # NexHub - Enterprise Microservices E-Commerce Platform
 
+![NexHub Architecture](https://img.shields.io/badge/Architecture-Microservices-blue)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.5-green)
+![Java](https://img.shields.io/badge/Java-17-orange)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue)
+![Kafka](https://img.shields.io/badge/Apache%20Kafka-3.5-red)
+![Redis](https://img.shields.io/badge/Redis-7-red)
+![Docker](https://img.shields.io/badge/Docker-Compose-blue)
+![Security](https://img.shields.io/badge/Security-JWT%20RBAC-green)
+![WebSocket](https://img.shields.io/badge/WebSocket-Real--time-yellow)
+
+> **Advanced Enterprise E-Commerce Platform** built with Spring Boot 3.5.5 microservices architecture, featuring comprehensive JWT security with custom authorization, real-time WebSocket communications, event-driven architecture with Kafka, and cloud-native design patterns.
+
+## 🚀 Latest Updates & Enhancements
+
+### 🔐 **Advanced Security Framework (December 2024)**
+- **Custom Authorization Manager**: Implemented `AllAuthoritiesAuthorizationManager` for requiring ALL specified authorities instead of ANY
+- **Enhanced JWT Security**: RSA-256 with JWKS endpoint validation and comprehensive role/permission extraction
+- **API Gateway Security**: Centralized security with reactive authorization patterns
+- **Notification Service Security**: Fully functional API with proper authentication and authorization
+
+### 📡 **Real-time Communication System**
+- **WebSocket Authentication**: Multi-layer JWT validation with specialized exception handling
+- **Notification System**: Complete dealer registration notifications with database persistence  
+- **Event-Driven Architecture**: Kafka-based asynchronous communication between services
+
+### 🏗️ **Microservices Architecture**
+- **11+ Production Services**: All services operational with proper health checks
+- **Service Discovery**: Eureka-based service registry with automatic registration
+- **Configuration Management**: Centralized config server with native profiles
+- **Database Isolation**: 6 separate PostgreSQL databases for service isolation
+
 ## Executive Summary
 
 **NexHub** is a production-ready enterprise e-commerce microservices platform built on Spring Boot 3.5.5, designed for scalable product management, warranty tracking, customer operations, and content management. The platform features distributed architecture with Redis caching, Kafka event streaming, WebSocket real-time communication, and comprehensive JWT security across 6 specialized PostgreSQL databases.
@@ -37,12 +68,11 @@ NexHub implements a complete microservices architecture with infrastructure serv
 |---------|------|----------|--------------|------------------|---------|
 | **Auth Service** | 8081 | nexhub_auth | RSA-256 JWT with JWKS, RBAC, Account management, Reseller registration, BaseException integration | Spring Security, JJWT, JPA, Kafka Producer, OpenFeign, nexhub-common, BaseControllerAdvice | ✅ Production Ready |
 | **User Service** | 8082 | nexhub_user | Customer & Reseller CRUD, Profile management, Account integration, BaseException handling | Spring Data JPA, Redis caching, MapStruct mapping, nexhub-common, BaseControllerAdvice | ✅ Production Ready |
-| **Notification Service** | 8083 | No Database | Real-time WebSocket messaging, Email notifications, Kafka events, BaseException integration | Pure WebSocket/STOMP, Kafka Consumer, Spring Mail, nexhub-common, BaseControllerAdvice | ✅ Production Ready |
+| **Notification Service** | 8083 | nexhub_notification | Real-time WebSocket messaging, Email notifications, Kafka events, Dealer registration notifications, Database persistence | WebSocket/STOMP, Kafka Consumer, Spring Mail, PostgreSQL, nexhub-common, BaseControllerAdvice | ✅ Production Ready |
 | **Product Service** | 8084 | nexhub_product | Product catalog, categories, media management, serial tracking, BaseException handling | Spring Data JPA, Redis caching, OpenAPI, MapStruct, nexhub-common, BaseControllerAdvice | ✅ Production Ready |
 | **Warranty Service** | 8085 | nexhub_warranty | Warranty tracking, claims management, statistics, service integration, BaseException support | Spring Data JPA, OpenFeign clients, Redis caching, MapStruct, nexhub-common, BaseControllerAdvice | ✅ Production Ready |
-| **Blog Service** | 8083 | nexhub_blog | CMS with posts, categories, comments, authors, tags, SEO optimization, BaseException integration | Spring Data JPA, Redis caching, OpenAPI, nexhub-common, BaseControllerAdvice | ✅ Production Ready |
+| **Blog Service** | 8087 | nexhub_blog | CMS with posts, categories, comments, authors, tags, SEO optimization, BaseException integration | Spring Data JPA, Redis caching, OpenAPI, nexhub-common, BaseControllerAdvice | ✅ Production Ready |
 | **Language Service** | TBD | TBD | Internationalization support (Planned) | Spring Boot, nexhub-common (when implemented) | 🚧 In Development |
-| **Discovery Service** | 8761 | No Database | Service registry and discovery, health monitoring | Spring Cloud Netflix Eureka | ✅ Production Ready |
 
 ### 📚 Shared Libraries
 
@@ -58,6 +88,14 @@ NexHub implements a complete microservices architecture with infrastructure serv
 | **Redis Cache** | 6379 | Password-protected, persistent storage | Distributed caching, session management |
 | **Kafka Cluster** | 9092-9094 | 3-broker cluster with Zookeeper ensemble | Event streaming, asynchronous communication |
 | **Zookeeper Ensemble** | 2181-2183 | 3-node cluster for high availability | Kafka coordination and metadata management |
+
+**Database Architecture**:
+- `nexhub_auth` - Authentication, accounts, roles, permissions
+- `nexhub_user` - Customer and reseller profiles
+- `nexhub_notification` - Notification records and dealer registrations
+- `nexhub_product` - Product catalog, categories, serials
+- `nexhub_warranty` - Warranty claims and tracking
+- `nexhub_blog` - CMS content, posts, comments
 
 ### 🔧 Development & Monitoring Tools
 
@@ -79,16 +117,46 @@ NexHub implements a complete microservices architecture with infrastructure serv
 
 **Role-Based Access Control (RBAC)**:
 - **Roles**: ADMIN, DEALER, CUSTOMER with hierarchical permissions
-- **Permissions**: 15+ granular permissions (USER_*, PRODUCT_*, BLOG_*, WARRANTY_*, NOTIFICATION_ACCESS)
+- **Permissions**: 15+ granular permissions (USER_*, PRODUCT_*, BLOG_*, WARRANTY_*, NOTIFICATION_*)
 - **Authorization**: Both role-based and permission-based authorization at Gateway and service levels
-- **Aspect-Based Security**: Custom authorization aspects in nexhub-common library
+- **Custom Authorization Manager**: `AllAuthoritiesAuthorizationManager` for requiring ALL authorities instead of ANY
 
 **API Gateway Security**:
-- **JWT Validation**: Automatic signature validation using JWKS endpoint
+- **JWT Validation**: Automatic signature validation using JWKS endpoint at `http://auth-service:8081/auth/.well-known/jwks.json`
 - **Claims Extraction**: Roles and permissions extracted and forwarded to services
-- **Header Forwarding**: X-JWT-Subject, X-JWT-Username, X-JWT-Account-ID, X-User-Roles, X-User-Permissions
+- **Custom Authorization**: Reactive authorization patterns with Spring WebFlux security
 - **CORS Configuration**: Configured for development origins with credentials support
-- **WebSocket Security**: JWT token validation for WebSocket connections through gateway
+- **Service-Specific Authorization**: Different authorization rules per service endpoint
+
+### Advanced Security Features
+
+**Custom Authorization Manager**:
+```java
+// Example: Requiring ALL authorities for notification access
+.pathMatchers(HttpMethod.GET, "/api/notification/all")
+.access(new AllAuthoritiesAuthorizationManager(
+    "ROLE_ADMIN", 
+    "PERM_NOTIFICATION_READ"
+))
+```
+
+**Security Methods Comparison**:
+- **hasAnyAuthority()**: User needs ANY of the specified authorities (OR logic)
+- **hasAuthority()**: User needs the specific authority
+- **AllAuthoritiesAuthorizationManager**: User needs ALL specified authorities (AND logic)
+
+**JWT Token Structure**:
+```json
+{
+  "accountId": 1,
+  "username": "admin",
+  "roles": ["ADMIN"],
+  "permissions": ["NOTIFICATION_READ", "USER_MANAGE"],
+  "userType": "ADMIN",
+  "iss": "auth-service",
+  "exp": 1672531200
+}
+```
 
 ### Advanced WebSocket Security & Direct Connection
 
@@ -99,30 +167,24 @@ NexHub implements a complete microservices architecture with infrastructure serv
 - **Protocol**: Pure STOMP over SockJS with direct JWT validation
 
 **Dual-Layer Interceptor Security with Pure JWT Token Validation**:
-- **Layer 1**: WebSocketJwtChannelInterceptor for authentication (CONNECT frames)
+- **Layer 1**: WebSocketAuthenticationInterceptor for authentication (CONNECT frames)
   - Initial JWT validation and Principal creation
   - Stateless authentication without session storage
-- **Layer 2**: WebSocketRoleChannelInterceptor for authorization (SEND/SUBSCRIBE frames)
+- **Layer 2**: WebSocketAuthorizationInterceptor for authorization (SEND/SUBSCRIBE frames)
   - Real-time JWT token validation on each message
   - Fresh role extraction directly from token claims
   - Comprehensive SEND and SUBSCRIBE permission checking
   - Token expiration handling during active sessions
   - Pure JWT-based without session dependencies
-  - Clean architecture with optimized cognitive complexity
-- **Token Security**: Custom JwtService with JWKS validation and comprehensive expiration checks
-- **Architecture**: Fully stateless WebSocket security with no session storage
 
 **Role-Based Message Authorization**:
 - **SEND Permissions** (Message Sending):
   - **Broadcast Messages**: Only ADMIN users can send (`@MessageMapping("/broadcast")`)
   - **Private Messages**: Only ADMIN → CUSTOMER communication allowed (`@MessageMapping("/private/{targetUser}")`)
-  - **Username Validation**: Pattern-based validation ensures target users are identified as CUSTOMER
 - **SUBSCRIBE Permissions** (Message Receiving):
   - **Public Topics**: All authenticated users can subscribe (`/topic/notifications`)
   - **Admin Topics**: ADMIN-only subscription (`/topic/dealer-registrations`)
   - **Private Queues**: User-specific subscription only (`/user/queue/private`)
-  - **Security**: Prevention of cross-user queue access
-- **Real-time Validation**: Both client-side and server-side validation with comprehensive logging
 
 ### Security Flow Architecture
 ```
@@ -132,9 +194,9 @@ Client Request → API Gateway (JWT Validation + RBAC) → Service (Permission C
 WebSocket Flow (Direct):
 Client WebSocket → Notification Service (Port 8083)
                        ↓
-         WebSocketJwtChannelInterceptor (Authentication)
+         WebSocketAuthenticationInterceptor (Authentication)
                        ↓ (Principal creation, no session storage)
-       WebSocketRoleChannelInterceptor (Real-time Authorization)
+       WebSocketAuthorizationInterceptor (Real-time Authorization)
                        ↓ (Fresh JWT validation + role extraction from token)
                @MessageMapping Controllers
                        ↓
@@ -144,15 +206,15 @@ Client WebSocket → Notification Service (Port 8083)
 ## 📊 Database Architecture
 
 ### Database-per-Service Pattern
-NexHub implements complete database isolation with 5 dedicated PostgreSQL databases (notification service optimized without database):
+NexHub implements complete database isolation with 6 dedicated PostgreSQL databases:
 
 ```
 nexhub_auth         → Account management, roles, permissions, RBAC
 nexhub_user         → Customer and Reseller profiles, account mappings
+nexhub_notification → Notification records, dealer registrations
 nexhub_product      → Product catalog, categories, media, serial numbers
 nexhub_warranty     → Warranty tracking, purchase records, claims
 nexhub_blog         → Blog posts, categories, authors, tags, comments
-notification-service → Database-free optimization for better performance
 ```
 
 ### Entity Relationship Overview
@@ -160,7 +222,7 @@ notification-service → Database-free optimization for better performance
 **Authentication Domain (nexhub_auth)**:
 - **Accounts**: Core authentication entities with username/password, account lifecycle management
 - **Roles**: ADMIN, DEALER, CUSTOMER with Many-to-Many mapping to accounts, hierarchical permissions
-- **Permissions**: 15+ granular permissions (USER_*, PRODUCT_*, BLOG_*, WARRANTY_*, NOTIFICATION_ACCESS) with Many-to-Many mapping to roles
+- **Permissions**: 15+ granular permissions (USER_*, PRODUCT_*, BLOG_*, WARRANTY_*, NOTIFICATION_*) with Many-to-Many mapping to roles
 - **Junction Tables**: account_roles, role_permissions for flexible RBAC implementation
 
 **User Management Domain (nexhub_user)**:
@@ -168,6 +230,12 @@ notification-service → Database-free optimization for better performance
 - **Resellers**: Dealer profiles with business information (name, address, phone, email, district, city)
 - **Account Integration**: Foreign key references to auth service account IDs for seamless authentication
 - **Soft Delete**: Proper deletion tracking with deletedAt timestamps
+
+**Notification Domain (nexhub_notification)**:
+- **Notifications**: Notification records with title, message, type, read status, timestamps
+- **Dealer Registrations**: Specialized notifications for dealer registration events
+- **Database Persistence**: All notifications saved for audit and history tracking
+- **Type Classification**: DEALER_REGISTRATION, EMAIL_NOTIFICATION, SYSTEM_ALERT
 
 **Product Catalog Domain (nexhub_product)**:
 - **Products**: Core product entities with specifications, pricing, warranty information, SEO fields
@@ -189,12 +257,6 @@ notification-service → Database-free optimization for better performance
 - **WarrantyClaims**: Claims management with status workflow (PENDING, IN_PROGRESS, COMPLETED, REJECTED)
 - **Service Integration**: Links to product and user services via OpenFeign clients for validation
 - **Business Logic**: Automatic warranty status determination and expiration tracking
-
-**Notification Domain (No Database - Optimized)**:
-- **Email History**: In-memory email tracking for current session
-- **Real-time Messaging**: WebSocket-based communication without persistence
-- **Event Processing**: Kafka event consumption without database storage
-- **Performance Optimization**: Database auto-configuration excluded for better resource utilization
 
 ## 🚀 Technology Stack
 
@@ -419,6 +481,20 @@ Auth Service → Kafka Topic (email-notifications) → Notification Service
 - **Session Context**: Rich user information available in WebSocket sessions
 - **STOMP Protocol**: Full STOMP implementation with SockJS fallback
 
+**Event-Driven Notifications**:
+```
+Dealer Registration Flow:
+Auth Service → Kafka (websocket-notifications) → Notification Service
+              ↓
+   Save to Database (nexhub_notification) → WebSocket Broadcast
+              ↓
+   ADMIN Users receive real-time notification via /topic/dealer-registrations
+```
+
+**Kafka Topics**:
+- `email-notifications`: Email-based notifications
+- `websocket-notifications`: Real-time WebSocket notifications
+
 ## 📋 Comprehensive API Endpoints
 
 ### Authentication & User Management
@@ -428,6 +504,13 @@ Auth Service → Kafka Topic (email-notifications) → Notification Service
 | `/api/auth/.well-known/jwks.json` | GET | JWT public keys | Public |
 | `/api/user/customers` | GET/POST | Customer management | ADMIN/DEALER |
 | `/api/user/resellers` | GET/POST | Reseller management | ADMIN |
+
+### Notification Management
+| Endpoint | Method | Purpose | Security |
+|----------|---------|---------|----------|
+| `/api/notification/all` | GET | Get all notifications | ROLE_ADMIN + PERM_NOTIFICATION_READ |
+| `/api/notification/create` | POST | Create notification | ADMIN |
+| `ws://localhost:8083/ws/notifications` | WebSocket | Real-time messaging | JWT Authentication |
 
 ### Product Catalog Management
 | Endpoint | Method | Purpose | Security |
@@ -459,6 +542,7 @@ Auth Service → Kafka Topic (email-notifications) → Notification Service
 | `@MessageMapping("/broadcast")` | STOMP | Broadcast to all users | ADMIN only |
 | `@MessageMapping("/private/{targetUser}")` | STOMP | Private messaging | ADMIN → CUSTOMER only |
 | `/topic/notifications` | STOMP | Receive broadcasts | All authenticated users |
+| `/topic/dealer-registrations` | STOMP | Dealer registration notifications | ADMIN only |
 | `/user/queue/private` | STOMP | Receive private messages | User-specific validation |
 
 ## 🚦 Development Setup & Getting Started
@@ -541,69 +625,77 @@ curl http://localhost:8761/eureka/apps
 
 **Enhanced Infrastructure & Security**:
 - Complete service discovery and configuration management
-- Advanced JWT-based authentication with JWKS and custom validation
-- API Gateway with routing, CORS, rate limiting, and WebSocket proxying
+- Advanced JWT-based authentication with JWKS and custom authorization manager
+- API Gateway with routing, CORS, rate limiting, and reactive security patterns
 - Role-based authorization with 15+ granular permissions
-- nexhub-common shared library successfully integrated across all 6 business services
-- Centralized exception handling with consistent error responses
-- Gateway-level authorization with JWT validation and role enforcement
+- AllAuthoritiesAuthorizationManager for requiring ALL specified authorities
+- Centralized security configuration with BaseSecurityConfig
+- Gateway-level authorization with reactive JWT validation
 
 **Business Services**:
 - Full CRUD operations across all domain services with nexhub-common integration
-- Database-per-service architecture with proper isolation (5 services + database-free notification service)
+- Database-per-service architecture with proper isolation (6 databases)
 - Redis caching implementation across critical services
 - Email notification system with Kafka integration
-- Component scanning properly configured for shared library utilization
+- Real-time WebSocket notifications with database persistence
 
 **Advanced Real-time Features**:
-- WebSocket messaging with role-based security
+- WebSocket messaging with dual-layer security interceptors
 - Kafka-based event streaming for asynchronous processing
-- Real-time notification delivery with enhanced security
+- Dealer registration notifications with complete workflow
+- Real-time notification delivery with role-based authorization
 
 **Data Management**:
-- 5 PostgreSQL databases with comprehensive entity models (notification service optimized without database)
+- 6 PostgreSQL databases with comprehensive entity models
+- Notification service with database persistence for audit trails
 - Automated database initialization and schema management
 - Service integration with OpenFeign clients
 
-### 🔧 Recent Major Enhancements (September 2025)
+### 🔧 Recent Major Enhancements (December 2024)
 
-**nexhub-common Integration & Framework Enhancement**:
-- Successfully integrated nexhub-common library across all 6 business services
-- Added @ComponentScan configuration to scan nexhub-common package for shared components
-- Centralized GlobalExceptionHandler providing consistent error responses across all services
-- Gateway-based security architecture with JWT validation and microservice header verification
-- Service discovery integration with @EnableDiscoveryClient across business services
-- Notification service optimization with database auto-configuration exclusion
+**Advanced Security Framework**:
+- Implemented AllAuthoritiesAuthorizationManager for AND logic authorization
+- Enhanced API Gateway security with reactive authorization patterns
+- Complete WebSocket security with JWT authentication and role validation
+- Fixed notification service API with proper authentication flow
+- Database connectivity verification and optimization
 
-**Security & Architecture Improvements**:
-- Unified JWT validation and role-based access control across services
-- AOP-based security aspects working seamlessly with shared annotations
-- Enhanced service-to-service communication with consistent security headers
-- Improved error handling with standardized BaseResponse format
+**Notification Service Enhancements**:
+- Restored database functionality with nexhub_notification database
+- Complete dealer registration notification workflow
+- Kafka-based event processing with database persistence
+- Real-time WebSocket broadcasting to ADMIN users
+- Comprehensive logging and audit trails
+
+**Security Architecture Improvements**:
+- Unified JWT validation across all services
+- Custom authorization patterns with Spring WebFlux
+- Enhanced error handling with specialized WebSocket exceptions
+- Service-to-service communication security with header validation
 
 **Development & Operational Enhancements**:
-- All services now properly register with Eureka service discovery
+- All services properly register with Eureka service discovery
 - Centralized configuration management with environment-specific settings
-- Enhanced Docker builds with optimized service dependencies
-- Improved health check monitoring and service resilience
+- Enhanced Docker orchestration with health checks
+- Comprehensive monitoring and troubleshooting capabilities
 
-### ⚠️ Known Limitations & Considerations
+### ⚠️ Known Features & Considerations
 
-**Service Port Mapping**:
-- Product Service: External 8084 → Internal 8080 (architectural decision for container optimization)
-- Blog Service: External 8087 → Internal 8080 (architectural decision for container optimization)
+**Security Patterns**:
+- **hasAnyAuthority()**: Grants access if user has ANY of the specified authorities (OR logic)
+- **AllAuthoritiesAuthorizationManager**: Grants access only if user has ALL specified authorities (AND logic)
+- Example: `/api/notification/all` requires BOTH `ROLE_ADMIN` AND `PERM_NOTIFICATION_READ`
 
-**Incomplete Features**:
-- Language Service: Directory exists but service not fully configured
-- Blog Service: Author and Tag management controllers need completion
+**WebSocket Architecture**:
+- Direct connection to port 8083 (optimized for performance)
+- Dual-layer security with authentication and authorization interceptors
+- Real-time JWT validation on each message
+- Role-based topic subscriptions and message sending
 
-**Development Considerations**:
-- WebSocket connects directly to port 8083 (bypasses API Gateway)
-- Broadcast messages require ADMIN role for sending
-- Private messages restricted to ADMIN → CUSTOMER communication only
-- Target usernames validated by pattern matching for CUSTOMER identification
-- Database initialization requires proper startup sequence  
-- Redis password configuration needed for local development
+**Database Strategy**:
+- 6 separate PostgreSQL databases for complete service isolation
+- Notification service fully functional with persistence
+- Automatic schema management and data initialization
 - nexhub-common library must be built before other services
 
 ## 🔍 Monitoring & Troubleshooting
@@ -744,28 +836,38 @@ cd nexhub-common && mvn clean install
 ## Project Metadata
 
 **Platform**: NexHub Enterprise E-Commerce Microservices  
-**Version**: 3.3.0  
-**Last Updated**: September 1, 2025  
-**Status**: Production-Ready with Active Development  
-**Architecture**: Spring Boot 3.5.5 Microservices with nexhub-common Integration  
+**Version**: 3.4.0  
+**Last Updated**: December 2024  
+**Status**: Production-Ready with Advanced Security Implementation  
+**Architecture**: Spring Boot 3.5.5 Microservices with Custom Authorization Framework  
 **Infrastructure**: Docker, PostgreSQL, Redis, Kafka, WebSocket, Eureka Discovery  
-**Security**: Enhanced JWT with RSA-256, JWKS, Centralized Exception Handling, AOP Security Aspects  
+**Security**: Enhanced JWT with RSA-256, JWKS, Custom Authorization Manager, Advanced WebSocket Security  
 **Maintainer**: DevWonder Development Team  
 
-**Total Services**: 11 (8 Business + 3 Infrastructure)  
-**Database Count**: 5 PostgreSQL databases with service isolation + 1 database-free optimized service  
-**Message Brokers**: 3-node Kafka cluster with Zookeeper  
+**Total Services**: 11+ (7 Business + 3 Infrastructure + Monitoring Tools)  
+**Database Count**: 6 PostgreSQL databases with complete service isolation  
+**Message Brokers**: 3-node Kafka cluster with Zookeeper ensemble  
 **Caching**: Redis with distributed caching strategy  
-**Exception Handling**: BaseException integrated across all controllers with BaseControllerAdvice (@Hidden)
-**Shared Libraries**: nexhub-common successfully integrated across all business services  
-**Service Discovery**: Eureka-based service registration and discovery
-**Documentation**: Swagger UI with proper security controls and clean interface  
+**Authorization**: Custom AllAuthoritiesAuthorizationManager for AND logic authorization  
+**Security Framework**: Reactive Spring WebFlux security with dual-layer WebSocket protection  
+**Real-time Communication**: Advanced WebSocket system with JWT authentication and role-based authorization  
 
-**Recent Major Changes**:
-- **BaseException Architecture**: Successfully implemented BaseException across all 8 services with proper exception handling
-- **Enhanced Swagger Integration**: BaseControllerAdvice with @Hidden annotation for clean Swagger UI, scope-limited with basePackages
-- **Security Hardening**: Swagger endpoints secured with API Gateway-only access using X-Gateway-Request header
-- **nexhub-common Integration**: Successfully integrated shared library across all 8 business services
+**Latest Major Enhancements (December 2024)**:
+- **Custom Authorization Manager**: AllAuthoritiesAuthorizationManager for requiring ALL specified authorities
+- **Advanced Security Framework**: Reactive authorization patterns with Spring WebFlux
+- **Notification Service**: Fully functional with database persistence and real-time WebSocket notifications
+- **WebSocket Security**: Dual-layer interceptor architecture with real-time JWT validation
+- **Database Architecture**: Complete 6-database isolation with notification persistence
+- **Kafka Integration**: Event-driven dealer registration notifications with database persistence
+- **API Gateway**: Enhanced reactive security with custom authorization managers
+- **JWT Security**: Comprehensive role and permission extraction with JWKS validation
+
+**Security Architecture Highlights**:
+- hasAnyAuthority() vs AllAuthoritiesAuthorizationManager comparison implemented
+- Real-time WebSocket JWT validation on every message
+- Database-per-service pattern with complete isolation
+- Centralized configuration management with native profiles
+- Advanced error handling with specialized WebSocket exceptions
 - **Component Scanning Configuration**: All services properly scan nexhub-common package for shared components  
 - **Centralized Exception Handling**: BaseControllerAdvice provides consistent error responses while maintaining Swagger functionality
 - **Gateway Security Architecture**: JWT authorization and role-based access control at API Gateway level

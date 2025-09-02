@@ -60,12 +60,13 @@ public class DataInitializer implements CommandLineRunner {
         createPermissionIfNotExists("PRODUCT_CREATE");
         createPermissionIfNotExists("PRODUCT_UPDATE");
         createPermissionIfNotExists("PRODUCT_DELETE");
+        createPermissionIfNotExists("PRODUCT_READ");
         
         // Blog permissions
         createPermissionIfNotExists("BLOG_CREATE");
         createPermissionIfNotExists("BLOG_UPDATE");
         createPermissionIfNotExists("BLOG_DELETE");
-        createPermissionIfNotExists("COMMENT_CREATE");
+        createPermissionIfNotExists("BLOG_READ");
         
         // Warranty permissions
         createPermissionIfNotExists("WARRANTY_CREATE");
@@ -74,31 +75,18 @@ public class DataInitializer implements CommandLineRunner {
         createPermissionIfNotExists("WARRANTY_DELETE");
         
         // Notification permissions
-        createPermissionIfNotExists("NOTIFICATION_ACCESS");
+        createPermissionIfNotExists("NOTIFICATION_CREATE");
+        createPermissionIfNotExists("NOTIFICATION_READ");
+        createPermissionIfNotExists("NOTIFICATION_UPDATE");
+        createPermissionIfNotExists("NOTIFICATION_DELETE");
     }
     
     private void initializeRoles() {
-        createRoleWithPermissions("ADMIN", Set.of(
-            "USER_CREATE", "USER_READ", "USER_UPDATE", "USER_DELETE",
-            "PRODUCT_CREATE", "PRODUCT_UPDATE", "PRODUCT_DELETE",
-            "BLOG_CREATE", "BLOG_UPDATE", "BLOG_DELETE",
-            "WARRANTY_CREATE", "WARRANTY_READ", "WARRANTY_UPDATE", "WARRANTY_DELETE",
-            "NOTIFICATION_ACCESS"
-        ));
+        createRoleWithPermissions("ADMIN", Set.of("NOTIFICATION_READ"));
         
-        createRoleWithPermissions("DEALER", Set.of(
-            "USER_CREATE", "USER_READ", "USER_UPDATE",
-            "PRODUCT_CREATE", "PRODUCT_UPDATE",
-            "WARRANTY_CREATE", "WARRANTY_READ", "WARRANTY_UPDATE",
-            "NOTIFICATION_ACCESS"
-        ));
+        createRoleWithPermissions("DEALER", Set.of());
         
-        createRoleWithPermissions("CUSTOMER", Set.of(
-            "USER_READ", "USER_UPDATE",
-            "COMMENT_CREATE",
-            "WARRANTY_READ",
-            "NOTIFICATION_ACCESS"
-        ));
+        createRoleWithPermissions("CUSTOMER", Set.of());
     }
     
     private void createPermissionIfNotExists(String name) {

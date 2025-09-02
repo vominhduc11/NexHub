@@ -18,7 +18,7 @@ public class SecurityConfig extends BaseSecurityConfig {
             .requestMatchers("/info").permitAll()
             
             // JWKS endpoint (ONLY accessible via API Gateway)
-            .requestMatchers("/auth/.well-known/jwks.json").access(gatewayHeaderRequired())
+            .requestMatchers("/auth/.well-known/jwks.json").permitAll()
             
             // All auth endpoints - ONLY accessible via API Gateway
             .requestMatchers("/auth/**").access(gatewayHeaderRequired());

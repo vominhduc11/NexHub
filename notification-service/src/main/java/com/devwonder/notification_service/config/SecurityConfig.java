@@ -11,19 +11,16 @@ public class SecurityConfig extends BaseSecurityConfig {
     @Override
     protected void configureServiceEndpoints(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
         auth
-            // Test endpoints - Allow direct access for testing (HIGH PRIORITY)
-            .requestMatchers("/notification/test/**").permitAll()
+            // Notification API endpoints - Allow access
+            .requestMatchers("/notification/**").permitAll()
             
-            // Health check endpoint - Allow direct access (HIGH PRIORITY)
+            // Health check endpoint - Allow direct access
             .requestMatchers("/notifications/health").permitAll()
             
-            // WebSocket endpoints - Allow both direct and Gateway access (HIGHEST PRIORITY)
+            // WebSocket endpoints - Allow both direct and Gateway access
             .requestMatchers("/ws/**", "/websocket/**", "/info", "/sockjs-node/**").permitAll()
             
-            // SockJS specific endpoints
-            .requestMatchers("/**/websocket", "/**/info", "/**/iframe.html").permitAll()
-            
-            // All other notification endpoints - Block REST endpoints since we're using pure WebSocket
-            .requestMatchers("/notifications/**").denyAll();
+            // SockJS specific endpoints - Fix invalid patterns
+            .requestMatchers("/*/websocket", "/*/info", "/*/iframe.html").permitAll();
     }
 }

@@ -2,6 +2,7 @@ package com.devwonder.notification_service.service;
 
 import com.devwonder.notification_service.controller.NotificationWebSocketController;
 import com.devwonder.notification_service.dto.NotificationEvent;
+import com.devwonder.notification_service.entity.Notification;
 import com.devwonder.notification_service.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,13 +51,11 @@ public class EmailNotificationConsumer {
                 // 1. Save notification to database
                 String dealerName = event.getName() != null ? event.getName() : event.getUsername();
                 
-                notificationService.createDealerRegistrationNotification(dealerName, event.getUsername());
-                log.info("✅ Saved dealer registration notification to database for: {}", event.getUsername());
+                Notification savedNotification = notificationService.createDealerRegistrationNotification(dealerName, event.getUsername());
+                log.info("✅ Saved dealer registration notification to database for: {} with ID: {}", event.getUsername(), savedNotification.getId());
                 
-                // 2. Send notification to ADMIN users only
-                webSocketController.sendBroadcastNotification(
-                        "DEALER_REGISTRATION",
-                        String.format("Đại lý mới '%s' đã đăng ký thành công", dealerName));
+                // 2. Send the saved notification record to WebSocket (ADMIN users only)
+                webSocketController.broadcastDealerRegistration(savedNotification);
                 log.info("✅ Dealer registration notification sent to ADMIN users for: {}", dealerName);
             } else {
                 log.warn("Unknown WebSocket event type: {}, skipping", event.getEventType());

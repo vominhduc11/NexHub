@@ -391,6 +391,7 @@ services:
       - POSTGRES_DB=nexhub_auth
       - POSTGRES_USER=nexhub
       - POSTGRES_PASSWORD=voduc123
+      - POSTGRES_HOST_AUTH_METHOD=md5
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql

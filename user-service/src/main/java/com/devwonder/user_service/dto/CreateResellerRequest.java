@@ -5,24 +5,20 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class CreateResellerRequest {
     
     @NotNull(message = "Account ID is required")
     @Positive(message = "Account ID must be positive")
     private Long accountId;
     
-    @NotBlank(message = "Username không được để trống")
-    @Size(min = 5, max = 20, message = "Username phải từ 5-20 ký tự")
-    private String username;
-
-    @NotBlank(message = "Password không được để trống")
-    @Size(min = 8, message = "Password phải có ít nhất 8 ký tự")
-    private String password;
-
+    // Username and password managed by Auth Service - only profile data here
     @NotBlank(message = "Tên công ty không được để trống")
     private String name;
 

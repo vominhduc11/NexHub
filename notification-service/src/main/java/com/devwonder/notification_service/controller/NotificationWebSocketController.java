@@ -2,6 +2,7 @@ package com.devwonder.notification_service.controller;
 
 import com.devwonder.common.exception.BaseException;
 import com.devwonder.notification_service.dto.DealerNotification;
+import com.devwonder.notification_service.entity.Notification;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
@@ -16,21 +17,13 @@ public class NotificationWebSocketController {
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
 
-    public void broadcastDealerRegistration(String dealerUsername, String dealerName, String dealerEmail) throws BaseException {
-        log.info("Broadcasting dealer registration notification for: {}", dealerUsername);
+    public void broadcastDealerRegistration(Notification savedNotification) throws BaseException {
+        log.info("Broadcasting dealer registration notification: {} (ID: {})", savedNotification.getTitle(), savedNotification.getId());
         
-        String message = String.format("New dealer registered: %s (%s)", dealerName, dealerUsername);
+        // Send the actual saved notification record to WebSocket
+        messagingTemplate.convertAndSend("/topic/dealer-registrations", savedNotification);
         
-        messagingTemplate.convertAndSend("/topic/dealer-registrations", new DealerNotification(
-            "DEALER_REGISTERED",
-            dealerUsername,
-            dealerName,
-            dealerEmail,
-            message,
-            System.currentTimeMillis()
-        ));
-        
-        log.info("Dealer registration notification sent via WebSocket for: {}", dealerUsername);
+        log.info("Dealer registration notification sent via WebSocket (ID: {})", savedNotification.getId());
     }
 
     // Send private notification to specific user

@@ -11,6 +11,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.ReactiveJwtAuthenticationConverterAdapter;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import com.devwonder.api_gateway.security.AllAuthoritiesAuthorizationManager;
 
 @Configuration
 @EnableWebFluxSecurity
@@ -37,17 +38,17 @@ public class SecurityConfig {
         exchanges
                 // CORS preflight requests - HIGHEST PRIORITY
                 .pathMatchers(HttpMethod.OPTIONS).permitAll();
-        
+
         // Configure public endpoints
         configurePublicEndpoints(exchanges);
-        
+
         // Configure service-specific authorization
         configureProductServiceAuth(exchanges);
         configureBlogServiceAuth(exchanges);
         configureUserServiceAuth(exchanges);
         configureWarrantyServiceAuth(exchanges);
         configureNotificationServiceAuth(exchanges);
-        
+
         // Deny all other requests
         exchanges.anyExchange().denyAll();
     }
@@ -121,18 +122,16 @@ public class SecurityConfig {
 
     private void configureNotificationServiceAuth(ServerHttpSecurity.AuthorizeExchangeSpec exchanges) {
         exchanges
-                // Health check - public access
-                .pathMatchers(HttpMethod.GET, "/api/notifications/health").permitAll()
-                // Broadcast to all users - all authenticated users can send
-                .pathMatchers(HttpMethod.POST, "/api/notifications/broadcast")
-                .hasAnyAuthority("ROLE_ADMIN", "ROLE_DEALER", "ROLE_CUSTOMER")
-                // Private messages - all authenticated users can send
-                .pathMatchers(HttpMethod.POST, "/api/notifications/user/*/send")
-                .hasAnyAuthority("ROLE_ADMIN", "ROLE_DEALER", "ROLE_CUSTOMER");
+                // Get all notifications - Requires ALL authorities
+                .pathMatchers(HttpMethod.GET, "/api/notification/all")
+                .access(new AllAuthoritiesAuthorizationManager(
+                    "ROLE_ADMIN",
+                    "PERM_NOTIFICATION_READ"
+                ));
     }
 
     private String[] getSwaggerPaths() {
-        return new String[]{
+        return new String[] {
                 "/swagger-ui.html",
                 "/swagger-ui/**",
                 "/webjars/**",
@@ -158,12 +157,13 @@ public class SecurityConfig {
         return new ReactiveJwtAuthenticationConverterAdapter(jwtConverter);
     }
 
-    private Collection<org.springframework.security.core.GrantedAuthority> extractAuthorities(org.springframework.security.oauth2.jwt.Jwt jwt) {
+    private Collection<org.springframework.security.core.GrantedAuthority> extractAuthorities(
+            org.springframework.security.oauth2.jwt.Jwt jwt) {
         Set<SimpleGrantedAuthority> authorities = new HashSet<>();
 
         // Extract roles
         extractRoles(jwt, authorities);
-        
+
         // Extract permissions
         extractPermissions(jwt, authorities);
 
@@ -172,7 +172,8 @@ public class SecurityConfig {
                 : new ArrayList<>(authorities);
     }
 
-    private void extractRoles(org.springframework.security.oauth2.jwt.Jwt jwt, Set<SimpleGrantedAuthority> authorities) {
+    private void extractRoles(org.springframework.security.oauth2.jwt.Jwt jwt,
+            Set<SimpleGrantedAuthority> authorities) {
         Object rolesObj = jwt.getClaim("roles");
         if (rolesObj instanceof java.util.List) {
             @SuppressWarnings("unchecked")
@@ -183,7 +184,8 @@ public class SecurityConfig {
         }
     }
 
-    private void extractPermissions(org.springframework.security.oauth2.jwt.Jwt jwt, Set<SimpleGrantedAuthority> authorities) {
+    private void extractPermissions(org.springframework.security.oauth2.jwt.Jwt jwt,
+            Set<SimpleGrantedAuthority> authorities) {
         Object permsObj = jwt.getClaim("permissions");
         if (permsObj instanceof java.util.List) {
             @SuppressWarnings("unchecked")

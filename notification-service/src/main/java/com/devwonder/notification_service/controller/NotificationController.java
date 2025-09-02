@@ -26,35 +26,4 @@ public class NotificationController {
         List<Notification> notifications = notificationService.getAllNotifications();
         return ResponseEntity.ok(BaseResponse.success("Notifications retrieved successfully", notifications));
     }
-
-    /**
-     * Get unread notifications
-     */
-    @GetMapping("/unread")
-    public ResponseEntity<BaseResponse<List<Notification>>> getUnreadNotifications() {
-        List<Notification> notifications = notificationService.getUnreadNotifications();
-        return ResponseEntity.ok(BaseResponse.success("Unread notifications retrieved successfully", notifications));
-    }
-
-    /**
-     * Mark notification as read
-     */
-    @PutMapping("/{id}/read")
-    public ResponseEntity<BaseResponse<String>> markAsRead(@PathVariable Long id) {
-        boolean success = notificationService.markAsRead(id);
-        if (success) {
-            return ResponseEntity.ok(BaseResponse.success("Notification marked as read successfully"));
-        } else {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    /**
-     * Get notification counts
-     */
-    @GetMapping("/count/unread")
-    public ResponseEntity<BaseResponse<Long>> getUnreadCount() {
-        long count = notificationService.getUnreadCount();
-        return ResponseEntity.ok(BaseResponse.success("Unread count retrieved successfully", count));
-    }
 }
