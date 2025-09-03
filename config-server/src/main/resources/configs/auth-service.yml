@@ -57,6 +57,9 @@ kafka:
   topic:
     email: ${KAFKA_TOPIC_EMAIL:email-notifications}
     websocket: ${KAFKA_TOPIC_WEBSOCKET:websocket-notifications}
+    reseller-deleted: ${KAFKA_TOPIC_RESELLER_DELETED:reseller-deleted}
+  consumer:
+    group-id: ${KAFKA_CONSUMER_GROUP_ID:auth-service-group}
 
 # Auth service configuration
 auth:

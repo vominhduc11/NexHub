@@ -70,6 +70,9 @@ kafka:
   topic:
     email: ${KAFKA_TOPIC_EMAIL:email-notifications}
     websocket: ${KAFKA_TOPIC_WEBSOCKET:websocket-notifications}
+  consumer:
+    email-group-id: ${KAFKA_CONSUMER_EMAIL_GROUP_ID:email-notification-group}
+    websocket-group-id: ${KAFKA_CONSUMER_WEBSOCKET_GROUP_ID:websocket-notification-group}
 
 # SpringDoc OpenAPI Configuration
 springdoc:

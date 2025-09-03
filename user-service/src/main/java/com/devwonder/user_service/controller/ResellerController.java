@@ -92,6 +92,26 @@ public class ResellerController {
         }
     }
 
+    @PutMapping("/{accountId}/restore")
+    @Operation(summary = "Restore soft-deleted reseller", description = "Restore a soft-deleted reseller profile by account ID")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Reseller restored successfully"),
+        @ApiResponse(responseCode = "404", description = "Reseller not found"),
+        @ApiResponse(responseCode = "400", description = "Reseller is not deleted")
+    })
+    public ResponseEntity<BaseResponse<String>> restoreReseller(@PathVariable Long accountId) {
+        log.info("Received restore reseller request for account ID: {}", accountId);
+        
+        try {
+            resellerService.restoreReseller(accountId);
+            return ResponseUtil.success("Reseller restored successfully", "Reseller with account ID " + accountId + " has been restored");
+            
+        } catch (BaseException e) {
+            log.error("Error restoring reseller: {}", e.getMessage());
+            return ResponseUtil.error(e.getMessage(), e.getErrorCode(), e.getHttpStatus());
+        }
+    }
+
     @Operation(summary = "Check if reseller exists by account ID")
     @GetMapping("/{accountId}/exists")
     public ResponseEntity<BaseResponse<Boolean>> existsById(@PathVariable Long accountId) {

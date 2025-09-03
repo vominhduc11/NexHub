@@ -95,7 +95,7 @@ public class SecurityConfig {
         exchanges
                 // Public validation endpoints
                 .pathMatchers("/api/user/reseller/*/exists").permitAll()
-                .pathMatchers("/api/customer/*/exists").permitAll()
+                .pathMatchers("/user/customer/*/exists").permitAll()
                 // Get all resellers - Requires ALL authorities
                 .pathMatchers(HttpMethod.GET, "/api/user/reseller")
                 .access(new AllAuthoritiesAuthorizationManager(

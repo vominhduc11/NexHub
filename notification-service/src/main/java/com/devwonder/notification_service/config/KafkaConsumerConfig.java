@@ -48,10 +48,20 @@ public class KafkaConsumerConfig {
         return new DefaultKafkaConsumerFactory<>(configProps);
     }
 
+    /**
+     * Email notification listener container factory with error handling and concurrency control
+     */
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, NotificationEvent> notificationEventKafkaListenerContainerFactory() {
+    public ConcurrentKafkaListenerContainerFactory<String, NotificationEvent> emailNotificationKafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, NotificationEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(emailNotificationConsumerFactory());
+        
+        // Concurrency configuration for email processing
+        factory.setConcurrency(2); // Multiple threads for email processing
+        
+        // Error handling - continue processing other messages on error
+        factory.setCommonErrorHandler(new org.springframework.kafka.listener.DefaultErrorHandler());
+        
         return factory;
     }
     
@@ -63,10 +73,20 @@ public class KafkaConsumerConfig {
         return new DefaultKafkaConsumerFactory<>(configProps);
     }
 
+    /**
+     * WebSocket notification listener container factory with error handling and ordered processing
+     */
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, NotificationEvent> websocketNotificationKafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, NotificationEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(websocketNotificationConsumerFactory());
+        
+        // Concurrency configuration for real-time processing
+        factory.setConcurrency(1); // Single consumer for ordered real-time notifications
+        
+        // Error handling - continue processing other messages on error
+        factory.setCommonErrorHandler(new org.springframework.kafka.listener.DefaultErrorHandler());
+        
         return factory;
     }
 }

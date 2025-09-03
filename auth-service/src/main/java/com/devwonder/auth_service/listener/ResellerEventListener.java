@@ -1,58 +1,93 @@
 package com.devwonder.auth_service.listener;
 
-import com.devwonder.auth_service.entity.Account;
 import com.devwonder.auth_service.event.ResellerDeletedEvent;
-import com.devwonder.auth_service.repository.AccountRepository;
+import com.devwonder.auth_service.event.ResellerRestoredEvent;
+import com.devwonder.auth_service.service.ResellerEventService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.Optional;
-
+/**
+ * Kafka event listener for reseller-related events
+ * Delegates business logic processing to ResellerEventService
+ */
 @Component
 @Slf4j
 @RequiredArgsConstructor
 public class ResellerEventListener {
 
-    private final AccountRepository accountRepository;
+    private final ResellerEventService resellerEventService;
 
-    @KafkaListener(topics = "reseller-deleted", groupId = "auth-service-group")
-    @Transactional
+    /**
+     * Handles reseller deletion events from user-service
+     * Delegates to service layer for business logic processing
+     */
+    @KafkaListener(
+        topics = "${kafka.topic.reseller-deleted:reseller-deleted}", 
+        groupId = "${kafka.consumer.group-id:auth-service-group}",
+        containerFactory = "kafkaListenerContainerFactory"
+    )
     public void handleResellerDeleted(ResellerDeletedEvent event) {
+        if (event == null || event.getAccountId() == null) {
+            log.warn("Received invalid reseller-deleted event: {}", event);
+            return;
+        }
+
         log.info("Received reseller-deleted event for accountId: {}, reseller: {}", 
                 event.getAccountId(), event.getResellerName());
 
         try {
-            Optional<Account> accountOpt = accountRepository.findById(event.getAccountId());
+            resellerEventService.processResellerDeletion(event);
+            log.info("Successfully processed reseller deletion for accountId: {}", 
+                    event.getAccountId());
             
-            if (accountOpt.isPresent()) {
-                Account account = accountOpt.get();
-                
-                // Hybrid approach: Just audit/log, don't disable account
-                // This allows for potential restoration if needed
-                log.info("Reseller '{}' (accountId: {}) was deleted at {} for reason: {}", 
-                        event.getResellerName(), 
-                        event.getAccountId(), 
-                        event.getDeletedAt(), 
-                        event.getReason());
-
-                // Optional: Could add a soft delete here if needed
-                // account.setDeletedAt(LocalDateTime.now());
-                // accountRepository.save(account);
-                
-                log.info("Successfully processed reseller deletion event for accountId: {}", event.getAccountId());
-                
-            } else {
-                log.warn("Account with ID {} not found for reseller deletion event", event.getAccountId());
-            }
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid event data for accountId: {}, error: {}", 
+                    event.getAccountId(), e.getMessage());
+            // Don't retry for validation errors
             
         } catch (Exception e) {
             log.error("Error processing reseller-deleted event for accountId: {}, error: {}", 
                     event.getAccountId(), e.getMessage(), e);
-            // Don't rethrow - let Kafka handle retry logic
+            // Let Kafka handle retry logic based on configuration
+            throw e; // Rethrow for retry mechanism
+        }
+    }
+
+    /**
+     * Handles reseller restoration events from user-service
+     * Delegates to service layer for business logic processing
+     */
+    @KafkaListener(
+        topics = "${kafka.topic.reseller-restored:reseller-restored}", 
+        groupId = "${kafka.consumer.group-id:auth-service-group}",
+        containerFactory = "kafkaListenerContainerFactory"
+    )
+    public void handleResellerRestored(ResellerRestoredEvent event) {
+        if (event == null || event.getAccountId() == null) {
+            log.warn("Received invalid reseller-restored event: {}", event);
+            return;
+        }
+
+        log.info("Received reseller-restored event for accountId: {}, reseller: {}", 
+                event.getAccountId(), event.getResellerName());
+
+        try {
+            resellerEventService.processResellerRestoration(event);
+            log.info("Successfully processed reseller restoration for accountId: {}", 
+                    event.getAccountId());
+            
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid event data for accountId: {}, error: {}", 
+                    event.getAccountId(), e.getMessage());
+            // Don't retry for validation errors
+            
+        } catch (Exception e) {
+            log.error("Error processing reseller-restored event for accountId: {}, error: {}", 
+                    event.getAccountId(), e.getMessage(), e);
+            // Let Kafka handle retry logic based on configuration
+            throw e; // Rethrow for retry mechanism
         }
     }
 }

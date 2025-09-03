@@ -18,7 +18,11 @@ public class EmailNotificationConsumer {
     private final NotificationWebSocketController webSocketController;
     private final NotificationService notificationService;
 
-    @KafkaListener(topics = "${kafka.topic.email:email-notifications}", containerFactory = "notificationEventKafkaListenerContainerFactory")
+    @KafkaListener(
+        topics = "${kafka.topic.email:email-notifications}",
+        groupId = "${kafka.consumer.email-group-id:email-notification-group}",
+        containerFactory = "emailNotificationKafkaListenerContainerFactory"
+    )
     public void consumeEmailNotification(NotificationEvent event) {
         try {
             log.info("Received email notification event: {} for account ID: {}", event.getEventType(),
@@ -40,7 +44,11 @@ public class EmailNotificationConsumer {
         }
     }
 
-    @KafkaListener(topics = "${kafka.topic.websocket:websocket-notifications}", containerFactory = "websocketNotificationKafkaListenerContainerFactory")
+    @KafkaListener(
+        topics = "${kafka.topic.websocket:websocket-notifications}",
+        groupId = "${kafka.consumer.websocket-group-id:websocket-notification-group}",
+        containerFactory = "websocketNotificationKafkaListenerContainerFactory"
+    )
     public void consumeWebSocketNotification(NotificationEvent event) {
         try {
             log.info("Received WebSocket notification event: {} for account ID: {}", event.getEventType(),

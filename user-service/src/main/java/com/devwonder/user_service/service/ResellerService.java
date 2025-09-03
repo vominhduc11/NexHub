@@ -4,6 +4,7 @@ import com.devwonder.user_service.dto.CreateResellerRequest;
 import com.devwonder.user_service.dto.ResellerResponse;
 import com.devwonder.user_service.entity.Reseller;
 import com.devwonder.user_service.event.ResellerDeletedEvent;
+import com.devwonder.user_service.event.ResellerRestoredEvent;
 import com.devwonder.user_service.exception.EmailAlreadyExistsException;
 import com.devwonder.user_service.exception.PhoneAlreadyExistsException;
 import com.devwonder.user_service.mapper.ResellerMapper;
@@ -103,8 +104,8 @@ public class ResellerService {
         // 2. Publish event to Kafka
         try {
             ResellerDeletedEvent event = ResellerDeletedEvent.of(
-                accountId, 
-                deletedReseller.getName(), 
+                accountId,
+                deletedReseller.getName(),
                 deletedReseller.getEmail(),
                 "Admin deletion via API"
             );
@@ -131,8 +132,26 @@ public class ResellerService {
         }
 
         reseller.setDeletedAt(null);
-        resellerRepository.save(reseller);
-        log.info("Reseller restored successfully: {}", reseller.getName());
+        Reseller restoredReseller = resellerRepository.save(reseller);
+        log.info("Reseller restored successfully: {}", restoredReseller.getName());
+        
+        // Publish event to Kafka
+        try {
+            ResellerRestoredEvent event = ResellerRestoredEvent.of(
+                accountId,
+                restoredReseller.getName(),
+                restoredReseller.getEmail(),
+                "Admin restoration via API"
+            );
+            
+            kafkaTemplate.send("reseller-restored", event);
+            log.info("Published reseller-restored event for accountId: {}", accountId);
+            
+        } catch (Exception e) {
+            log.error("Failed to publish reseller-restored event for accountId: {}, error: {}", 
+                accountId, e.getMessage());
+            // Don't fail the restoration if event publishing fails
+        }
     }
 
     @Transactional

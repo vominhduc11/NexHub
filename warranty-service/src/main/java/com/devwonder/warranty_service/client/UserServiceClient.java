@@ -12,6 +12,6 @@ public interface UserServiceClient {
     @GetMapping("/user/reseller/{accountId}/exists")
     Boolean resellerExists(@PathVariable("accountId") Long accountId);
     
-    @GetMapping("/api/customer/{accountId}/exists")
+    @GetMapping("/user/customer/{accountId}/exists")
     Boolean customerExists(@PathVariable("accountId") Long accountId);
 }
