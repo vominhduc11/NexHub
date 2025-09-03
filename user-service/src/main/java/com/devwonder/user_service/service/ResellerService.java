@@ -3,6 +3,7 @@ package com.devwonder.user_service.service;
 import com.devwonder.user_service.dto.CreateResellerRequest;
 import com.devwonder.user_service.dto.ResellerResponse;
 import com.devwonder.user_service.entity.Reseller;
+import com.devwonder.user_service.event.ResellerDeletedEvent;
 import com.devwonder.user_service.exception.EmailAlreadyExistsException;
 import com.devwonder.user_service.exception.PhoneAlreadyExistsException;
 import com.devwonder.user_service.mapper.ResellerMapper;
@@ -14,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +29,7 @@ public class ResellerService {
     
     private final ResellerRepository resellerRepository;
     private final ResellerMapper resellerMapper;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
     
     @Transactional
     public ResellerResponse createReseller(CreateResellerRequest request) {
@@ -92,9 +95,28 @@ public class ResellerService {
             throw new ValidationException("Reseller is already deleted");
         }
 
+        // 1. Soft delete reseller
         reseller.setDeletedAt(LocalDateTime.now());
-        resellerRepository.save(reseller);
-        log.info("Reseller soft deleted successfully: {}", reseller.getName());
+        Reseller deletedReseller = resellerRepository.save(reseller);
+        log.info("Reseller soft deleted successfully: {}", deletedReseller.getName());
+        
+        // 2. Publish event to Kafka
+        try {
+            ResellerDeletedEvent event = ResellerDeletedEvent.of(
+                accountId, 
+                deletedReseller.getName(), 
+                deletedReseller.getEmail(),
+                "Admin deletion via API"
+            );
+            
+            kafkaTemplate.send("reseller-deleted", event);
+            log.info("Published reseller-deleted event for accountId: {}", accountId);
+            
+        } catch (Exception e) {
+            log.error("Failed to publish reseller-deleted event for accountId: {}, error: {}", 
+                accountId, e.getMessage());
+            // Don't fail the deletion if event publishing fails
+        }
     }
 
     @Transactional

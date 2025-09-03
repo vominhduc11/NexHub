@@ -96,6 +96,18 @@ public class SecurityConfig {
                 // Public validation endpoints
                 .pathMatchers("/api/user/reseller/*/exists").permitAll()
                 .pathMatchers("/api/customer/*/exists").permitAll()
+                // Get all resellers - Requires ALL authorities
+                .pathMatchers(HttpMethod.GET, "/api/user/reseller")
+                .access(new AllAuthoritiesAuthorizationManager(
+                    "ROLE_ADMIN",
+                    "PERM_RESELLER_READ"
+                ))
+                // Delete reseller - Requires ALL authorities
+                .pathMatchers(HttpMethod.DELETE, "/api/user/reseller/*")
+                .access(new AllAuthoritiesAuthorizationManager(
+                    "ROLE_ADMIN", 
+                    "PERM_RESELLER_DELETE"
+                ))
                 // User management by role
                 .pathMatchers(HttpMethod.POST, "/api/user/**")
                 .hasAnyAuthority("ROLE_ADMIN", "ROLE_DEALER", "PERM_USER_CREATE")

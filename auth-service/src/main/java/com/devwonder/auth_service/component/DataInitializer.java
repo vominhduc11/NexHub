@@ -43,9 +43,9 @@ public class DataInitializer implements CommandLineRunner {
             initializeRoles();
             
             // Create test accounts if not exist
-            createTestAccountIfNotExists(1L, "admin", "admin123", "ADMIN");
-            createTestAccountIfNotExists(2L, "dealer", "dealer123", "DEALER");
-            createTestAccountIfNotExists(3L, "customer", "customer123", "CUSTOMER");
+            createTestAccountIfNotExists("admin", "admin123", "ADMIN");
+            createTestAccountIfNotExists("dealer", "dealer123", "DEALER");
+            createTestAccountIfNotExists("customer", "customer123", "CUSTOMER");
             
             log.info("Auth-service data initialization completed successfully");
         } catch (Exception e) {
@@ -87,6 +87,12 @@ public class DataInitializer implements CommandLineRunner {
         createPermissionIfNotExists("NOTIFICATION_READ");
         createPermissionIfNotExists("NOTIFICATION_UPDATE");
         createPermissionIfNotExists("NOTIFICATION_DELETE");
+
+        // Reseller permissions
+        createPermissionIfNotExists("RESELLER_CREATE");
+        createPermissionIfNotExists("RESELLER_READ");
+        createPermissionIfNotExists("RESELLER_UPDATE");
+        createPermissionIfNotExists("RESELLER_DELETE");
     }
     
     /**
@@ -94,7 +100,7 @@ public class DataInitializer implements CommandLineRunner {
      * Creates ADMIN, DEALER, and CUSTOMER roles with their respective permissions.
      */
     private void initializeRoles() {
-        createRoleWithPermissions("ADMIN", Set.of("NOTIFICATION_READ", "NOTIFICATION_UPDATE"));
+        createRoleWithPermissions("ADMIN", Set.of("NOTIFICATION_READ", "NOTIFICATION_UPDATE", "RESELLER_READ", "RESELLER_DELETE"));
         
         createRoleWithPermissions("DEALER", Set.of());
         
@@ -167,30 +173,38 @@ public class DataInitializer implements CommandLineRunner {
     
     /**
      * Create test account if it doesn't exist and assign specified role.
-     * @param id The specific ID for the account
      * @param username The username for the account
      * @param password The password for the account
      * @param roleName The role name to assign to the account
      */
-    private void createTestAccountIfNotExists(Long id, String username, String password, String roleName) {
-        if (accountRepository.findByUsername(username).isEmpty()) {
-            // Create account first without role
-            Account account = new Account();
-            account.setId(id);
-            account.setUsername(username);
-            account.setPassword(passwordEncoder.encode(password));
-            
-            // Save account first
-            Account savedAccount = accountRepository.save(account);
-            log.info("Created {} account with ID: {}", username, id);
-            
-            // Then find and assign role
-            Role role = roleRepository.findByName(roleName);
-            if (role != null) {
-                savedAccount.getRoles().add(role);
-                accountRepository.save(savedAccount);
-                log.info("Assigned {} role to {} account", roleName, username);
+    private void createTestAccountIfNotExists(String username, String password, String roleName) {
+        try {
+            if (accountRepository.findByUsername(username).isEmpty()) {
+                // Create account first without role
+                Account account = new Account();
+                account.setUsername(username);
+                account.setPassword(passwordEncoder.encode(password));
+                
+                // Save account first (let database generate ID)
+                Account savedAccount = accountRepository.save(account);
+                log.info("Created {} account with ID: {}", username, savedAccount.getId());
+                
+                // Then find and assign role
+                Role role = roleRepository.findByName(roleName);
+                if (role != null) {
+                    // Reload the account to ensure it's properly managed
+                    Account managedAccount = accountRepository.findById(savedAccount.getId()).orElse(null);
+                    if (managedAccount != null) {
+                        managedAccount.getRoles().add(role);
+                        accountRepository.save(managedAccount);
+                        log.info("Assigned {} role to {} account", roleName, username);
+                    }
+                }
+            } else {
+                log.info("Account {} already exists, skipping creation", username);
             }
+        } catch (Exception e) {
+            log.warn("Failed to create account {}: {} - This is likely not critical", username, e.getMessage());
         }
     }
 }
