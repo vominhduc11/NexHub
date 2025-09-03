@@ -65,9 +65,24 @@ public class NotificationService {
     }
 
     /**
-     * Get all notifications
+     * Get all notifications ordered by newest first (descending by creation time)
      */
     public List<Notification> getAllNotifications() {
-        return notificationRepository.findAll();
+        return notificationRepository.findAllByOrderByCreatedAtDesc();
+    }
+
+    /**
+     * Mark notification as read
+     */
+    @Transactional
+    public Notification markAsRead(Long id) {
+        Notification notification = notificationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Notification not found with id: " + id));
+        
+        notification.setRead(true);
+        Notification updated = notificationRepository.save(notification);
+        
+        log.info("✅ Marked notification as read: ID={}", id);
+        return updated;
     }
 }

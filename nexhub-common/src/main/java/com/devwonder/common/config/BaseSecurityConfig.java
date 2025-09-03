@@ -1,5 +1,6 @@
 package com.devwonder.common.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -16,7 +17,9 @@ import org.springframework.security.web.access.expression.WebExpressionAuthoriza
 public abstract class BaseSecurityConfig {
 
     public static final String GATEWAY_HEADER_EXPRESSION = "request.getHeader('X-Gateway-Request') == 'true'";
-    public static final String AUTH_API_KEY_EXPRESSION = "request.getHeader('X-API-Key') == 'AUTH_TO_USER_SERVICE_KEY'";
+    
+    @Value("${auth.api.key:AUTH_TO_USER_SERVICE_KEY}")
+    private String authApiKey;
     
     protected abstract void configureServiceEndpoints(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth);
     
@@ -64,7 +67,8 @@ public abstract class BaseSecurityConfig {
     }
     
     protected WebExpressionAuthorizationManager authApiKeyRequired() {
-        return new WebExpressionAuthorizationManager(AUTH_API_KEY_EXPRESSION);
+        String expression = "request.getHeader('X-API-Key') == '" + authApiKey + "'";
+        return new WebExpressionAuthorizationManager(expression);
     }
     
     @Bean

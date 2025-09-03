@@ -3,19 +3,17 @@ package com.devwonder.notification_service.controller;
 import com.devwonder.common.exception.BaseException;
 import com.devwonder.notification_service.dto.DealerNotification;
 import com.devwonder.notification_service.entity.Notification;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Controller
+@RequiredArgsConstructor
+@Slf4j
 public class NotificationWebSocketController {
-
-    private static final Logger log = LoggerFactory.getLogger(NotificationWebSocketController.class);
     
-    @Autowired
-    private SimpMessagingTemplate messagingTemplate;
+    private final SimpMessagingTemplate messagingTemplate;
 
     public void broadcastDealerRegistration(Notification savedNotification) throws BaseException {
         log.info("Broadcasting dealer registration notification: {} (ID: {})", savedNotification.getTitle(), savedNotification.getId());

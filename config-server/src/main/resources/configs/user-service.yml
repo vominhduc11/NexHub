@@ -50,6 +50,11 @@ spring:
     redis:
       time-to-live: ${SPRING_CACHE_REDIS_TTL:600000}  # 10 minutes default TTL
 
+# Auth service configuration
+auth:
+  api:
+    key: ${AUTH_API_KEY:AUTH_TO_USER_SERVICE_KEY}
+
 # SpringDoc OpenAPI Configuration
 springdoc:
   api-docs:

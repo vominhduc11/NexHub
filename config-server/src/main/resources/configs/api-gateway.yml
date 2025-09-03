@@ -200,6 +200,16 @@ spring:
             - AddRequestHeader=X-Gateway-Request, true
 
         # Notification Service API Routes
+        - id: notification-service-options
+          uri: ${NOTIFICATION_SERVICE_URI}
+          predicates:
+            - Path=/api/notification/**       # CORS preflight pattern  
+            - Method=OPTIONS
+          filters:
+            - StripPrefix=1                   # /api/notification/** → /notification/**
+            - AddRequestHeader=X-Gateway-Request, true
+          order: 150                          # Higher priority than main route
+            
         - id: notification-service
           uri: ${NOTIFICATION_SERVICE_URI}
           order: 200

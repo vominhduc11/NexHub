@@ -26,6 +26,10 @@ public class DataInitializer implements CommandLineRunner {
     private final PermissionRepository permissionRepository;
     private final PasswordEncoder passwordEncoder;
 
+    /**
+     * Main initialization method that runs on application startup.
+     * Initializes permissions, roles, and test accounts.
+     */
     @Override
     @Transactional
     public void run(String... args) throws Exception {
@@ -39,9 +43,9 @@ public class DataInitializer implements CommandLineRunner {
             initializeRoles();
             
             // Create test accounts if not exist
-            createTestAccountIfNotExists("admin", "admin123", "ADMIN");
-            createTestAccountIfNotExists("dealer", "dealer123", "DEALER");
-            createTestAccountIfNotExists("customer", "customer123", "CUSTOMER");
+            createTestAccountIfNotExists(1L, "admin", "admin123", "ADMIN");
+            createTestAccountIfNotExists(2L, "dealer", "dealer123", "DEALER");
+            createTestAccountIfNotExists(3L, "customer", "customer123", "CUSTOMER");
             
             log.info("Auth-service data initialization completed successfully");
         } catch (Exception e) {
@@ -49,6 +53,10 @@ public class DataInitializer implements CommandLineRunner {
         }
     }
     
+    /**
+     * Initialize all system permissions for different modules.
+     * Creates permissions for User, Product, Blog, Warranty, and Notification modules.
+     */
     private void initializePermissions() {
         // User permissions
         createPermissionIfNotExists("USER_CREATE");
@@ -81,14 +89,22 @@ public class DataInitializer implements CommandLineRunner {
         createPermissionIfNotExists("NOTIFICATION_DELETE");
     }
     
+    /**
+     * Initialize system roles and assign permissions.
+     * Creates ADMIN, DEALER, and CUSTOMER roles with their respective permissions.
+     */
     private void initializeRoles() {
-        createRoleWithPermissions("ADMIN", Set.of("NOTIFICATION_READ"));
+        createRoleWithPermissions("ADMIN", Set.of("NOTIFICATION_READ", "NOTIFICATION_UPDATE"));
         
         createRoleWithPermissions("DEALER", Set.of());
         
         createRoleWithPermissions("CUSTOMER", Set.of());
     }
     
+    /**
+     * Create a permission if it doesn't already exist.
+     * @param name The permission name to create
+     */
     private void createPermissionIfNotExists(String name) {
         if (!permissionRepository.existsByName(name)) {
             Permission permission = new Permission();
@@ -98,6 +114,11 @@ public class DataInitializer implements CommandLineRunner {
         }
     }
     
+    /**
+     * Create a role with specified permissions or update existing role.
+     * @param roleName The name of the role to create
+     * @param permissionNames Set of permission names to assign to the role
+     */
     private void createRoleWithPermissions(String roleName, Set<String> permissionNames) {
         Role existingRole = roleRepository.findByName(roleName);
         if (existingRole == null) {
@@ -144,16 +165,24 @@ public class DataInitializer implements CommandLineRunner {
         }
     }
     
-    private void createTestAccountIfNotExists(String username, String password, String roleName) {
+    /**
+     * Create test account if it doesn't exist and assign specified role.
+     * @param id The specific ID for the account
+     * @param username The username for the account
+     * @param password The password for the account
+     * @param roleName The role name to assign to the account
+     */
+    private void createTestAccountIfNotExists(Long id, String username, String password, String roleName) {
         if (accountRepository.findByUsername(username).isEmpty()) {
             // Create account first without role
             Account account = new Account();
+            account.setId(id);
             account.setUsername(username);
             account.setPassword(passwordEncoder.encode(password));
             
             // Save account first
             Account savedAccount = accountRepository.save(account);
-            log.info("Created {} account", username);
+            log.info("Created {} account with ID: {}", username, id);
             
             // Then find and assign role
             Role role = roleRepository.findByName(roleName);

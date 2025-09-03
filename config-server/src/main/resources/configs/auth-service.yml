@@ -58,6 +58,11 @@ kafka:
     email: ${KAFKA_TOPIC_EMAIL:email-notifications}
     websocket: ${KAFKA_TOPIC_WEBSOCKET:websocket-notifications}
 
+# Auth service configuration
+auth:
+  api:
+    key: ${AUTH_API_KEY:AUTH_TO_USER_SERVICE_KEY}
+
 # SpringDoc OpenAPI Configuration
 springdoc:
   api-docs:

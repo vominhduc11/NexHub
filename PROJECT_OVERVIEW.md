@@ -4,17 +4,25 @@
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.5-green)
 ![Java](https://img.shields.io/badge/Java-17-orange)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue)
-![Kafka](https://img.shields.io/badge/Apache%20Kafka-3.5-red)
+![Kafka](https://img.shields.io/badge/Apache%20Kafka-7.4.0-red)
 ![Redis](https://img.shields.io/badge/Redis-7-red)
 ![Docker](https://img.shields.io/badge/Docker-Compose-blue)
 ![Security](https://img.shields.io/badge/Security-JWT%20RBAC-green)
 ![WebSocket](https://img.shields.io/badge/WebSocket-Real--time-yellow)
 
-> **Advanced Enterprise E-Commerce Platform** built with Spring Boot 3.5.5 microservices architecture, featuring comprehensive JWT security with custom authorization, real-time WebSocket communications, event-driven architecture with Kafka, and cloud-native design patterns.
+> **Production-Ready Enterprise E-Commerce Platform** built with Spring Boot 3.5.5 microservices architecture, featuring comprehensive JWT security with custom `AllAuthoritiesAuthorizationManager`, real-time WebSocket communications with Lombok optimizations, event-driven architecture with Kafka event streaming, notification persistence with database audit trails, and comprehensive Docker orchestration.
 
 ## 🚀 Latest Updates & Enhancements
 
-### 🔐 **Advanced Security Framework (December 2024)**
+### � **Recent Production Improvements** *(December 2024)*
+- **✅ Enhanced Notification System**: Complete CRUD operations with database persistence and audit trails
+- **✅ Lombok Integration**: Clean code patterns with `@RequiredArgsConstructor` and `@Slf4j` in notification components
+- **✅ Optimized Data Ordering**: Notifications now sorted chronologically (newest first) using Spring Data JPA naming conventions
+- **✅ Advanced Security Framework**: `AllAuthoritiesAuthorizationManager` requiring ALL specified authorities for maximum security
+- **✅ WebSocket Real-time Enhancement**: Direct port connection for optimal performance with dual-layer security
+- **✅ Complete Git Integration**: Full project committed to remote repository with comprehensive version control
+
+### �🔐 **Advanced Security Framework (December 2024)**
 - **Custom Authorization Manager**: Implemented `AllAuthoritiesAuthorizationManager` for requiring ALL specified authorities instead of ANY
 - **Enhanced JWT Security**: RSA-256 with JWKS endpoint validation and comprehensive role/permission extraction
 - **API Gateway Security**: Centralized security with reactive authorization patterns
@@ -26,16 +34,23 @@
 - **Event-Driven Architecture**: Kafka-based asynchronous communication between services
 
 ### 🏗️ **Microservices Architecture**
-- **11+ Production Services**: All services operational with proper health checks
-- **Service Discovery**: Eureka-based service registry with automatic registration
-- **Configuration Management**: Centralized config server with native profiles
-- **Database Isolation**: 6 separate PostgreSQL databases for service isolation
+- **11+ Production Services**: All services operational with advanced health checks and container orchestration
+- **Service Discovery**: Eureka-based service registry with automatic registration and load balancing
+- **Configuration Management**: Centralized config server with native profiles and environment-specific configurations  
+- **Database Isolation**: 6 separate PostgreSQL databases for complete service isolation and data integrity
+- **Event-Driven Communication**: Kafka event streaming with 3-broker cluster and Zookeeper coordination
 
 ## Executive Summary
 
 **NexHub** is a production-ready enterprise e-commerce microservices platform built on Spring Boot 3.5.5, designed for scalable product management, warranty tracking, customer operations, and content management. The platform features distributed architecture with Redis caching, Kafka event streaming, WebSocket real-time communication, and comprehensive JWT security across 6 specialized PostgreSQL databases.
 
-**Recent Enhancements (September 2025)**:
+**Recent Enhancements (December 2024)**:
+- **Lombok Code Optimization**: Integrated `@RequiredArgsConstructor` and `@Slf4j` annotations for cleaner notification service components
+- **Enhanced Notification System**: Complete CRUD operations with database persistence, audit trails, and chronological ordering
+- **Spring Data JPA Advanced Patterns**: Implemented `findAllByOrderByCreatedAtDesc()` using JPA naming conventions for automatic query generation
+- **AllAuthoritiesAuthorizationManager**: Custom security implementation requiring ALL specified authorities for maximum protection
+- **WebSocket Performance Optimization**: Direct port 8083 connection with dual-layer security interceptors for real-time communication
+- **Git Repository Management**: Complete project version control with comprehensive commit history and remote repository integration
 - **BaseException Integration**: Successfully implemented BaseException across all controllers with proper exception handling
 - **Enhanced Exception Architecture**: BaseControllerAdvice with scope-limited `basePackages = "com.devwonder"` and `@Hidden` annotation for clean Swagger UI
 - **Swagger Documentation Optimization**: Fixed Swagger UI conflicts by removing generic Exception.class handlers and implementing proper security controls  
@@ -68,7 +83,7 @@ NexHub implements a complete microservices architecture with infrastructure serv
 |---------|------|----------|--------------|------------------|---------|
 | **Auth Service** | 8081 | nexhub_auth | RSA-256 JWT with JWKS, RBAC, Account management, Reseller registration, BaseException integration | Spring Security, JJWT, JPA, Kafka Producer, OpenFeign, nexhub-common, BaseControllerAdvice | ✅ Production Ready |
 | **User Service** | 8082 | nexhub_user | Customer & Reseller CRUD, Profile management, Account integration, BaseException handling | Spring Data JPA, Redis caching, MapStruct mapping, nexhub-common, BaseControllerAdvice | ✅ Production Ready |
-| **Notification Service** | 8083 | nexhub_notification | Real-time WebSocket messaging, Email notifications, Kafka events, Dealer registration notifications, Database persistence | WebSocket/STOMP, Kafka Consumer, Spring Mail, PostgreSQL, nexhub-common, BaseControllerAdvice | ✅ Production Ready |
+| **Notification Service** | 8083 | nexhub_notification | Real-time WebSocket messaging with Lombok optimizations, Email notifications, Kafka events, Dealer registration notifications, Complete database persistence with CRUD operations, Chronological ordering | WebSocket/STOMP, Kafka Consumer, Spring Mail, PostgreSQL, nexhub-common, BaseControllerAdvice, Lombok (@RequiredArgsConstructor, @Slf4j) | ✅ Production Ready |
 | **Product Service** | 8084 | nexhub_product | Product catalog, categories, media management, serial tracking, BaseException handling | Spring Data JPA, Redis caching, OpenAPI, MapStruct, nexhub-common, BaseControllerAdvice | ✅ Production Ready |
 | **Warranty Service** | 8085 | nexhub_warranty | Warranty tracking, claims management, statistics, service integration, BaseException support | Spring Data JPA, OpenFeign clients, Redis caching, MapStruct, nexhub-common, BaseControllerAdvice | ✅ Production Ready |
 | **Blog Service** | 8087 | nexhub_blog | CMS with posts, categories, comments, authors, tags, SEO optimization, BaseException integration | Spring Data JPA, Redis caching, OpenAPI, nexhub-common, BaseControllerAdvice | ✅ Production Ready |
@@ -141,9 +156,9 @@ NexHub implements a complete microservices architecture with infrastructure serv
 ```
 
 **Security Methods Comparison**:
-- **hasAnyAuthority()**: User needs ANY of the specified authorities (OR logic)
-- **hasAuthority()**: User needs the specific authority
-- **AllAuthoritiesAuthorizationManager**: User needs ALL specified authorities (AND logic)
+- **hasAnyAuthority()**: User needs ANY of the specified authorities (OR logic) - Standard Spring Security
+- **hasAuthority()**: User needs the specific authority - Standard Spring Security  
+- **AllAuthoritiesAuthorizationManager**: User needs ALL specified authorities (AND logic) - Custom implementation
 
 **JWT Token Structure**:
 ```json
@@ -157,6 +172,11 @@ NexHub implements a complete microservices architecture with infrastructure serv
   "exp": 1672531200
 }
 ```
+
+**Authority Extraction Logic**:
+- **Roles**: Extracted from JWT and prefixed with `ROLE_` (e.g., `ROLE_ADMIN`)
+- **Permissions**: Extracted from JWT and prefixed with `PERM_` (e.g., `PERM_NOTIFICATION_READ`)
+- **Default Fallback**: `ROLE_CUSTOMER` assigned when no authorities found
 
 ### Advanced WebSocket Security & Direct Connection
 
@@ -232,10 +252,11 @@ nexhub_blog         → Blog posts, categories, authors, tags, comments
 - **Soft Delete**: Proper deletion tracking with deletedAt timestamps
 
 **Notification Domain (nexhub_notification)**:
-- **Notifications**: Notification records with title, message, type, read status, timestamps
-- **Dealer Registrations**: Specialized notifications for dealer registration events
-- **Database Persistence**: All notifications saved for audit and history tracking
-- **Type Classification**: DEALER_REGISTRATION, EMAIL_NOTIFICATION, SYSTEM_ALERT
+- **Notifications**: Notification records with title, message, type, read status, timestamps, chronological ordering with `findAllByOrderByCreatedAtDesc()`
+- **Dealer Registrations**: Specialized notifications for dealer registration events with complete audit trails
+- **Database Persistence**: All notifications saved for audit and history tracking with CRUD operations
+- **Type Classification**: DEALER_REGISTRATION, EMAIL_NOTIFICATION, SYSTEM_ALERT with proper enum management
+- **Lombok Integration**: Clean code patterns with `@RequiredArgsConstructor` and `@Slf4j` for reduced boilerplate
 
 **Product Catalog Domain (nexhub_product)**:
 - **Products**: Core product entities with specifications, pricing, warranty information, SEO fields
@@ -269,7 +290,7 @@ nexhub_blog         → Blog posts, categories, authors, tags, comments
 | **Build Tool** | Apache Maven | 3.9+ | Multi-module build automation and dependency management |
 | **Database** | PostgreSQL | 15-alpine | ACID-compliant relational data storage |
 | **Caching** | Redis | 7-alpine | In-memory data structure store with persistence |
-| **Message Broker** | Apache Kafka | 7.4.0 | Distributed event streaming platform |
+| **Message Broker** | Apache Kafka | 7.4.0 | High-throughput distributed event streaming platform with 3-broker cluster |
 | **Coordination** | Apache Zookeeper | 3.8.4 | Distributed configuration and coordination service |
 | **Service Discovery** | Netflix Eureka | 2025.0.0 | Dynamic service registration and health monitoring |
 | **API Gateway** | Spring Cloud Gateway | 2024.0.0 | Reactive API gateway with routing and filtering |
@@ -508,9 +529,11 @@ Auth Service → Kafka (websocket-notifications) → Notification Service
 ### Notification Management
 | Endpoint | Method | Purpose | Security |
 |----------|---------|---------|----------|
-| `/api/notification/all` | GET | Get all notifications | ROLE_ADMIN + PERM_NOTIFICATION_READ |
-| `/api/notification/create` | POST | Create notification | ADMIN |
-| `ws://localhost:8083/ws/notifications` | WebSocket | Real-time messaging | JWT Authentication |
+| `/api/notification/all` | GET | Get all notifications (newest first) | **AllAuthoritiesAuthorizationManager** (ROLE_ADMIN + PERM_NOTIFICATION_READ) |
+| `/api/notification/{id}/read` | PUT | Mark notification as read | **AllAuthoritiesAuthorizationManager** (ROLE_ADMIN + PERM_NOTIFICATION_UPDATE) |
+| `ws://localhost:8083/ws/notifications` | WebSocket | Real-time messaging with Lombok optimizations | JWT Authentication |
+
+> **Note**: Notification endpoints use custom `AllAuthoritiesAuthorizationManager` requiring ALL specified authorities instead of ANY.
 
 ### Product Catalog Management
 | Endpoint | Method | Purpose | Security |
@@ -682,19 +705,33 @@ curl http://localhost:8761/eureka/apps
 ### ⚠️ Known Features & Considerations
 
 **Security Patterns**:
-- **hasAnyAuthority()**: Grants access if user has ANY of the specified authorities (OR logic)
-- **AllAuthoritiesAuthorizationManager**: Grants access only if user has ALL specified authorities (AND logic)
+- **hasAnyAuthority()**: Grants access if user has ANY of the specified authorities (OR logic) - Standard Spring Security
+- **AllAuthoritiesAuthorizationManager**: Grants access only if user has ALL specified authorities (AND logic) - Custom implementation
 - Example: `/api/notification/all` requires BOTH `ROLE_ADMIN` AND `PERM_NOTIFICATION_READ`
+- Implementation: Iterates through required authorities, returns false if ANY are missing
+
+**Lombok Code Optimization**:
+- **@RequiredArgsConstructor**: Generates constructor for final fields and @NonNull fields
+- **@Slf4j**: Provides logger instance without boilerplate declaration
+- Example: NotificationWebSocketController uses both annotations for clean, maintainable code
+- Benefits: Reduced boilerplate, improved readability, automatic dependency injection
 
 **WebSocket Architecture**:
 - Direct connection to port 8083 (optimized for performance)
 - Dual-layer security with authentication and authorization interceptors
 - Real-time JWT validation on each message
 - Role-based topic subscriptions and message sending
+- Lombok-optimized components for better maintainability
+
+**Spring Data JPA Naming Conventions**:
+- **findAllByOrderByCreatedAtDesc()**: Automatically generates query for descending order by createdAt
+- No need for manual @Query annotations with simple ordering requirements
+- Spring Boot automatically translates method names to SQL queries
+- Pattern: findAllBy + OrderBy + FieldName + Direction (Asc/Desc)
 
 **Database Strategy**:
 - 6 separate PostgreSQL databases for complete service isolation
-- Notification service fully functional with persistence
+- Notification service fully functional with persistence and audit trails
 - Automatic schema management and data initialization
 - nexhub-common library must be built before other services
 
@@ -836,21 +873,23 @@ cd nexhub-common && mvn clean install
 ## Project Metadata
 
 **Platform**: NexHub Enterprise E-Commerce Microservices  
-**Version**: 3.4.0  
+**Version**: 3.5.0  
 **Last Updated**: December 2024  
-**Status**: Production-Ready with Advanced Security Implementation  
-**Architecture**: Spring Boot 3.5.5 Microservices with Custom Authorization Framework  
+**Status**: Production-Ready with Lombok Optimizations and Enhanced Notification System  
+**Architecture**: Spring Boot 3.5.5 Microservices with Custom Authorization Framework and Clean Code Patterns  
 **Infrastructure**: Docker, PostgreSQL, Redis, Kafka, WebSocket, Eureka Discovery  
 **Security**: Enhanced JWT with RSA-256, JWKS, Custom Authorization Manager, Advanced WebSocket Security  
+**Code Quality**: Lombok Integration with @RequiredArgsConstructor and @Slf4j for clean, maintainable code  
 **Maintainer**: DevWonder Development Team  
 
 **Total Services**: 11+ (7 Business + 3 Infrastructure + Monitoring Tools)  
-**Database Count**: 6 PostgreSQL databases with complete service isolation  
-**Message Brokers**: 3-node Kafka cluster with Zookeeper ensemble  
-**Caching**: Redis with distributed caching strategy  
-**Authorization**: Custom AllAuthoritiesAuthorizationManager for AND logic authorization  
-**Security Framework**: Reactive Spring WebFlux security with dual-layer WebSocket protection  
-**Real-time Communication**: Advanced WebSocket system with JWT authentication and role-based authorization  
+**Database Count**: 6 PostgreSQL databases with complete service isolation and audit trails  
+**Message Brokers**: 3-node Kafka cluster with Zookeeper ensemble for event streaming  
+**Caching**: Redis with distributed caching strategy and 600-second TTL  
+**Authorization**: Custom AllAuthoritiesAuthorizationManager for AND logic authorization requiring ALL specified authorities  
+**Security Framework**: Reactive Spring WebFlux security with dual-layer WebSocket protection and JWT validation  
+**Real-time Communication**: Advanced WebSocket system with JWT authentication, role-based authorization, and Lombok optimizations  
+**Data Access**: Spring Data JPA with naming conventions for automatic query generation (findAllByOrderByCreatedAtDesc)  
 
 **Latest Major Enhancements (December 2024)**:
 - **Custom Authorization Manager**: AllAuthoritiesAuthorizationManager for requiring ALL specified authorities

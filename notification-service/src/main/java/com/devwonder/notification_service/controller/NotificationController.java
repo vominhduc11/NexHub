@@ -26,4 +26,13 @@ public class NotificationController {
         List<Notification> notifications = notificationService.getAllNotifications();
         return ResponseEntity.ok(BaseResponse.success("Notifications retrieved successfully", notifications));
     }
+
+    /**
+     * Update notification read status
+     */
+    @PutMapping("/{id}/read")
+    public ResponseEntity<BaseResponse<Notification>> markNotificationAsRead(@PathVariable Long id) {
+        Notification updatedNotification = notificationService.markAsRead(id);
+        return ResponseEntity.ok(BaseResponse.success("Notification marked as read successfully", updatedNotification));
+    }
 }

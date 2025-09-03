@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +34,9 @@ public class ResellerService {
     private final UserServiceClient userServiceClient;
     private final NotificationService notificationService;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    
+    @Value("${auth.api.key}")
+    private String apiKey;
     
     @Transactional
     public ResellerRegistrationResponse registerReseller(ResellerRegistrationRequest request) {
@@ -82,7 +86,7 @@ public class ResellerService {
                 );
                 
                 log.info("Calling user-service to create reseller profile for account ID: {}", savedAccount.getId());
-                userServiceClient.createReseller(createResellerRequest, "AUTH_TO_USER_SERVICE_KEY");
+                userServiceClient.createReseller(createResellerRequest, apiKey);
                 log.info("Successfully created reseller profile in user-service");
                 
             } catch (Exception e) {

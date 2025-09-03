@@ -95,7 +95,7 @@ public class SecurityConfig {
         exchanges
                 // Public validation endpoints
                 .pathMatchers("/api/user/reseller/*/exists").permitAll()
-                .pathMatchers("/api/customers/*/exists").permitAll()
+                .pathMatchers("/api/customer/*/exists").permitAll()
                 // User management by role
                 .pathMatchers(HttpMethod.POST, "/api/user/**")
                 .hasAnyAuthority("ROLE_ADMIN", "ROLE_DEALER", "PERM_USER_CREATE")
@@ -127,6 +127,13 @@ public class SecurityConfig {
                 .access(new AllAuthoritiesAuthorizationManager(
                     "ROLE_ADMIN",
                     "PERM_NOTIFICATION_READ"
+                ))
+                
+                // Mark specific notification as read - Requires ALL authorities
+                .pathMatchers(HttpMethod.PUT, "/api/notification/{id}/read")
+                .access(new AllAuthoritiesAuthorizationManager(
+                    "ROLE_ADMIN",
+                    "PERM_NOTIFICATION_UPDATE"
                 ));
     }
 

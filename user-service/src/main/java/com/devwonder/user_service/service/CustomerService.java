@@ -1,5 +1,7 @@
 package com.devwonder.user_service.service;
 
+import com.devwonder.user_service.dto.CreateCustomerRequest;
+import com.devwonder.user_service.dto.CustomerResponse;
 import com.devwonder.user_service.entity.Customer;
 import com.devwonder.user_service.repository.CustomerRepository;
 import com.devwonder.user_service.exception.CustomerNotFoundException;
@@ -21,6 +23,35 @@ import java.util.Optional;
 public class CustomerService {
     
     private final CustomerRepository customerRepository;
+    
+    @Transactional
+    public CustomerResponse createCustomer(CreateCustomerRequest request) {
+        log.info("Creating customer for account ID: {}", request.getAccountId());
+        
+        // Check if customer already exists
+        if (customerRepository.existsById(request.getAccountId())) {
+            throw new ValidationException("Customer with account ID " + request.getAccountId() + " already exists");
+        }
+        
+        // Create new customer
+        Customer customer = new Customer();
+        customer.setAccountId(request.getAccountId());
+        customer.setName(request.getName());
+        customer.setCreatedAt(LocalDateTime.now());
+        customer.setUpdatedAt(LocalDateTime.now());
+        
+        Customer savedCustomer = customerRepository.save(customer);
+        log.info("Successfully created customer for account ID: {}", savedCustomer.getAccountId());
+        
+        // Convert to response DTO
+        CustomerResponse response = new CustomerResponse();
+        response.setAccountId(savedCustomer.getAccountId());
+        response.setName(savedCustomer.getName());
+        response.setCreatedAt(savedCustomer.getCreatedAt());
+        response.setUpdatedAt(savedCustomer.getUpdatedAt());
+        
+        return response;
+    }
     
     @Transactional
     public Customer createCustomer(Customer customer) {
