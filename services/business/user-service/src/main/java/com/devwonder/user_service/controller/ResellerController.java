@@ -8,12 +8,12 @@ import com.devwonder.user_service.dto.RejectResellerRequest;
 import com.devwonder.user_service.dto.ResellerRegistrationRequest;
 import com.devwonder.user_service.dto.ResellerResponse;
 import com.devwonder.user_service.service.ResellerService;
-import org.springframework.security.core.Authentication;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,28 +30,38 @@ public class ResellerController {
     
     private final ResellerService resellerService;
 
+    // Message constants
+    private static final String RESELLER_WITH_ACCOUNT_ID = "Reseller with account ID ";
+
     /**
-     * Extract user ID from Authentication - simplified version
-     * TODO: Implement proper JWT parsing when OAuth2 dependency is available
+     * Extract user ID from Gateway forwarded JWT headers
+     * In microservices architecture, API Gateway validates JWT and forwards claims as headers
      */
-    private Long getCurrentUserId(Authentication authentication) {
-        if (authentication == null) {
-            log.warn("No authentication found");
-            return null;
-        }
-        
+    private Long getCurrentUserId(HttpServletRequest request) {
         try {
-            // For now, return null - admin ID will be null in events
-            // This can be improved when proper JWT parsing is implemented
-            log.info("Authentication found: {}, but user ID extraction not implemented yet", 
-                    authentication.getName());
+            // Try to get account ID from Gateway-forwarded header
+            String accountIdHeader = request.getHeader("X-JWT-Account-ID");
+            if (accountIdHeader != null && !accountIdHeader.trim().isEmpty()) {
+                Long userId = Long.parseLong(accountIdHeader.trim());
+                log.info("Successfully extracted user ID from Gateway header: {}", userId);
+                return userId;
+            }
+            
+            // Fallback: try subject header
+            String subjectHeader = request.getHeader("X-JWT-Subject");
+            if (subjectHeader != null && !subjectHeader.trim().isEmpty()) {
+                Long userId = Long.parseLong(subjectHeader.trim());
+                log.info("Successfully extracted user ID from JWT subject header: {}", userId);
+                return userId;
+            }
+            
+            log.warn("No user ID found in Gateway headers (X-JWT-Account-ID or X-JWT-Subject)");
             return null;
             
         } catch (Exception e) {
-            log.warn("Failed to extract user ID from authentication: {}", e.getMessage());
+            log.error("Failed to extract user ID from Gateway headers: {}", e.getMessage());
+            return null;
         }
-        
-        return null;
     }
     
     @PostMapping("/register")
@@ -125,7 +135,7 @@ public class ResellerController {
         
         try {
             resellerService.softDeleteReseller(accountId);
-            return ResponseUtil.success("Reseller deleted successfully", "Reseller with account ID " + accountId + " has been soft deleted");
+            return ResponseUtil.success("Reseller deleted successfully", RESELLER_WITH_ACCOUNT_ID + accountId + " has been soft deleted");
             
         } catch (BaseException e) {
             log.error("Error deleting reseller: {}", e.getMessage());
@@ -145,7 +155,7 @@ public class ResellerController {
         
         try {
             resellerService.restoreReseller(accountId);
-            return ResponseUtil.success("Reseller restored successfully", "Reseller with account ID " + accountId + " has been restored");
+            return ResponseUtil.success("Reseller restored successfully", RESELLER_WITH_ACCOUNT_ID + accountId + " has been restored");
             
         } catch (BaseException e) {
             log.error("Error restoring reseller: {}", e.getMessage());
@@ -187,15 +197,15 @@ public class ResellerController {
     })
     public ResponseEntity<BaseResponse<String>> approveReseller(
             @PathVariable Long accountId,
-            Authentication authentication) {
+            HttpServletRequest request) {
         log.info("Received approve reseller request for account ID: {}", accountId);
         
         try {
-            Long approvedBy = getCurrentUserId(authentication);
+            Long approvedBy = getCurrentUserId(request);
             log.info("Approving reseller {} by user {}", accountId, approvedBy);
             
             resellerService.approveReseller(accountId, approvedBy);
-            return ResponseUtil.success("Reseller approved successfully", "Reseller with account ID " + accountId + " has been approved");
+            return ResponseUtil.success("Reseller approved successfully", RESELLER_WITH_ACCOUNT_ID + accountId + " has been approved");
             
         } catch (BaseException e) {
             log.error("Error approving reseller: {}", e.getMessage());
@@ -213,15 +223,15 @@ public class ResellerController {
     public ResponseEntity<BaseResponse<String>> rejectReseller(
             @PathVariable Long accountId,
             @Valid @RequestBody RejectResellerRequest request,
-            Authentication authentication) {
+            HttpServletRequest httpRequest) {
         log.info("Received reject reseller request for account ID: {} with reason: {}", accountId, request.getReason());
         
         try {
-            Long rejectedBy = getCurrentUserId(authentication);
+            Long rejectedBy = getCurrentUserId(httpRequest);
             log.info("Rejecting reseller {} by user {}", accountId, rejectedBy);
             
             resellerService.rejectReseller(accountId, request.getReason(), rejectedBy);
-            return ResponseUtil.success("Reseller rejected successfully", "Reseller with account ID " + accountId + " has been rejected");
+            return ResponseUtil.success("Reseller rejected successfully", RESELLER_WITH_ACCOUNT_ID + accountId + " has been rejected");
             
         } catch (BaseException e) {
             log.error("Error rejecting reseller: {}", e.getMessage());

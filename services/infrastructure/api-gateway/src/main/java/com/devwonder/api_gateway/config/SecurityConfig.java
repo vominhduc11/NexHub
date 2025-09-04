@@ -117,7 +117,7 @@ public class SecurityConfig {
                     "ROLE_ADMIN",
                     "PERM_RESELLER_UPDATE"
                 ))
-                // Approve reseller - Requires ALL authorities  
+                // Approve reseller - Requires ALL authorities
                 .pathMatchers(HttpMethod.PUT, "/api/user/reseller/*/approve")
                 .access(new AllAuthoritiesAuthorizationManager(
                     "ROLE_ADMIN",
@@ -127,23 +127,21 @@ public class SecurityConfig {
                 .pathMatchers(HttpMethod.PUT, "/api/user/reseller/*/reject")
                 .access(new AllAuthoritiesAuthorizationManager(
                     "ROLE_ADMIN",
-                    "PERM_RESELLER_APPROVE"
+                    "PERM_RESELLER_REJECT"
                 ))
+                // Restore reseller - Requires ALL authorities
+                .pathMatchers(HttpMethod.PUT, "/api/user/reseller/*/restore")
+                .access(new AllAuthoritiesAuthorizationManager(
+                    "ROLE_ADMIN",
+                    "PERM_RESELLER_RESTORE"
+                ))
+                
                 // Delete reseller - Requires ALL authorities
                 .pathMatchers(HttpMethod.DELETE, "/api/user/reseller/*")
                 .access(new AllAuthoritiesAuthorizationManager(
                     "ROLE_ADMIN",
                     "PERM_RESELLER_DELETE"
-                ))
-                // User management by role
-                .pathMatchers(HttpMethod.POST, "/api/user/**")
-                .hasAnyAuthority("ROLE_ADMIN", "ROLE_DEALER", "PERM_USER_CREATE")
-                .pathMatchers(HttpMethod.PUT, "/api/user/**")
-                .hasAnyAuthority("ROLE_ADMIN", "ROLE_DEALER", "ROLE_CUSTOMER", "PERM_USER_UPDATE")
-                .pathMatchers(HttpMethod.DELETE, "/api/user/**")
-                .hasAnyAuthority("ROLE_ADMIN", "PERM_USER_DELETE")
-                .pathMatchers(HttpMethod.GET, "/api/user/**")
-                .hasAnyAuthority("ROLE_ADMIN", "ROLE_DEALER", "ROLE_CUSTOMER", "PERM_USER_READ");
+                ));
     }
 
     private void configureWarrantyServiceAuth(ServerHttpSecurity.AuthorizeExchangeSpec exchanges) {

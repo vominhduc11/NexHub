@@ -93,6 +93,10 @@ public class DataInitializer implements CommandLineRunner {
         createPermissionIfNotExists("RESELLER_READ");
         createPermissionIfNotExists("RESELLER_UPDATE");
         createPermissionIfNotExists("RESELLER_DELETE");
+        createPermissionIfNotExists("RESELLER_RESTORE");
+        createPermissionIfNotExists("RESELLER_APPROVE");
+        createPermissionIfNotExists("RESELLER_REJECT");
+
     }
     
     /**
@@ -100,7 +104,7 @@ public class DataInitializer implements CommandLineRunner {
      * Creates ADMIN, DEALER, and CUSTOMER roles with their respective permissions.
      */
     private void initializeRoles() {
-        createRoleWithPermissions("ADMIN", Set.of("NOTIFICATION_READ", "NOTIFICATION_UPDATE", "RESELLER_READ", "RESELLER_DELETE"));
+        createRoleWithPermissions("ADMIN", Set.of("NOTIFICATION_READ", "NOTIFICATION_UPDATE", "RESELLER_READ", "RESELLER_DELETE", "RESELLER_APPROVE", "RESELLER_REJECT", "RESELLER_RESTORE"));
         
         createRoleWithPermissions("DEALER", Set.of());
         
