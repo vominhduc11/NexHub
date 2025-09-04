@@ -5,6 +5,7 @@ import com.devwonder.common.exception.BaseException;
 import com.devwonder.common.util.ResponseUtil;
 import com.devwonder.user_service.dto.CreateResellerRequest;
 import com.devwonder.user_service.dto.RejectResellerRequest;
+import com.devwonder.user_service.dto.ResellerRegistrationRequest;
 import com.devwonder.user_service.dto.ResellerResponse;
 import com.devwonder.user_service.service.ResellerService;
 import org.springframework.security.core.Authentication;
@@ -51,6 +52,20 @@ public class ResellerController {
         }
         
         return null;
+    }
+    
+    @PostMapping("/register")
+    @Operation(summary = "Register new reseller account", description = "Create a new reseller account with both auth account and profile")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Reseller account created successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid input data"),
+        @ApiResponse(responseCode = "409", description = "Username already exists")
+    })
+    public ResponseEntity<BaseResponse<ResellerResponse>> registerReseller(@Valid @RequestBody ResellerRegistrationRequest request) throws BaseException {
+        log.info("Received reseller registration request for username: {}", request.getUsername());
+        
+        ResellerResponse response = resellerService.registerReseller(request);
+        return ResponseUtil.created("Reseller account created successfully", response);
     }
     
     @GetMapping

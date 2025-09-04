@@ -10,44 +10,47 @@
 ![Security](https://img.shields.io/badge/Security-JWT%20RBAC-green)
 ![WebSocket](https://img.shields.io/badge/WebSocket-Real--time-yellow)
 ![Event Driven](https://img.shields.io/badge/Event--Driven-Kafka-orange)
+![Common Library](https://img.shields.io/badge/Shared-nexhub--common-purple)
 
-> **Production-Ready Enterprise E-Commerce Platform** built with Spring Boot 3.5.5 microservices architecture, featuring comprehensive JWT security with custom `AllAuthoritiesAuthorizationManager`, real-time WebSocket communications with dual-layer security interceptors, event-driven architecture with Kafka messaging for reseller lifecycle management, notification persistence with database audit trails, and complete Docker orchestration with service discovery.
+> **Production-Ready Enterprise E-Commerce Platform** built with Spring Boot 3.5.5 microservices architecture, featuring comprehensive JWT security with custom `AllAuthoritiesAuthorizationManager`, real-time WebSocket communications with dual-layer security interceptors, event-driven architecture with Kafka messaging for complete reseller lifecycle management, centralized shared library (`nexhub-common`) with auto-configuration, notification persistence with comprehensive CRUD operations and database audit trails, and complete Docker orchestration with health monitoring and service discovery.
 
 ## 🚀 Latest Updates & Enhancements
 
 ### ✨ **Recent Production Improvements** *(September 2025)*
 - **✅ Advanced Event-Driven Architecture**: Complete reseller lifecycle management with Kafka event streaming (`reseller-approved`, `reseller-rejected`, `reseller-deleted` topics)
-- **✅ Enhanced Account Management**: Sophisticated account status system with approval workflows and soft delete capabilities
-- **✅ Advanced Security Framework**: AllAuthoritiesAuthorizationManager requiring ALL specified authorities for maximum protection
-- **✅ Real-time WebSocket Notifications**: Dual-layer security interceptors with JWT validation for dealer registration events
-- **✅ Cross-Service Communication**: Event-driven synchronization between auth-service and user-service via Kafka with comprehensive event handling
-- **✅ Enhanced Entity Design**: Improved Account and Reseller entities with business logic methods and approval status tracking
-- **✅ API Endpoint Cleanup**: Streamlined to validation-only endpoints with proper security authorization
-- **✅ Database Isolation**: Complete 6-database architecture with proper service boundaries and entity relationships
-- **✅ Shared Library Integration**: nexhub-common with comprehensive utilities and base components
+- **✅ Enhanced Account Management**: Sophisticated account status system with approval workflows and soft delete capabilities with comprehensive business logic methods
+- **✅ Centralized Shared Library (`nexhub-common`)**: Complete integration across all 7 business services with auto-configuration, base components, and security utilities
+- **✅ Advanced Security Framework**: AllAuthoritiesAuthorizationManager requiring ALL specified authorities for maximum protection with reactive patterns
+- **✅ Real-time WebSocket Notifications**: Dual-layer security interceptors with JWT validation for dealer registration events and comprehensive message routing
+- **✅ Cross-Service Communication**: Event-driven synchronization between auth-service and user-service via Kafka with comprehensive event handling and audit trails
+- **✅ Enhanced Entity Design**: Improved Account and Reseller entities with built-in business logic methods and approval status tracking
+- **✅ API Endpoint Optimization**: Streamlined controllers with validation-only endpoints, removed unnecessary creation endpoints, proper security authorization
+- **✅ Database Architecture**: Complete 6-database isolation with proper service boundaries, entity relationships, and comprehensive audit capabilities
+- **✅ Enhanced Security Configuration**: Cleaned up security rules, cross-service authentication patterns, and comprehensive WebSocket security layers
+- **✅ Real-time Notifications**: Direct WebSocket connection with JWT authentication for instant dealer registration updates and database persistence
 
-### 🏗️ **Event-Driven Microservices Architecture** *(September 2025)*
-- **Complete Reseller Lifecycle Management**: Event-driven workflow from registration through approval/rejection to deletion
-- **Kafka Event Streaming**: `reseller-approved`, `reseller-rejected`, `reseller-deleted` topics for comprehensive lifecycle tracking
-- **Enhanced Account Management**: Account entity with built-in business logic methods (`requiresApproval()`, `canLogin()`, `setInitialStatus()`)
-- **Approval Workflow**: Sophisticated ApprovalStatus enum with PENDING, APPROVED, REJECTED states
-- **ResellerEventService**: Comprehensive event processing with structured event objects for all lifecycle stages
-- **Cross-Service Audit**: ResellerEventListener in auth-service for complete audit trail and account synchronization
-- **Dual Authorization Patterns**: Custom AllAuthoritiesAuthorizationManager (AND logic) vs hasAnyAuthority (OR logic)
-- **WebSocket Real-time Updates**: Direct connection with JWT authentication for dealer registration notifications
+### 🏗️ **Complete Microservices Architecture** *(September 2025)*
+- **Centralized Shared Library**: `nexhub-common` with BaseControllerAdvice, BaseException hierarchy, JWT utilities, security configurations, and auto-configuration
+- **Complete Service Integration**: All 7 business services integrated with nexhub-common for consistent error handling, security, and utilities
+- **Enhanced Business Logic**: Account entity with built-in methods (`requiresApproval()`, `canLogin()`, `setInitialStatus()`) and sophisticated approval workflows
+- **Comprehensive Event Processing**: ResellerEventService with structured event objects and ResellerEventListener for cross-service audit trails
+- **Advanced Authorization**: Custom AllAuthoritiesAuthorizationManager (AND logic) vs hasAnyAuthority (OR logic) with reactive security patterns
+- **Direct WebSocket Architecture**: Optimized real-time communication bypassing API Gateway for better performance with dual-layer security
 
-### 🔐 **Advanced Security Framework** *(September 2025)*
-- **Custom Authorization Manager**: AllAuthoritiesAuthorizationManager for requiring ALL specified authorities instead of ANY
-- **Enhanced JWT Security**: RSA-256 with JWKS endpoint validation and comprehensive role/permission extraction
-- **API Gateway Security**: Reactive authorization patterns with custom authorization managers
-- **WebSocket Security**: Dual-layer interceptor architecture with real-time JWT validation
-- **Service Validation**: Cross-service endpoint validation for warranty service integration
+### 🔐 **Advanced Security & Authentication Framework** *(September 2025)*
+- **Custom Authorization Manager**: AllAuthoritiesAuthorizationManager for requiring ALL specified authorities instead of ANY with reactive implementation
+- **Enhanced JWT Security**: RSA-256 with JWKS endpoint validation, comprehensive role/permission extraction, and real-time validation
+- **API Gateway Security**: Reactive authorization patterns with custom authorization managers and comprehensive CORS configuration
+- **WebSocket Security**: Dual-layer interceptor architecture with real-time JWT validation, role-based message authorization, and direct connection security
+- **Service Validation**: Cross-service endpoint validation for warranty service integration with proper authentication headers
+- **Shared Security Components**: BaseSecurityConfig in nexhub-common with consistent security patterns across all services
 
 ### 📡 **Real-time Communication & Event Processing**
-- **WebSocket Authentication**: Multi-layer JWT validation with specialized exception handling
-- **Notification System**: Complete dealer registration notifications with database persistence and Kafka integration
-- **Event-Driven Architecture**: Kafka-based reseller lifecycle management with audit trails
-- **Cross-Service Validation**: User existence validation endpoints for warranty service integration
+- **WebSocket Authentication**: Multi-layer JWT validation with specialized exception handling and user context management
+- **Notification System**: Complete dealer registration notifications with database persistence, Kafka integration, and comprehensive CRUD operations
+- **Event-Driven Architecture**: Kafka-based reseller lifecycle management with audit trails, cross-service synchronization, and comprehensive event handling
+- **Cross-Service Validation**: User existence validation endpoints for warranty service integration with proper security and error handling
+- **Message Routing**: Advanced WebSocket message routing with role-based permissions and real-time authorization checks
 
 ## Executive Summary
 
@@ -55,16 +58,17 @@
 
 **Recent Enhancements (September 2025)**:
 - **Complete Event-Driven Architecture**: Sophisticated reseller lifecycle management with comprehensive Kafka event streaming (`reseller-approved`, `reseller-rejected`, `reseller-deleted`)
-- **Enhanced Account Management**: Account entity with built-in business logic methods (`requiresApproval()`, `canLogin()`, `setInitialStatus()`)
-- **Advanced Approval Workflow**: ApprovalStatus enum system with PENDING, APPROVED, REJECTED states and rejection reason tracking
-- **Cross-Service Communication**: ResellerEventService with comprehensive event processing and ResellerEventListener for audit trails
-- **Advanced Authorization**: AllAuthoritiesAuthorizationManager requiring ALL specified authorities (AND logic) vs hasAnyAuthority (OR logic)
-- **WebSocket Security**: Dual-layer interceptor architecture with real-time JWT validation for dealer registration events
-- **API Endpoint Optimization**: Streamlined controllers to validation-only endpoints, removed unnecessary creation endpoints
-- **Service Validation**: Cross-service endpoint validation for warranty service integration (reseller/customer existence checks)
-- **Database Architecture**: 6-database isolation with complete service boundaries and audit capabilities
-- **Enhanced Security Configuration**: Cleaned up security rules and cross-service authentication patterns
-- **Real-time Notifications**: Direct WebSocket connection with JWT authentication for instant dealer registration updates
+- **Centralized Shared Library**: `nexhub-common` with complete integration across all 7 business services, auto-configuration, BaseControllerAdvice, and security utilities
+- **Enhanced Account Management**: Account entity with built-in business logic methods (`requiresApproval()`, `canLogin()`, `setInitialStatus()`) and comprehensive approval workflows
+- **Advanced Approval System**: ApprovalStatus enum system with PENDING, APPROVED, REJECTED states and comprehensive rejection reason tracking
+- **Cross-Service Event Processing**: ResellerEventService with comprehensive event processing and ResellerEventListener for complete audit trails and account synchronization
+- **Advanced Authorization**: AllAuthoritiesAuthorizationManager requiring ALL specified authorities (AND logic) vs hasAnyAuthority (OR logic) with reactive security patterns
+- **WebSocket Security**: Dual-layer interceptor architecture with real-time JWT validation for dealer registration events and direct connection optimization
+- **API Endpoint Optimization**: Streamlined controllers to validation-only endpoints, removed unnecessary creation endpoints, consistent error handling via nexhub-common
+- **Service Validation**: Cross-service endpoint validation for warranty service integration (reseller/customer existence checks) with proper authentication
+- **Database Architecture**: 6-database isolation with complete service boundaries, comprehensive audit capabilities, and event-driven data synchronization
+- **Enhanced Security Configuration**: Cleaned up security rules, cross-service authentication patterns, and BaseSecurityConfig in shared library
+- **Real-time Notifications**: Direct WebSocket connection with JWT authentication for instant dealer registration updates and comprehensive database persistence
 
 ## 🏗️ Architecture Overview
 
@@ -82,19 +86,21 @@ NexHub implements a complete microservices architecture with infrastructure serv
 
 | Service | Port | Database | Key Features | Technology Stack | Status |
 |---------|------|----------|--------------|------------------|---------|
-| **Auth Service** | 8081 | nexhub_auth | RSA-256 JWT with JWKS, RBAC, Enhanced Account management with business logic, Reseller registration workflow, Comprehensive event processing (approved/rejected/deleted), Cross-service audit trails, ResellerEventListener | Spring Security, JJWT, JPA, Kafka Producer/Consumer, OpenFeign, nexhub-common, BaseControllerAdvice, Account Entity with business methods | ✅ Production Ready |
-| **User Service** | 8082 | nexhub_user | Customer & Reseller CRUD with advanced approval workflow, Soft delete with timestamps, ApprovalStatus management (PENDING/APPROVED/REJECTED), Account integration via accountId, Event publishing for lifecycle changes, Cross-service validation endpoints | Spring Data JPA, Redis caching, MapStruct mapping, Kafka Producer, nexhub-common, BaseControllerAdvice, Enhanced Reseller entity with approval tracking | ✅ Production Ready |
-| **Notification Service** | 8083 | nexhub_notification | Real-time WebSocket messaging with dual-layer security, Email notifications, Kafka event processing, Dealer registration notifications, Database persistence with CRUD operations, Direct connection architecture | WebSocket/STOMP, Kafka Consumer, Spring Mail, PostgreSQL, nexhub-common, BaseControllerAdvice, Dual Security Interceptors | ✅ Production Ready |
-| **Product Service** | 8084 | nexhub_product | Product catalog, categories, media management, serial tracking, Cross-service validation support | Spring Data JPA, Redis caching, OpenAPI, MapStruct, nexhub-common, BaseControllerAdvice | ✅ Production Ready |
-| **Warranty Service** | 8085 | nexhub_warranty | Warranty tracking, claims management, statistics, Cross-service validation integration, User/reseller existence checks | Spring Data JPA, OpenFeign clients, Redis caching, MapStruct, nexhub-common, BaseControllerAdvice | ✅ Production Ready |
-| **Blog Service** | 8087 | nexhub_blog | CMS with posts, categories, comments, authors, tags, SEO optimization | Spring Data JPA, Redis caching, OpenAPI, nexhub-common, BaseControllerAdvice | ✅ Production Ready |
-| **Language Service** | TBD | TBD | Internationalization support (Planned) | Spring Boot, nexhub-common (when implemented) | 🚧 In Development |
+| **Auth Service** | 8081 | nexhub_auth | RSA-256 JWT with JWKS, RBAC, Enhanced Account management with business logic methods, Reseller registration workflow, Comprehensive event processing (approved/rejected/deleted), Cross-service audit trails, ResellerEventListener, Account entity with built-in business methods | Spring Security, JJWT, JPA, Kafka Producer/Consumer, OpenFeign, nexhub-common integration, BaseControllerAdvice, Account Entity with sophisticated business logic | ✅ Production Ready |
+| **User Service** | 8082 | nexhub_user | Customer & Reseller CRUD with advanced approval workflow, Soft delete with timestamps, ApprovalStatus management (PENDING/APPROVED/REJECTED), Account integration via accountId, Event publishing for lifecycle changes, Cross-service validation endpoints, Comprehensive business logic | Spring Data JPA, Redis caching, MapStruct mapping, Kafka Producer, nexhub-common integration, BaseControllerAdvice, Enhanced Reseller entity with approval tracking | ✅ Production Ready |
+| **Notification Service** | 8083 | nexhub_notification | Real-time WebSocket messaging with dual-layer security, Email notifications, Kafka event processing, Dealer registration notifications, Database persistence with comprehensive CRUD operations, Direct connection architecture, WebSocket message routing | WebSocket/STOMP, Kafka Consumer, Spring Mail, PostgreSQL, nexhub-common integration, BaseControllerAdvice, Dual Security Interceptors, Advanced message routing | ✅ Production Ready |
+| **Product Service** | 8084 | nexhub_product | Product catalog management, categories with hierarchical structure, media management (images/videos), serial tracking for warranty, Cross-service validation support, Advanced search and filtering | Spring Data JPA, Redis caching, OpenAPI, MapStruct, nexhub-common integration, BaseControllerAdvice, Advanced entity relationships | ✅ Production Ready |
+| **Warranty Service** | 8085 | nexhub_warranty | Warranty tracking and claims management, Purchase records with warranty calculations, Statistics and analytics, Cross-service validation integration, User/reseller existence checks via OpenFeign | Spring Data JPA, OpenFeign clients, Redis caching, MapStruct, nexhub-common integration, BaseControllerAdvice, Cross-service validation | ✅ Production Ready |
+| **Blog Service** | 8087 | nexhub_blog | Complete CMS with posts, categories, comments, authors, tags, SEO optimization, Content management workflow, Publication status management | Spring Data JPA, Redis caching, OpenAPI, nexhub-common integration, BaseControllerAdvice, Advanced content management | ✅ Production Ready |
+| **API Gateway** | 8080 | - | API routing, JWT security with JWKS integration, Rate limiting, CORS configuration, WebSocket proxying, Custom authorization managers | Spring Cloud Gateway, OAuth2 Resource Server, Reactive Security, Custom AllAuthoritiesAuthorizationManager | ✅ Production Ready |
 
-### 📚 Shared Libraries
+### 📚 Shared Libraries & Common Components
 
 | Component | Description | Features | Integration Status |
 |-----------|-------------|----------|-------------------|
-| **nexhub-common** | Centralized shared library with auto-configuration | BaseControllerAdvice (@Hidden), BaseException hierarchy, JWT utilities, BaseResponse, Security utilities, Validation helpers, BaseOpenApiConfig, BaseSecurityConfig | ✅ Integrated across all 8 business services |
+| **nexhub-common** | Centralized shared library with auto-configuration and common utilities | BaseControllerAdvice (@Hidden for OpenAPI), BaseException hierarchy, JWT utilities (JwtService), BaseResponse standardization, Security utilities (BaseSecurityConfig), Validation helpers, BaseOpenApiConfig, Auto-configuration for all services | ✅ Fully Integrated across all 7 business services |
+| **Spring Boot Auto-Configuration** | Automatic component scanning and configuration | @ComponentScan integration, Automatic bean registration, Consistent logging and error handling, Shared security patterns | ✅ Active in all services |
+| **Standardized Exception Handling** | Consistent error responses across all services | Global exception handling, HTTP status code standardization, Error code consistency, Localization support | ✅ Production Ready |
 
 ### 🗄️ Data & Infrastructure
 
@@ -106,19 +112,20 @@ NexHub implements a complete microservices architecture with infrastructure serv
 | **Zookeeper Ensemble** | 2181-2183 | 3-node cluster for high availability | Kafka coordination and metadata management |
 
 **Database Architecture**:
-- `nexhub_auth` - Enhanced Account entities with business logic, roles, permissions, account lifecycle management
-- `nexhub_user` - Customer and Reseller profiles with approval workflows, soft delete tracking, event-driven data
-- `nexhub_notification` - Comprehensive notification system with CRUD operations, dealer registrations, audit trails
-- `nexhub_product` - Product catalog, categories, serials, media management
-- `nexhub_warranty` - Warranty claims and tracking with cross-service validation
-- `nexhub_blog` - Complete CMS content management, posts, comments, categories
+- `nexhub_auth` - Enhanced Account entities with sophisticated business logic methods, roles, permissions, account lifecycle management, approval workflows
+- `nexhub_user` - Customer and Reseller profiles with advanced approval workflows, soft delete tracking with timestamps, event-driven data synchronization
+- `nexhub_notification` - Comprehensive notification system with CRUD operations, dealer registrations, audit trails, database persistence for all events
+- `nexhub_product` - Product catalog with categories, serials, media management, hierarchical category structure, advanced search capabilities
+- `nexhub_warranty` - Warranty claims and tracking with cross-service validation, purchase records, warranty calculations, comprehensive statistics
+- `nexhub_blog` - Complete CMS content management with posts, comments, categories, authors, tags, publication workflows
 
 **Enhanced Event-Driven Data Flow**:
-- **Reseller Registration**: Auth Service → Account Creation (PENDING status) → User Service Profile → Kafka → Notification Service → WebSocket Broadcasting
-- **Reseller Approval**: Admin Action → User Service (ApprovalStatus.APPROVED) → Kafka (`reseller-approved`) → Auth Service (ResellerEventListener) → Account Status Update (APPROVED)
-- **Reseller Rejection**: Admin Action → User Service (ApprovalStatus.REJECTED + reason) → Kafka (`reseller-rejected`) → Auth Service (ResellerEventListener) → Comprehensive Audit Trail
-- **Reseller Deletion**: User Service (Soft Delete with timestamp) → Kafka (`reseller-deleted`) → Auth Service (ResellerEventListener) → Cross-Service Synchronization
-- **Cross-Service Validation**: Warranty Service → User Service (existence validation endpoints with proper security)
+- **Reseller Registration**: Auth Service → Account Creation (PENDING status) → User Service Profile → Kafka → Notification Service → WebSocket Broadcasting → Database Persistence
+- **Reseller Approval**: Admin Action → User Service (ApprovalStatus.APPROVED) → Kafka (`reseller-approved`) → Auth Service (ResellerEventListener) → Account Status Update (APPROVED) → Cross-service synchronization
+- **Reseller Rejection**: Admin Action → User Service (ApprovalStatus.REJECTED + reason) → Kafka (`reseller-rejected`) → Auth Service (ResellerEventListener) → Comprehensive Audit Trail → Database logging
+- **Reseller Deletion**: User Service (Soft Delete with timestamp) → Kafka (`reseller-deleted`) → Auth Service (ResellerEventListener) → Cross-Service Synchronization → Audit trail maintenance
+- **Cross-Service Validation**: Warranty Service → User Service (existence validation endpoints with proper security) → Real-time validation with error handling
+- **Real-time Notifications**: Event Processing → Database Persistence → WebSocket Broadcasting → Role-based message delivery
 
 ### 🔧 Development & Monitoring Tools
 
@@ -1077,17 +1084,18 @@ cd nexhub-common && mvn clean install
 ## Project Metadata
 
 **Platform**: NexHub Enterprise E-Commerce Microservices  
-**Version**: 4.1.0  
-**Last Updated**: September 2025  
-**Status**: Production-Ready with Sophisticated Event-Driven Architecture and Advanced Account Management  
-**Architecture**: Spring Boot 3.5.5 Microservices with Enhanced Business Logic Entities and Comprehensive Event-Driven Communication  
-**Infrastructure**: Docker, PostgreSQL, Redis, Kafka, WebSocket, Eureka Discovery, nexhub-common Shared Library  
-**Security**: Enhanced JWT with RSA-256, JWKS, AllAuthoritiesAuthorizationManager, Dual-layer WebSocket Security, Account-level Business Logic  
+**Version**: 5.0.0  
+**Last Updated**: September 4, 2025  
+**Status**: Production-Ready with Sophisticated Event-Driven Architecture, Centralized Shared Library, and Advanced Account Management  
+**Architecture**: Spring Boot 3.5.5 Microservices with Enhanced Business Logic Entities, nexhub-common Integration, and Comprehensive Event-Driven Communication  
+**Infrastructure**: Docker, PostgreSQL (6 databases), Redis, Kafka (3-broker cluster), WebSocket, Eureka Discovery, nexhub-common Shared Library  
+**Security**: Enhanced JWT with RSA-256, JWKS, AllAuthoritiesAuthorizationManager, Dual-layer WebSocket Security, Account-level Business Logic, BaseSecurityConfig  
 **Event Processing**: Comprehensive Kafka-based reseller lifecycle management (`approved`, `rejected`, `deleted`) with cross-service audit trails  
 **Account Management**: Advanced approval workflows with built-in business logic methods and ApprovalStatus tracking  
+**Shared Components**: nexhub-common with BaseControllerAdvice, BaseException hierarchy, JWT utilities, and auto-configuration  
 **Maintainer**: DevWonder Development Team  
 
-**Total Services**: 11+ (7 Business + 3 Infrastructure + Monitoring Tools)  
+**Total Services**: 10+ (7 Business + 3 Infrastructure + Monitoring Tools)  
 **Database Count**: 6 PostgreSQL databases with event-driven data flow and complete service isolation  
 **Message Brokers**: 3-node Kafka cluster with Zookeeper ensemble for event streaming and lifecycle management  
 **Caching**: Redis with distributed caching strategy and 600-second TTL  
@@ -1095,16 +1103,19 @@ cd nexhub-common && mvn clean install
 **Security Framework**: Reactive Spring WebFlux security with dual-layer WebSocket protection and real-time JWT validation  
 **Real-time Communication**: Advanced WebSocket system with JWT authentication, role-based authorization, and direct connection architecture  
 **Event-Driven Architecture**: Complete reseller lifecycle management with Kafka event streaming and cross-service synchronization  
+**Shared Library**: nexhub-common with complete integration across all business services providing consistent error handling, security, and utilities  
 
 **Latest Major Enhancements (September 2025)**:
 - **Sophisticated Event-Driven Architecture**: Complete reseller lifecycle management with comprehensive Kafka event streaming (`reseller-approved`, `reseller-rejected`, `reseller-deleted`)
-- **Enhanced Account Management**: Account entity with built-in business logic methods for approval workflows and authentication checks
-- **Advanced Approval System**: ApprovalStatus enum with PENDING, APPROVED, REJECTED states and comprehensive rejection reason tracking
-- **AllAuthoritiesAuthorizationManager**: Custom reactive authorization manager requiring ALL specified authorities (AND logic)
-- **Cross-Service Event Processing**: ResellerEventListener in auth-service for comprehensive audit trails and account synchronization
-- **Real-time Notifications**: Direct WebSocket connection with dual-layer security and comprehensive CRUD operations
-- **Enhanced Entity Design**: Sophisticated database entities with built-in business logic and lifecycle management
-- **Shared Library Integration**: nexhub-common with comprehensive utilities, base components, and auto-configuration
+- **Centralized Shared Library (`nexhub-common`)**: Complete integration across all 7 business services with auto-configuration, BaseControllerAdvice, BaseException hierarchy, JWT utilities, and BaseSecurityConfig
+- **Enhanced Account Management**: Account entity with built-in business logic methods (`requiresApproval()`, `canLogin()`, `setInitialStatus()`) and comprehensive approval workflows
+- **Advanced Approval System**: ApprovalStatus enum system with PENDING, APPROVED, REJECTED states and comprehensive rejection reason tracking
+- **AllAuthoritiesAuthorizationManager**: Custom reactive authorization manager requiring ALL specified authorities (AND logic) vs hasAnyAuthority (OR logic)
+- **Cross-Service Event Processing**: ResellerEventService with comprehensive event processing and ResellerEventListener for complete audit trails and account synchronization
+- **Real-time WebSocket Security**: Dual-layer interceptor architecture with real-time JWT validation for dealer registration events and direct connection optimization
+- **Enhanced Entity Design**: Sophisticated database entities with built-in business logic methods and comprehensive lifecycle management
+- **Comprehensive Error Handling**: Standardized exception handling via nexhub-common BaseControllerAdvice across all services
+- **Cross-Service Integration**: User existence validation endpoints for warranty service business logic with proper authentication and error handling
 
 **Architecture Highlights**:
 - **Event-Driven Patterns**: Kafka-based reseller lifecycle management with cross-service event propagation
@@ -1115,4 +1126,4 @@ cd nexhub-common && mvn clean install
 - **Service Discovery**: Eureka-based registration with comprehensive health monitoring
 - **Audit Trail System**: ResellerEventListener for cross-service lifecycle tracking and compliance
 
-This documentation represents the current state of NexHub as of September 4, 2025, reflecting all implemented features including sophisticated event-driven architecture with comprehensive reseller lifecycle management, enhanced account management with built-in business logic, advanced security implementations with AllAuthoritiesAuthorizationManager, comprehensive cross-service integration patterns, and detailed development roadmap.
+This documentation represents the current state of NexHub as of September 4, 2025, reflecting all implemented features including sophisticated event-driven architecture with comprehensive reseller lifecycle management, centralized shared library (`nexhub-common`) with complete integration across all business services, enhanced account management with built-in business logic methods, advanced security implementations with AllAuthoritiesAuthorizationManager and BaseSecurityConfig, comprehensive cross-service integration patterns with proper error handling, standardized exception handling via BaseControllerAdvice, and detailed development roadmap for continued platform evolution.

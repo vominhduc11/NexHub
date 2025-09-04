@@ -1,12 +1,14 @@
 package com.devwonder.common.exception;
 
-public class InvalidTokenSignatureException extends JwtValidationException {
+import org.springframework.http.HttpStatus;
+
+public class InvalidTokenSignatureException extends BaseException {
     
     public InvalidTokenSignatureException(String message) {
-        super(message);
+        super("INVALID_TOKEN_SIGNATURE", message, HttpStatus.UNAUTHORIZED.value());
     }
     
     public InvalidTokenSignatureException(String message, Throwable cause) {
-        super(message, cause);
+        super("INVALID_TOKEN_SIGNATURE", message, HttpStatus.UNAUTHORIZED.value(), cause);
     }
 }

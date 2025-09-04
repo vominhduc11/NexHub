@@ -1,4 +1,4 @@
-package com.devwonder.auth_service.dto;
+package com.devwonder.user_service.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

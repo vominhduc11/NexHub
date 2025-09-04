@@ -1,41 +1,35 @@
 package com.devwonder.auth_service.controller;
 
 import com.devwonder.common.dto.BaseResponse;
-import com.devwonder.common.exception.BaseException;
 import com.devwonder.common.util.ResponseUtil;
-import com.devwonder.auth_service.dto.ResellerRegistrationRequest;
-import com.devwonder.auth_service.dto.ResellerRegistrationResponse;
-import com.devwonder.auth_service.service.ResellerService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth/reseller")
-@RequiredArgsConstructor
 @Slf4j
-@Tag(name = "Reseller Management", description = "APIs for reseller account management")
+@Tag(name = "Reseller Management", description = "DEPRECATED APIs - Use user-service instead")
 public class ResellerController {
     
-    private final ResellerService resellerService;
-    
     @PostMapping("/register")
-    @Operation(summary = "Register new reseller account", description = "Create a new reseller account with DEALER role")
+    @Operation(summary = "Register new reseller account", description = "DEPRECATED: Use user-service /user/reseller/register instead")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "Reseller account created successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid input data"),
-        @ApiResponse(responseCode = "409", description = "Username already exists")
+        @ApiResponse(responseCode = "410", description = "This endpoint is deprecated"),
+        @ApiResponse(responseCode = "301", description = "Redirect to new endpoint")
     })
-    public ResponseEntity<BaseResponse<ResellerRegistrationResponse>> registerReseller(@Valid @RequestBody ResellerRegistrationRequest request) throws BaseException {
-        log.info("Received reseller registration request for username: {}", request.getUsername());
+    @Deprecated
+    public ResponseEntity<BaseResponse<String>> registerReseller() {
+        log.warn("DEPRECATED endpoint /auth/reseller/register called");
         
-        ResellerRegistrationResponse response = resellerService.registerReseller(request);
-        return ResponseUtil.created("Reseller account created successfully", response);
+        return ResponseUtil.error(
+            "This endpoint is deprecated. Please use user-service /user/reseller/register instead",
+            "DEPRECATED_ENDPOINT",
+            org.springframework.http.HttpStatus.GONE
+        );
     }
 }

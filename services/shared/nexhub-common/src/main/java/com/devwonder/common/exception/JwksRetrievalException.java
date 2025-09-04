@@ -1,12 +1,14 @@
 package com.devwonder.common.exception;
 
-public class JwksRetrievalException extends JwtValidationException {
+import org.springframework.http.HttpStatus;
+
+public class JwksRetrievalException extends BaseException {
     
     public JwksRetrievalException(String message) {
-        super(message);
+        super("JWKS_RETRIEVAL_ERROR", message, HttpStatus.INTERNAL_SERVER_ERROR.value());
     }
     
     public JwksRetrievalException(String message, Throwable cause) {
-        super(message, cause);
+        super("JWKS_RETRIEVAL_ERROR", message, HttpStatus.INTERNAL_SERVER_ERROR.value(), cause);
     }
 }

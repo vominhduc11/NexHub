@@ -2,11 +2,15 @@ package com.devwonder.auth_service.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
 @AllArgsConstructor
-public class ResellerRegistrationResponse {
-    private Long id;
+public class CreateAccountResponse {
+    
+    private Long accountId;
     private String username;
+    private String status;
     private String message;
 }

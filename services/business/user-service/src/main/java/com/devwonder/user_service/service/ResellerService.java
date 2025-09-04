@@ -1,6 +1,10 @@
 package com.devwonder.user_service.service;
 
+import com.devwonder.user_service.client.AuthServiceClient;
+import com.devwonder.user_service.dto.CreateAccountRequest;
+import com.devwonder.user_service.dto.CreateAccountResponse;
 import com.devwonder.user_service.dto.CreateResellerRequest;
+import com.devwonder.user_service.dto.ResellerRegistrationRequest;
 import com.devwonder.user_service.dto.ResellerResponse;
 import com.devwonder.user_service.entity.Reseller;
 import com.devwonder.user_service.enums.ApprovalStatus;
@@ -8,6 +12,7 @@ import com.devwonder.user_service.event.ResellerApprovedEvent;
 import com.devwonder.user_service.event.ResellerDeletedEvent;
 import com.devwonder.user_service.event.ResellerRejectedEvent;
 import com.devwonder.user_service.event.ResellerRestoredEvent;
+import com.devwonder.user_service.exception.AuthServiceIntegrationException;
 import com.devwonder.user_service.exception.EmailAlreadyExistsException;
 import com.devwonder.user_service.exception.PhoneAlreadyExistsException;
 import com.devwonder.user_service.mapper.ResellerMapper;
@@ -16,6 +21,7 @@ import com.devwonder.user_service.exception.ResellerNotFoundException;
 import com.devwonder.common.exception.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -24,6 +30,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -34,6 +42,164 @@ public class ResellerService {
     private final ResellerRepository resellerRepository;
     private final ResellerMapper resellerMapper;
     private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final AuthServiceClient authServiceClient;
+    
+    @Value("${auth.api.key}")
+    private String apiKey;
+    
+    @Transactional
+    public ResellerResponse registerReseller(ResellerRegistrationRequest request) {
+        log.info("=== ENTERING registerReseller method for username: {} ===", request.getUsername());
+        
+        CreateAccountResponse accountResponse = null;
+        boolean accountCreated = false;
+        
+        try {
+            // Step 1: Validate phone and email uniqueness first (fail fast)
+            log.info("Validating phone and email uniqueness for: {}", request.getUsername());
+            if (resellerRepository.findByPhone(request.getPhone()).isPresent()) {
+                throw new PhoneAlreadyExistsException("Phone number '" + request.getPhone() + "' already exists");
+            }
+            if (resellerRepository.findByEmail(request.getEmail()).isPresent()) {
+                throw new EmailAlreadyExistsException("Email '" + request.getEmail() + "' already exists");
+            }
+            
+            // Step 2: Create account in auth-service
+            CreateAccountRequest accountRequest = new CreateAccountRequest(
+                request.getUsername(),
+                request.getPassword(),
+                "DEALER"
+            );
+            
+            log.info("Calling auth-service to create account for username: {}", request.getUsername());
+            try {
+                accountResponse = authServiceClient.createAccount(accountRequest, apiKey).getBody();
+                if (accountResponse == null || accountResponse.getAccountId() == null) {
+                    throw new AuthServiceIntegrationException("Failed to create account in auth-service - null response");
+                }
+                accountCreated = true;
+                log.info("Successfully created account with ID: {}", accountResponse.getAccountId());
+            } catch (Exception e) {
+                log.error("Failed to create account in auth-service for username: {}", request.getUsername(), e);
+                throw new AuthServiceIntegrationException("Failed to create account: " + e.getMessage(), e);
+            }
+            
+            // Step 3: Create reseller profile (with compensation on failure)
+            CreateResellerRequest createResellerRequest = new CreateResellerRequest(
+                accountResponse.getAccountId(),
+                request.getName(),
+                request.getAddress(),
+                request.getPhone(),
+                request.getEmail(),
+                request.getDistrict(),
+                request.getCity()
+            );
+            
+            ResellerResponse resellerResponse;
+            try {
+                resellerResponse = createReseller(createResellerRequest);
+                log.info("Successfully created reseller profile for account ID: {}", accountResponse.getAccountId());
+            } catch (Exception e) {
+                log.error("Failed to create reseller profile for account ID: {}, initiating compensation", accountResponse.getAccountId(), e);
+                
+                // Compensation: Delete the account that was created
+                compensateAccountCreation(accountResponse.getAccountId());
+                
+                // Re-throw the original exception
+                throw e;
+            }
+            
+            // Step 4: Send notification events (non-blocking)
+            sendNotificationEventsAsync(accountResponse, request);
+            
+            log.info("Successfully registered reseller with account ID: {}", accountResponse.getAccountId());
+            return resellerResponse;
+            
+        } catch (Exception e) {
+            log.error("=== EXCEPTION in registerReseller: {} ===", e.getMessage(), e);
+            
+            // Additional compensation if needed and account was created
+            if (accountCreated && accountResponse != null && !(e instanceof AuthServiceIntegrationException)) {
+                compensateAccountCreation(accountResponse.getAccountId());
+            }
+            
+            throw e;
+        }
+    }
+    
+    private void compensateAccountCreation(Long accountId) {
+        log.info("=== COMPENSATION: Attempting to delete account with ID: {} ===", accountId);
+        try {
+            authServiceClient.deleteAccount(accountId, apiKey);
+            log.info("Successfully deleted account {} during compensation", accountId);
+        } catch (Exception compensationError) {
+            log.error("CRITICAL: Failed to delete account {} during compensation: {}. Manual cleanup required!", 
+                accountId, compensationError.getMessage());
+            
+            // Send alert event for manual cleanup
+            try {
+                Map<String, Object> alertEvent = new HashMap<>();
+                alertEvent.put("type", "MANUAL_CLEANUP_REQUIRED");
+                alertEvent.put("accountId", accountId);
+                alertEvent.put("reason", "Failed to delete account during compensation rollback");
+                alertEvent.put("error", compensationError.getMessage());
+                alertEvent.put("timestamp", LocalDateTime.now());
+                
+                kafkaTemplate.send("system-alerts", alertEvent);
+            } catch (Exception alertError) {
+                log.error("Failed to send manual cleanup alert: {}", alertError.getMessage());
+            }
+        }
+    }
+    
+    private void sendNotificationEventsAsync(CreateAccountResponse accountResponse, ResellerRegistrationRequest request) {
+        try {
+            // Send welcome email event
+            kafkaTemplate.send("notification-email", createWelcomeEmailEvent(
+                accountResponse.getAccountId(),
+                request.getUsername(), 
+                request.getEmail(),
+                request.getName()
+            ));
+            
+            // Send WebSocket notification for dealer registration
+            kafkaTemplate.send("notification-websocket", createDealerRegistrationEvent(
+                accountResponse.getAccountId(),
+                request.getUsername(),
+                request.getName()
+            ));
+            
+            log.info("Successfully sent notification events for reseller registration");
+        } catch (Exception e) {
+            log.error("Failed to send notification events for reseller registration: {}", e.getMessage());
+            // Don't fail the registration if notification fails - it's non-critical
+        }
+    }
+    
+    private Map<String, Object> createWelcomeEmailEvent(Long accountId, String username, String email, String name) {
+        Map<String, Object> event = new HashMap<>();
+        event.put("type", "SEND_EMAIL");
+        event.put("accountId", accountId);
+        event.put("username", username);
+        event.put("email", email);
+        event.put("name", name);
+        event.put("subject", "Welcome to NexHub - Reseller Account Created");
+        event.put("message", "Dear " + name + ",\n\nWelcome to NexHub! Your reseller account has been successfully created.\n\nUsername: " + username + "\n\nYou can now start using our platform to manage your business.\n\nBest regards,\nNexHub Team");
+        event.put("timestamp", LocalDateTime.now());
+        return event;
+    }
+    
+    private Map<String, Object> createDealerRegistrationEvent(Long accountId, String username, String name) {
+        Map<String, Object> event = new HashMap<>();
+        event.put("type", "WEBSOCKET_DEALER_REGISTRATION");
+        event.put("accountId", accountId);
+        event.put("username", username);
+        event.put("name", name);
+        event.put("title", "New Dealer Registration");
+        event.put("message", "A new dealer has been registered: " + name + " (" + username + ")");
+        event.put("timestamp", LocalDateTime.now());
+        return event;
+    }
     
     @Transactional
     public ResellerResponse createReseller(CreateResellerRequest request) {
@@ -44,15 +210,8 @@ public class ResellerService {
             throw new ValidationException("Reseller with account ID " + request.getAccountId() + " already exists");
         }
         
-        // Check if phone already exists
-        if (resellerRepository.findByPhone(request.getPhone()).isPresent()) {
-            throw new PhoneAlreadyExistsException("Phone number '" + request.getPhone() + "' already exists");
-        }
-        
-        // Check if email already exists
-        if (resellerRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new EmailAlreadyExistsException("Email '" + request.getEmail() + "' already exists");
-        }
+        // Note: Phone and email validation is done in registerReseller method to fail fast
+        // This method may be called independently for other use cases
         
         // Create new reseller using Builder pattern
         Reseller reseller = Reseller.builder()
