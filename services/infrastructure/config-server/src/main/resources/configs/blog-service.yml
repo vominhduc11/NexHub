@@ -1,0 +1,68 @@
+server:
+  port: ${SERVER_PORT:8087}
+
+eureka:
+  instance:
+    hostname: ${EUREKA_INSTANCE_HOSTNAME:blog-service}
+    prefer-ip-address: ${EUREKA_INSTANCE_PREFER_IP:false}
+  client:
+    register-with-eureka: ${EUREKA_CLIENT_REGISTER_WITH_EUREKA:true}
+    fetch-registry: ${EUREKA_CLIENT_FETCH_REGISTRY:true}
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE:http://discovery-service:8761/eureka/}
+  server:
+    enable-self-preservation: ${EUREKA_SERVER_ENABLE_SELF_PRESERVATION:false}
+    eviction-interval-timer-in-ms: ${EUREKA_SERVER_EVICTION_INTERVAL:10000}
+
+spring:
+  datasource:
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.postgresql.Driver}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://nexhub-postgres:5432/nexhub_blog}
+    username: ${SPRING_DATASOURCE_USERNAME:nexhub}
+    password: ${SPRING_DATASOURCE_PASSWORD:voduc123}
+  
+  jpa:
+    database-platform: ${SPRING_JPA_DATABASE_PLATFORM:org.hibernate.dialect.PostgreSQLDialect}
+    hibernate:
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: ${SPRING_JPA_PROPERTIES_HIBERNATE_JDBC_TIME_ZONE:UTC}
+        format_sql: ${SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL:true}
+    show-sql: ${SPRING_JPA_SHOW_SQL:false}
+  
+  data:
+    redis:
+      host: ${SPRING_REDIS_HOST:nexhub_redis}
+      port: ${SPRING_REDIS_PORT:6379}
+      password: ${SPRING_REDIS_PASSWORD:voduc123}
+      timeout: ${SPRING_REDIS_TIMEOUT:2000ms}
+      lettuce:
+        pool:
+          max-active: ${SPRING_REDIS_LETTUCE_POOL_MAX_ACTIVE:10}
+          max-idle: ${SPRING_REDIS_LETTUCE_POOL_MAX_IDLE:10}
+          min-idle: ${SPRING_REDIS_LETTUCE_POOL_MIN_IDLE:1}
+          max-wait: ${SPRING_REDIS_LETTUCE_POOL_MAX_WAIT:5000ms}
+  
+  cache:
+    type: ${SPRING_CACHE_TYPE:redis}
+    redis:
+      time-to-live: ${SPRING_CACHE_REDIS_TTL:600000}  # 10 minutes default TTL
+
+# SpringDoc OpenAPI Configuration
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: ${SWAGGER_API_DOCS_ENABLED:true}
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: ${SWAGGER_UI_ENABLED:true}
+    display-request-duration: true
+    groups-order: DESC
+    operationsSorter: method
+    disable-swagger-default-url: true
+    use-root-path: true
+  show-actuator: false
+  cache:
+    disabled: true

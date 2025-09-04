@@ -162,3 +162,10 @@ yarn-error.log*
 
 # Windows reserved device names
 nul
+
+# Project-specific ignores
+note.txt
+**/E:Project**
+
+# Claude AI configuration
+.claude/

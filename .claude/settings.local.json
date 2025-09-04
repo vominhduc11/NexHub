@@ -12,7 +12,16 @@
       "Bash(git add:*)",
       "Bash(docker restart:*)",
       "Bash(docker logs:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Read(/E:\\Project\\NexHub/**)",
+      "Read(/E:\\Project\\NexHub\\nexhub-common/**)",
+      "Read(/E:\\Project\\NexHub\\discovery-service\\src\\main\\resources/**)",
+      "Read(/E:\\Project\\NexHub\\api-gateway\\src\\main\\resources/**)",
+      "Read(/E:\\Project\\NexHub\\config-server\\src\\main\\resources\\configs/**)",
+      "Read(/E:\\Project\\NexHub\\config-server\\src\\main\\resources\\configs/**)",
+      "Read(/E:\\Project\\NexHub\\config-server\\src\\main\\resources\\configs/**)",
+      "Read(/E:\\Project\\NexHub\\auth-service\\src\\main\\java\\com\\devwonder\\auth_service\\entity/**)",
+      "Read(/E:\\Project\\NexHub\\user-service\\src\\main\\java\\com\\devwonder\\user_service\\entity/**)"
     ]
   },
   "outputStyle": "default"
