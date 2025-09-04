@@ -185,6 +185,24 @@ public class DataInitializer implements CommandLineRunner {
                 account.setUsername(username);
                 account.setPassword(passwordEncoder.encode(password));
                 
+                // Set account type based on role name
+                switch (roleName.toUpperCase()) {
+                    case "ADMIN":
+                        account.setType(com.devwonder.auth_service.enums.AccountType.ADMIN);
+                        break;
+                    case "DEALER":
+                        account.setType(com.devwonder.auth_service.enums.AccountType.DEALER);
+                        break;
+                    case "CUSTOMER":
+                        account.setType(com.devwonder.auth_service.enums.AccountType.CUSTOMER);
+                        break;
+                    default:
+                        account.setType(com.devwonder.auth_service.enums.AccountType.CUSTOMER);
+                }
+                
+                // Set initial status based on account type
+                account.setInitialStatus();
+                
                 // Save account first (let database generate ID)
                 Account savedAccount = accountRepository.save(account);
                 log.info("Created {} account with ID: {}", username, savedAccount.getId());

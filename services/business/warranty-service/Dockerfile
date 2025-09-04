@@ -5,20 +5,20 @@ FROM maven:3.9-eclipse-temurin-17 AS build
 WORKDIR /app
 
 # First, build nexhub-common library
-COPY nexhub-common/pom.xml nexhub-common/
-COPY nexhub-common/.mvn nexhub-common/.mvn/
-COPY nexhub-common/mvnw* nexhub-common/
-COPY nexhub-common/src nexhub-common/src/
+COPY services/shared/nexhub-common/pom.xml nexhub-common/
+COPY services/shared/nexhub-common/.mvn nexhub-common/.mvn/
+COPY services/shared/nexhub-common/mvnw* nexhub-common/
+COPY services/shared/nexhub-common/src nexhub-common/src/
 RUN cd nexhub-common && mvn clean install -DskipTests
 
 # Copy pom.xml for dependency resolution
-COPY warranty-service/pom.xml .
+COPY services/business/warranty-service/pom.xml .
 
 # Download dependencies (better caching)
 RUN mvn dependency:go-offline -B
 
 # Copy source code
-COPY warranty-service/src ./src
+COPY services/business/warranty-service/src ./src
 
 # Build the application
 RUN mvn clean package -DskipTests

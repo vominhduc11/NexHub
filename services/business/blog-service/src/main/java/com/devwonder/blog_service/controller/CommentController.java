@@ -41,13 +41,8 @@ public class CommentController {
         
         log.info("GET /blog/comments/post/{}", postId);
         
-        try {
-            List<CommentResponse> comments = commentService.getCommentsByPost(postId);
-            return ResponseUtil.success("Comments retrieved successfully", comments);
-        } catch (Exception e) {
-            log.error("Error retrieving comments for post", e);
-            return ResponseUtil.internalError("Error retrieving comments");
-        }
+        List<CommentResponse> comments = commentService.getCommentsByPost(postId);
+        return ResponseUtil.success("Comments retrieved successfully", comments);
     }
     
     @GetMapping("/post/{postId}/paginated")
@@ -62,13 +57,8 @@ public class CommentController {
         
         log.info("GET /blog/comments/post/{}/paginated - page: {}, size: {}", postId, page, size);
         
-        try {
-            Page<CommentResponse> comments = commentService.getCommentsByPost(postId, page, size);
-            return ResponseUtil.success("Comments retrieved successfully", comments);
-        } catch (Exception e) {
-            log.error("Error retrieving paginated comments for post", e);
-            return ResponseUtil.internalError("Error retrieving comments");
-        }
+        Page<CommentResponse> comments = commentService.getCommentsByPost(postId, page, size);
+        return ResponseUtil.success("Comments retrieved successfully", comments);
     }
     
     @GetMapping("/post/{postId}/all")
@@ -80,13 +70,8 @@ public class CommentController {
         
         log.info("GET /blog/comments/post/{}/all - page: {}, size: {}", postId, page, size);
         
-        try {
-            Page<CommentResponse> comments = commentService.getAllCommentsByPost(postId, page, size);
-            return ResponseUtil.success("All comments retrieved successfully", comments);
-        } catch (Exception e) {
-            log.error("Error retrieving all comments for post", e);
-            return ResponseUtil.internalError("Error retrieving comments");
-        }
+        Page<CommentResponse> comments = commentService.getAllCommentsByPost(postId, page, size);
+        return ResponseUtil.success("All comments retrieved successfully", comments);
     }
     
     @GetMapping("/pending")
@@ -97,13 +82,8 @@ public class CommentController {
         
         log.info("GET /blog/comments/pending - page: {}, size: {}", page, size);
         
-        try {
-            Page<CommentResponse> comments = commentService.getPendingComments(page, size);
-            return ResponseUtil.success("Pending comments retrieved successfully", comments);
-        } catch (Exception e) {
-            log.error("Error retrieving pending comments", e);
-            return ResponseUtil.internalError("Error retrieving pending comments");
-        }
+        Page<CommentResponse> comments = commentService.getPendingComments(page, size);
+        return ResponseUtil.success("Pending comments retrieved successfully", comments);
     }
     
     @GetMapping("/recent")
@@ -114,13 +94,8 @@ public class CommentController {
         
         log.info("GET /blog/comments/recent - page: {}, size: {}", page, size);
         
-        try {
-            Page<CommentResponse> comments = commentService.getRecentComments(page, size);
-            return ResponseUtil.success("Recent comments retrieved successfully", comments);
-        } catch (Exception e) {
-            log.error("Error retrieving recent comments", e);
-            return ResponseUtil.internalError("Error retrieving recent comments");
-        }
+        Page<CommentResponse> comments = commentService.getRecentComments(page, size);
+        return ResponseUtil.success("Recent comments retrieved successfully", comments);
     }
     
     @GetMapping("/post/{postId}/count")
@@ -130,13 +105,8 @@ public class CommentController {
         
         log.info("GET /blog/comments/post/{}/count", postId);
         
-        try {
-            Long count = commentService.getCommentCount(postId);
-            return ResponseUtil.success("Comment count retrieved successfully", count);
-        } catch (Exception e) {
-            log.error("Error retrieving comment count", e);
-            return ResponseUtil.internalError("Error retrieving comment count");
-        }
+        Long count = commentService.getCommentCount(postId);
+        return ResponseUtil.success("Comment count retrieved successfully", count);
     }
     
     @PostMapping("/post/{postId}")
@@ -152,15 +122,8 @@ public class CommentController {
         
         log.info("POST /blog/comments/post/{} - Creating comment by {}", postId, request.getAuthorName());
         
-        try {
-            CommentResponse response = commentService.createComment(postId, request);
-            return ResponseUtil.created("Comment created successfully and is pending approval", response);
-        } catch (IllegalArgumentException e) {
-            return ResponseUtil.badRequest(e.getMessage());
-        } catch (Exception e) {
-            log.error("Error creating comment", e);
-            return ResponseUtil.internalError("Error creating comment");
-        }
+        CommentResponse response = commentService.createComment(postId, request);
+        return ResponseUtil.created("Comment created successfully and is pending approval", response);
     }
     
     @PatchMapping("/{id}/approve")
@@ -170,16 +133,8 @@ public class CommentController {
         
         log.info("PATCH /blog/comments/{}/approve", id);
         
-        try {
-            CommentResponse response = commentService.approveComment(id);
-            return ResponseUtil.success("Comment approved successfully", response);
-        } catch (BaseException e) {
-            log.error("Error approving comment: {}", e.getMessage(), e);
-            return ResponseUtil.error(e.getMessage(), e.getErrorCode(), e.getHttpStatus());
-        } catch (Exception e) {
-            log.error("Error approving comment", e);
-            return ResponseUtil.internalError("Error approving comment");
-        }
+        CommentResponse response = commentService.approveComment(id);
+        return ResponseUtil.success("Comment approved successfully", response);
     }
     
     @DeleteMapping("/{id}")
@@ -189,15 +144,7 @@ public class CommentController {
         
         log.info("DELETE /blog/comments/{}", id);
         
-        try {
-            commentService.deleteComment(id);
-            return ResponseUtil.successVoid("Comment deleted successfully");
-        } catch (BaseException e) {
-            log.error("Error deleting comment: {}", e.getMessage(), e);
-            return ResponseUtil.error(e.getMessage(), e.getErrorCode(), e.getHttpStatus());
-        } catch (Exception e) {
-            log.error("Error deleting comment", e);
-            return ResponseUtil.internalError("Error deleting comment");
-        }
+        commentService.deleteComment(id);
+        return ResponseUtil.successVoid("Comment deleted successfully");
     }
 }

@@ -1,8 +1,8 @@
 # Build stage
 FROM maven:3.9-eclipse-temurin-17 AS build
 WORKDIR /app
-COPY config-server/pom.xml .
-COPY config-server/src ./src
+COPY services/infrastructure/config-server/pom.xml .
+COPY services/infrastructure/config-server/src ./src
 RUN mvn clean package -DskipTests
 
 # Runtime stage

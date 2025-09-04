@@ -45,14 +45,8 @@ public class BlogPostController {
         
         log.info("GET /blog/posts - page: {}, size: {}", page, size);
         
-        try {
-            Page<BlogPostResponse> posts = blogPostService.getAllPublishedPosts(page, size);
-            return ResponseEntity.ok(BaseResponse.success("Posts retrieved successfully", posts));
-        } catch (Exception e) {
-            log.error("Error retrieving posts", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving posts", "INTERNAL_ERROR"));
-        }
+        Page<BlogPostResponse> posts = blogPostService.getAllPublishedPosts(page, size);
+        return ResponseEntity.ok(BaseResponse.success("Posts retrieved successfully", posts));
     }
     
     @GetMapping("/category/{categoryId}")
@@ -71,14 +65,8 @@ public class BlogPostController {
         
         log.info("GET /blog/posts/category/{} - page: {}, size: {}", categoryId, page, size);
         
-        try {
-            Page<BlogPostResponse> posts = blogPostService.getPostsByCategory(categoryId, page, size);
-            return ResponseEntity.ok(BaseResponse.success("Posts retrieved successfully", posts));
-        } catch (Exception e) {
-            log.error("Error retrieving posts by category", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving posts", "INTERNAL_ERROR"));
-        }
+        Page<BlogPostResponse> posts = blogPostService.getPostsByCategory(categoryId, page, size);
+        return ResponseEntity.ok(BaseResponse.success("Posts retrieved successfully", posts));
     }
     
     @GetMapping("/author/{authorId}")
@@ -90,14 +78,8 @@ public class BlogPostController {
         
         log.info("GET /blog/posts/author/{} - page: {}, size: {}", authorId, page, size);
         
-        try {
-            Page<BlogPostResponse> posts = blogPostService.getPostsByAuthor(authorId, page, size);
-            return ResponseEntity.ok(BaseResponse.success("Posts retrieved successfully", posts));
-        } catch (Exception e) {
-            log.error("Error retrieving posts by author", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving posts", "INTERNAL_ERROR"));
-        }
+        Page<BlogPostResponse> posts = blogPostService.getPostsByAuthor(authorId, page, size);
+        return ResponseEntity.ok(BaseResponse.success("Posts retrieved successfully", posts));
     }
     
     @GetMapping("/featured")
@@ -108,13 +90,8 @@ public class BlogPostController {
         
         log.info("GET /blog/posts/featured - page: {}, size: {}", page, size);
         
-        try {
-            Page<BlogPostResponse> posts = blogPostService.getFeaturedPosts(page, size);
-            return ResponseUtil.success("Featured posts retrieved successfully", posts);
-        } catch (Exception e) {
-            log.error("Error retrieving featured posts", e);
-            return ResponseUtil.internalError("Error retrieving featured posts");
-        }
+        Page<BlogPostResponse> posts = blogPostService.getFeaturedPosts(page, size);
+        return ResponseUtil.success("Featured posts retrieved successfully", posts);
     }
     
     @GetMapping("/popular")
@@ -125,13 +102,8 @@ public class BlogPostController {
         
         log.info("GET /blog/posts/popular - page: {}, size: {}", page, size);
         
-        try {
-            Page<BlogPostResponse> posts = blogPostService.getPopularPosts(page, size);
-            return ResponseUtil.success("Popular posts retrieved successfully", posts);
-        } catch (Exception e) {
-            log.error("Error retrieving popular posts", e);
-            return ResponseUtil.internalError("Error retrieving popular posts");
-        }
+        Page<BlogPostResponse> posts = blogPostService.getPopularPosts(page, size);
+        return ResponseUtil.success("Popular posts retrieved successfully", posts);
     }
     
     @GetMapping("/search")
@@ -143,14 +115,8 @@ public class BlogPostController {
         
         log.info("GET /blog/posts/search - keyword: '{}', page: {}, size: {}", keyword, page, size);
         
-        try {
-            Page<BlogPostResponse> posts = blogPostService.searchPosts(keyword, page, size);
-            return ResponseEntity.ok(BaseResponse.success("Search results retrieved successfully", posts));
-        } catch (Exception e) {
-            log.error("Error searching posts", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error searching posts", "INTERNAL_ERROR"));
-        }
+        Page<BlogPostResponse> posts = blogPostService.searchPosts(keyword, page, size);
+        return ResponseEntity.ok(BaseResponse.success("Search results retrieved successfully", posts));
     }
     
     @GetMapping("/tag/{tagSlug}")
@@ -162,14 +128,8 @@ public class BlogPostController {
         
         log.info("GET /blog/posts/tag/{} - page: {}, size: {}", tagSlug, page, size);
         
-        try {
-            Page<BlogPostResponse> posts = blogPostService.getPostsByTag(tagSlug, page, size);
-            return ResponseEntity.ok(BaseResponse.success("Posts retrieved successfully", posts));
-        } catch (Exception e) {
-            log.error("Error retrieving posts by tag", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving posts", "INTERNAL_ERROR"));
-        }
+        Page<BlogPostResponse> posts = blogPostService.getPostsByTag(tagSlug, page, size);
+        return ResponseEntity.ok(BaseResponse.success("Posts retrieved successfully", posts));
     }
     
     @GetMapping("/slug/{slug}")
@@ -179,18 +139,12 @@ public class BlogPostController {
         
         log.info("GET /blog/posts/slug/{}", slug);
         
-        try {
-            Optional<BlogPostResponse> post = blogPostService.getPostBySlug(slug);
-            if (post.isPresent()) {
-                return ResponseEntity.ok(BaseResponse.success("Post retrieved successfully", post.get()));
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(BaseResponse.error("Post not found", "NOT_FOUND"));
-            }
-        } catch (Exception e) {
-            log.error("Error retrieving post by slug", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving post", "INTERNAL_ERROR"));
+        Optional<BlogPostResponse> post = blogPostService.getPostBySlug(slug);
+        if (post.isPresent()) {
+            return ResponseEntity.ok(BaseResponse.success("Post retrieved successfully", post.get()));
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(BaseResponse.error("Post not found", "NOT_FOUND"));
         }
     }
     
@@ -202,18 +156,8 @@ public class BlogPostController {
         
         log.info("GET /blog/posts/{}/related - limit: {}", id, limit);
         
-        try {
-            Page<BlogPostResponse> posts = blogPostService.getRelatedPosts(id, limit);
-            return ResponseEntity.ok(BaseResponse.success("Related posts retrieved successfully", posts));
-        } catch (BaseException e) {
-            log.error("Error retrieving related posts: {}", e.getMessage(), e);
-            return ResponseEntity.status(e.getHttpStatus())
-                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
-        } catch (Exception e) {
-            log.error("Error retrieving related posts", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error retrieving related posts", "INTERNAL_ERROR"));
-        }
+        Page<BlogPostResponse> posts = blogPostService.getRelatedPosts(id, limit);
+        return ResponseEntity.ok(BaseResponse.success("Related posts retrieved successfully", posts));
     }
     
     @PostMapping
@@ -223,18 +167,9 @@ public class BlogPostController {
         
         log.info("POST /blog/posts - Creating post: {}", request.getTitle());
         
-        try {
-            BlogPostResponse response = blogPostService.createPost(request);
-            return ResponseEntity.status(HttpStatus.CREATED)
-                .body(BaseResponse.success("Post created successfully", response));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(BaseResponse.error(e.getMessage(), "VALIDATION_ERROR"));
-        } catch (Exception e) {
-            log.error("Error creating post", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error creating post", "INTERNAL_ERROR"));
-        }
+        BlogPostResponse response = blogPostService.createPost(request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .body(BaseResponse.success("Post created successfully", response));
     }
     
     @PutMapping("/{id}")
@@ -245,18 +180,8 @@ public class BlogPostController {
         
         log.info("PUT /blog/posts/{} - Updating post", id);
         
-        try {
-            BlogPostResponse response = blogPostService.updatePost(id, request);
-            return ResponseEntity.ok(BaseResponse.success("Post updated successfully", response));
-        } catch (BaseException e) {
-            log.error("Error retrieving related posts: {}", e.getMessage(), e);
-            return ResponseEntity.status(e.getHttpStatus())
-                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
-        } catch (Exception e) {
-            log.error("Error updating post", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error updating post", "INTERNAL_ERROR"));
-        }
+        BlogPostResponse response = blogPostService.updatePost(id, request);
+        return ResponseEntity.ok(BaseResponse.success("Post updated successfully", response));
     }
     
     @DeleteMapping("/{id}")
@@ -266,18 +191,8 @@ public class BlogPostController {
         
         log.info("DELETE /blog/posts/{}", id);
         
-        try {
-            blogPostService.deletePost(id);
-            return ResponseEntity.ok(BaseResponse.success("Post deleted successfully"));
-        } catch (BaseException e) {
-            log.error("Error retrieving related posts: {}", e.getMessage(), e);
-            return ResponseEntity.status(e.getHttpStatus())
-                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
-        } catch (Exception e) {
-            log.error("Error deleting post", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error deleting post", "INTERNAL_ERROR"));
-        }
+        blogPostService.deletePost(id);
+        return ResponseEntity.ok(BaseResponse.success("Post deleted successfully"));
     }
     
     @PostMapping("/{id}/publish")
@@ -287,18 +202,8 @@ public class BlogPostController {
         
         log.info("POST /blog/posts/{}/publish", id);
         
-        try {
-            BlogPostResponse response = blogPostService.publishPost(id);
-            return ResponseEntity.ok(BaseResponse.success("Post published successfully", response));
-        } catch (BaseException e) {
-            log.error("Error retrieving related posts: {}", e.getMessage(), e);
-            return ResponseEntity.status(e.getHttpStatus())
-                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
-        } catch (Exception e) {
-            log.error("Error publishing post", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error publishing post", "INTERNAL_ERROR"));
-        }
+        BlogPostResponse response = blogPostService.publishPost(id);
+        return ResponseEntity.ok(BaseResponse.success("Post published successfully", response));
     }
     
     @PostMapping("/{id}/like")
@@ -308,17 +213,7 @@ public class BlogPostController {
         
         log.info("POST /blog/posts/{}/like", id);
         
-        try {
-            blogPostService.likePost(id);
-            return ResponseEntity.ok(BaseResponse.success("Post liked successfully"));
-        } catch (BaseException e) {
-            log.error("Error retrieving related posts: {}", e.getMessage(), e);
-            return ResponseEntity.status(e.getHttpStatus())
-                .body(BaseResponse.error(e.getMessage(), e.getErrorCode()));
-        } catch (Exception e) {
-            log.error("Error liking post", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(BaseResponse.error("Error liking post", "INTERNAL_ERROR"));
-        }
+        blogPostService.likePost(id);
+        return ResponseEntity.ok(BaseResponse.success("Post liked successfully"));
     }
 }

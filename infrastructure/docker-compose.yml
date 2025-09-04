@@ -394,7 +394,7 @@ services:
       - POSTGRES_HOST_AUTH_METHOD=md5
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ../scripts/database/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
+      - ../scripts/database/database/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
     networks:
       - nexhub-network
     restart: unless-stopped
@@ -592,7 +592,7 @@ services:
 networks:
   nexhub-network:
     driver: bridge
-    name: next-network
+    name: nexhub-network
 
 volumes:
   postgres_data:

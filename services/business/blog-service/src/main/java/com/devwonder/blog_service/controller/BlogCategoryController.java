@@ -39,13 +39,8 @@ public class BlogCategoryController {
     public ResponseEntity<BaseResponse<List<BlogCategoryResponse>>> getAllVisibleCategories() {
         log.info("GET /blog/categories - Fetching visible categories");
         
-        try {
-            List<BlogCategoryResponse> categories = categoryService.getAllVisibleCategories();
-            return ResponseUtil.success("Categories retrieved successfully", categories);
-        } catch (Exception e) {
-            log.error("Error retrieving categories", e);
-            return ResponseUtil.internalError("Error retrieving categories");
-        }
+        List<BlogCategoryResponse> categories = categoryService.getAllVisibleCategories();
+        return ResponseUtil.success("Categories retrieved successfully", categories);
     }
     
     @GetMapping("/paginated")
